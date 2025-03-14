@@ -1,0 +1,67 @@
+{
+    // Az intellisense kizárása a build könyvtárból
+    "files.exclude": {
+        "**/build": true
+    },
+    "search.exclude": {
+        "**/build": true
+    },
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/**",
+        "!${workspaceFolder}/build/**"
+    ],
+
+    "files.associations": {
+        "memory": "cpp",
+        "format": "cpp",
+        "ostream": "cpp",
+        "cstdint": "cpp",
+        "compare": "cpp",
+        "string_view": "cpp",
+        "system_error": "cpp",
+        "text_encoding": "cpp",
+        "typeinfo": "cpp",
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp",
+        "variant": "cpp",
+        "atomic": "cpp",
+        "string": "cpp",
+        "span": "cpp",
+        "charconv": "cpp",
+        "type_traits": "cpp",
+        "bit": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "concepts": "cpp",
+        "cstdarg": "cpp",
+        "cstddef": "cpp",
+        "cstdio": "cpp",
+        "cstdlib": "cpp",
+        "ctime": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "exception": "cpp",
+        "algorithm": "cpp",
+        "iterator": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "optional": "cpp",
+        "random": "cpp",
+        "initializer_list": "cpp",
+        "iosfwd": "cpp",
+        "limits": "cpp",
+        "new": "cpp",
+        "numbers": "cpp",
+        "stdexcept": "cpp",
+        "streambuf": "cpp"
+    }
+}
