@@ -1,7 +1,7 @@
 /**
- * Timer-based rotary encoder
- * Rotary Encoder Driver with Acceleration
- * Supports Click, DoubleClick, Long Click
+ * Időzítő alapú forgó jeladó
+ * Forgó jeladó vezérlő gyorsítással
+ * Támogatja a kattintást, dupla kattintást és a hosszan tartó kattintást
  *
  * inspired:  http://www.mikrocontroller.net/articles/Drehgeber
  *
@@ -10,16 +10,16 @@
 #include "RotaryEncoder.h"
 
 // ----------------------------------------------------------------------------
-// Button configuration (values for 1ms timer service calls)
+// Gomb konfiguráció (értékek 1ms-os időzítő szolgáltatás hívásokhoz)
 //
-#define ENC_BUTTONINTERVAL 10   // check button every x milliseconds, also debouce time
-#define ENC_DOUBLECLICKTIME 600 // second click within 600ms
-#define ENC_HOLDTIME 1200       // report held button after 1.2s
+#define ENC_BUTTONINTERVAL 10   // gomb ellenőrzése x milliszekundumonként, egyben a pattogásgátló idő is
+#define ENC_DOUBLECLICKTIME 600 // második kattintás 600ms-on belül
+#define ENC_HOLDTIME 1200       // a gomb lenyomva tartásának jelentése 1.2s után
 
 // ----------------------------------------------------------------------------
-// Acceleration configuration (for 1000Hz calls to ::service())
+// Gyorsulás konfiguráció (1000Hz-es ::service() hívásokhoz)
 //
-#define ENC_ACCEL_TOP 3072 // max. acceleration: *12 (val >> 8)
+#define ENC_ACCEL_TOP 3072 // max. gyorsulás: *12 (val >> 8)
 #define ENC_ACCEL_INC 25
 #define ENC_ACCEL_DEC 2
 
@@ -27,11 +27,11 @@
 
 #if ENC_DECODER != ENC_NORMAL
 #ifdef ENC_HALFSTEP
-// decoding table for hardware with flaky notch (half resolution)
+// dekódolási táblázat hibás léptető hardverhez (fél felbontás)
 const int8_t ClickEncoder::table[16] __attribute__((__progmem__)) = {
     0, 0, -1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, -1, 0, 0};
 #else
-// decoding table for normal hardware
+// dekódolási táblázat normál hardverhez
 const int8_t ClickEncoder::table[16] __attribute__((__progmem__)) = {
     0, 1, -1, 0, -1, 0, 0, 1, 1, 0, 0, -1, 0, -1, 1, 0};
 #endif
@@ -67,9 +67,9 @@ void RotaryEncoder::service() {
     bool moved = false;
     unsigned long now = millis();
 
-    if (accelerationEnabled) { // decelerate every tick
+    if (accelerationEnabled) { // lassítás minden ciklusban
         acceleration -= ENC_ACCEL_DEC;
-        if (acceleration & 0x8000) { // handle overflow of MSB is set
+        if (acceleration & 0x8000) { // MSB be van állítva, túlcsordulás kezelése
             acceleration = 0;
         }
     }
@@ -103,44 +103,44 @@ void RotaryEncoder::service() {
 
     int8_t diff = last - curr;
 
-    if (diff & 1) { // bit 0 = step
+    if (diff & 1) { // 0. bit = lépés
         last = curr;
-        delta += (diff & 2) - 1; // bit 1 = direction (+/-)
+        delta += (diff & 2) - 1; // 1. bit = irány (+/-)
         moved = true;
     }
 #else
-#error "Error: define ENC_DECODER to ENC_NORMAL or ENC_FLAKY"
+#error "Hiba: definiáld az ENC_DECODER-t ENC_NORMAL-ra vagy ENC_FLAKY-re"
 #endif
 
     if (accelerationEnabled && moved) {
-        // increment accelerator if encoder has been moved
+        // növeli a gyorsítót, ha az enkóder el lett mozdítva
         if (acceleration <= (ENC_ACCEL_TOP - ENC_ACCEL_INC)) {
             acceleration += ENC_ACCEL_INC;
         }
     }
 
-    // handle button
+    // gomb kezelése
     //
-    if (pinBTN > 0                                        // check button only, if a pin has been provided
-        && (now - lastButtonCheck) >= ENC_BUTTONINTERVAL) // checking button is sufficient every 10-30ms
+    if (pinBTN > 0                                        // csak akkor ellenőrizzük a gombot, ha megadtuk a lábát
+        && (now - lastButtonCheck) >= ENC_BUTTONINTERVAL) // a gomb ellenőrzése elegendő 10-30ms-ként
     {
         lastButtonCheck = now;
 
-        if (digitalRead(pinBTN) == pinsActive) { // key is down
+        if (digitalRead(pinBTN) == pinsActive) { // a gomb le van nyomva
             keyDownTicks++;
             if (keyDownTicks > (ENC_HOLDTIME / ENC_BUTTONINTERVAL)) {
                 buttonState = ButtonState::Held;
             }
         }
 
-        if (digitalRead(pinBTN) == !pinsActive) { // key is now up
+        if (digitalRead(pinBTN) == !pinsActive) { // most engedték fel a gombot
             if (keyDownTicks /*> ENC_BUTTONINTERVAL*/) {
                 if (buttonState == ButtonState::Held) {
                     buttonState = ButtonState::Released;
                     doubleClickTicks = 0;
                 } else {
 #define ENC_SINGLECLICKONLY 1
-                    if (doubleClickTicks > ENC_SINGLECLICKONLY) { // prevent trigger in single click mode
+                    if (doubleClickTicks > ENC_SINGLECLICKONLY) { // megakadályozza az aktiválást egyszrű kattintás módban
                         if (doubleClickTicks < (ENC_DOUBLECLICKTIME / ENC_BUTTONINTERVAL)) {
                             buttonState = ButtonState::DoubleClicked;
                             doubleClickTicks = 0;
@@ -177,7 +177,7 @@ int16_t RotaryEncoder::getValue(void) {
     else if (steps == 4)
         delta = val & 3;
     else
-        delta = 0; // default to 1 step per notch
+        delta = 0; // alapértelmezés szerint 1 lépés minden beugró ponthoz
 
     sei();
 
@@ -205,7 +205,7 @@ int16_t RotaryEncoder::getValue(void) {
 RotaryEncoder::ButtonState RotaryEncoder::getButton(void) {
     ButtonState ret = buttonState;
     if (buttonState != ButtonState::Held) {
-        buttonState = ButtonState::Open; // reset
+        buttonState = ButtonState::Open; // visszaállítás
     }
     return ret;
 }
