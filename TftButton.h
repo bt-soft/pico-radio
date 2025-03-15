@@ -77,7 +77,7 @@ private:
     /**
      * Felengedték a gombot
      */
-    ButtonTouchEvent released() {
+    void released() {
         buttonPressed = false;
         if (type == ButtonType::Toggleable) {
             state = (oldState == ButtonState::Off) ? ButtonState::On : ButtonState::Off;
@@ -87,8 +87,6 @@ private:
         oldState = state;
 
         draw();
-
-        return {id, label, type == ButtonType::Pushable ? ButtonState::Pushed : state};
     }
 
     /**
@@ -192,16 +190,21 @@ public:
         pTft->drawString(label, x + w / 2, y - BUTTON_LABEL_MARGIN_TOP + h / 2);
 
         // LED csík kirajzolása ha a gomb aktív vagy push, és nyomják
-        constexpr uint8_t BUTTON_LED_HEIGHT = 5;
+        uint16_t ledColor = 0;
         if (state == ButtonState::On) {
-            // Ha ON állapotú, akkor zöld a LED csík
-            pTft->fillRect(x + 10, y + h - BUTTON_LED_HEIGHT - 3, w - 20, BUTTON_LED_HEIGHT, TFT_GREEN);
+            // Ha On állapotú, akkor zöld a LED csík
+            ledColor = TFT_GREEN;
         } else if (type == ButtonType::Pushable && buttonPressed) {
-            // Ha PUSHABLE típusú és nyomva tartják, narancs LED
-            pTft->fillRect(x + 10, y + h - BUTTON_LED_HEIGHT - 3, w - 20, BUTTON_LED_HEIGHT, TFT_ORANGE);
+            // Ha Pushable típusú és épp nyomva tartják, akkor a LED narancs
+            ledColor = TFT_ORANGE;
         } else if (type == ButtonType::Toggleable && state == ButtonState::Off) {
-            // Ha Toggleable típusú és OFF állapotú, akkor sötétzöld LED
-            pTft->fillRect(x + 10, y + h - BUTTON_LED_HEIGHT - 3, w - 20, BUTTON_LED_HEIGHT, TFT_DARKGREEN);
+            // Ha Toggleable típusú és Off állapotú, akkor a LED sötétzöld
+            ledColor = TFT_COLOR(5, 59, 19); // Sötétzöld
+        }
+        // Ha kell állítani a LED színt
+        if (ledColor) {
+            constexpr uint8_t BUTTON_LED_HEIGHT = 5;
+            pTft->fillRect(x + 10, y + h - BUTTON_LED_HEIGHT - 3, w - 20, BUTTON_LED_HEIGHT, ledColor);
         }
     }
 
@@ -211,11 +214,11 @@ public:
      * @param tx Az érintési esemény x-koordinátája.
      * @param ty Az érintési esemény y-koordinátája.
      */
-    ButtonTouchEvent handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+    bool handleTouch(bool touched, uint16_t tx, uint16_t ty) {
 
         // Ha tiltott a gomb, akkor nem megyünk tovább
         if (state == ButtonState::Disabled) {
-            return noTouchEvent;
+            return false;
         }
 
         // Ha van touch, de még nincs lenyomva a gomb, és erre a gombra jött a touch
@@ -223,10 +226,18 @@ public:
             pressed();
         } else if (!touched and buttonPressed) {
             // Ha nincs ugyan touch, de ezt a gombot nyomva tartották eddig, akkor esemény van!!
-            return released();
+            released();
+            return true;
         }
 
-        return noTouchEvent;
+        return false;
+    }
+
+    /**
+     * ButtonTouchEvent legyártása
+     */
+    inline ButtonTouchEvent buildButtonTouchEvent() {
+        return {id, label, type == ButtonType::Pushable ? ButtonState::Pushed : state};
     }
 
     /**

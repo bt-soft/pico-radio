@@ -2,6 +2,7 @@
 #include <TFT_eSPI.h> // TFT_eSPI könyvtár
 
 #include "DialogBase.h"
+#include "IDialogParent.h"
 #include "IGuiEvents.h"
 #include "TftButton.h"
 #include "utils.h"
@@ -27,7 +28,7 @@
 /**
  *
  */
-class DisplayBase : public IGuiEvents {
+class DisplayBase : public IGuiEvents, public IDialogParent {
 
 private:
     // A dinamikusan létrehozott gombok tömbjére mutató pointer
@@ -36,6 +37,9 @@ private:
     uint8_t screenButtonsCount = 0;
     // A lenyomott képernyő menügomb adatai
     TftButton::ButtonTouchEvent screenButtonTouchEvent = TftButton::noTouchEvent;
+
+    // A dialógban megnyomott gomb adatai
+    TftButton::ButtonTouchEvent dialogButtonResponse = TftButton::noTouchEvent;
 
 protected:
     // Képernyőgombok legyártását segítő rekord
@@ -50,6 +54,15 @@ protected:
 
     // A képernyőn megjelenő dialog pointere
     DialogBase *pDialog = nullptr;
+
+    /**
+     * A dialog által átadott megnyomott gomb adatai
+     * Az IDialogParent-ből jön, a dialóg hívja, ha nyomtak rajta valamit
+     */
+    void setDialogResponse(TftButton::ButtonTouchEvent event) override {
+        // A dialogButtonResponse saját másolatot kap, független az eredeti event forrástól, a dialogot lehet törölni
+        dialogButtonResponse = event;
+    }
 
     /**
      * Screen gombok automatikus X koordinátájának kiszámítása
@@ -155,61 +168,82 @@ public:
     /**
      * ScreenButton touch esemény feldolgozása
      */
-    virtual void handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) = 0;
+    virtual void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) = 0;
+
+    /**
+     * Dialóg Button touch esemény feldolgozása
+     */
+    virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) = 0;
 
     /**
      * Arduino loop hívás
      */
     virtual void loop(RotaryEncoder::EncoderState encoderState) final {
 
-        //
-        // Rotary esemény vizsgálata
-        //
-        if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
-            // Ha van dialóg, akkor annak passzoljuk a rotary eseményt
-            if (pDialog) {
-                pDialog->handleRotary(encoderState);
-            } else {
-                // Ha nincs dialóg, akkor a leszármazott képernyőnek
-                this->handleRotary(encoderState);
+        // Touch adatok változói
+        uint16_t tx, ty;
+        bool touched = false;
+
+        // Ha van az előző körből feldolgozandó esemény, akkor azzal foglalkozunk először
+        if (screenButtonTouchEvent == TftButton::noTouchEvent and dialogButtonResponse == TftButton::noTouchEvent) {
+
+            // Ha nincs feldolgozandó képernyő vagy dialóg gomb esemény, akkor ...
+
+            //
+            // Rotary esemény vizsgálata
+            //
+            if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
+                // Ha van dialóg, akkor annak passzoljuk a rotary eseményt
+                if (pDialog) {
+                    pDialog->handleRotary(encoderState);
+                } else {
+                    // Ha nincs dialóg, akkor a leszármazott képernyőnek
+                    this->handleRotary(encoderState);
+                }
+
+                // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al
+                // Ha volt rotary esemény, akkor nem lehet touch, így nem megyünk tovább
+                return;
             }
 
-            // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al
-            // Ha volt rotary esemény, akkor nem lehet touch, így nem megyünk tovább
-            return;
-        }
+            //
+            // Touch esemény vizsgálata
+            //
+            touched = tft.getTouch(&tx, &ty, 40); // A treshold értékét megnöveljük a default 20msec-ről 40-re
 
-        //
-        // Touch esemény vizsgálata
-        //
-        uint16_t tx, ty;
-        bool touched = tft.getTouch(&tx, &ty, 40); // A treshold értékét megnöveljük a default 20msec-ről 40-re
+            // Ha van dialóg, de még nincs dialogButtonResponse, akkor meghívjuk a dialóg touch handlerét
+            if (pDialog != nullptr and dialogButtonResponse == TftButton::noTouchEvent and pDialog->handleTouch(touched, tx, ty)) {
 
-        // Ha van dialóg, akkor annak passzoljuk a touch adatokat
-        if (pDialog) {
+                // Ha ide értünk, akkor be van állítva a dialogButtonResponse
+                return;
 
-            pDialog->handleTouch(touched, tx, ty);
+            } else if (pDialog == nullptr and screenButtonTouchEvent == TftButton::noTouchEvent and screenButtons) {
+                // Ha nincs dialóg, de vannak képernyő menügombok és még nincs scrrenButton esemény, akkor azok kapják meg a touch adatokat
 
-        } else if (screenButtons) { // Ha nincs dialóg, de vannak képernyő menügombok akkor azok kapják meg a touch adatokat
+                // Elküldjük a touch adatokat a képernyő gomboknak
+                for (uint8_t i = 0; i < screenButtonsCount; i++) {
 
-            // Elküldjük a touch adatokat a képernyő gomboknak
-            for (uint8_t i = 0; i < screenButtonsCount; i++) {
-
-                // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
-                TftButton::ButtonTouchEvent touchEvent = screenButtons[i]->handleTouch(touched, tx, ty);
-                if (touchEvent != TftButton::noTouchEvent) {
-                    screenButtonTouchEvent = touchEvent;
-                    break;
+                    // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
+                    if (screenButtons[i]->handleTouch(touched, tx, ty)) {
+                        screenButtonTouchEvent = screenButtons[i]->buildButtonTouchEvent();
+                        break;
+                    }
                 }
             }
         }
 
         // Ha volt screenButton touch event, akkor azt továbbítjuk a képernyőnek
         if (screenButtonTouchEvent != TftButton::noTouchEvent) {
-            handleScreenButtonTouchEvent(screenButtonTouchEvent);
+            processScreenButtonTouchEvent(screenButtonTouchEvent);
 
             // Töröljük a screenButton eseményt
             screenButtonTouchEvent = TftButton::noTouchEvent;
+
+        } else if (dialogButtonResponse != TftButton::noTouchEvent) {
+            processDialogButtonResponse(dialogButtonResponse);
+
+            // Töröljük a dialogButtonResponse eseményt
+            dialogButtonResponse = TftButton::noTouchEvent;
 
         } else if (touched) { // Ha nincs screeButton touch event, de nyomtak valamit, akkor azt továbbítjuk a képernyőnek
 

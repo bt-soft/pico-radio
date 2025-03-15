@@ -14,12 +14,17 @@ protected:
     /**
      * Touch (nem képrnyő button) esemény lekezelése
      */
-    void handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
+    bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
 
     /**
      * Képernyő menügomb esemény feldolgozása
      */
-    void handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) override;
+    void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override;
+
+    /**
+     * Dialóg Button touch esemény feldolgozása
+     */
+    void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
 
 public:
     FmDisplay(TFT_eSPI &tft);

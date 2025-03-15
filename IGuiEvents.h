@@ -3,6 +3,9 @@
 
 #include "RotaryEncoder.h"
 
+/**
+ *
+ */
 class IGuiEvents {
 
 public:
@@ -16,8 +19,9 @@ public:
 
     /**
      * Touch esemény lekezelése
+     * true, ha valaki rámozdult az eseményre
      */
-    virtual void handleTouch(bool touched, uint16_t tx, uint16_t ty) = 0;
+    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) = 0;
 };
 
 #endif // __IGUIEVENTS_H

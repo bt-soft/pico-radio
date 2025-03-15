@@ -1,6 +1,8 @@
 #include "FmDisplay.h"
 #include <Arduino.h>
 
+#include "MessageDialog.h"
+
 /**
  * Konstruktor
  */
@@ -8,8 +10,8 @@ FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
 
     // Képernyőgombok definiálása
     DisplayBase::BuildButtonData buttonsData[] = {
-        {"Start", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},
-        {"Stop", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},
+        {"Hello", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},
+        {"Value", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},
         {"Pause", TftButton::ButtonType::Toggleable, TftButton::ButtonState::On},
         {"Reset", TftButton::ButtonType::Pushable, TftButton::ButtonState::Disabled} //
     };
@@ -80,13 +82,33 @@ void FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 /**
  * Touch (nem képrnyő button) esemény lekezelése
  */
-void FmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+bool FmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+    return false;
 }
 
 /**
  * Képernyő menügomb esemény feldolgozása
  */
-void FmDisplay::handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) {
-    DEBUG("FmDisplay::handleScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n",
-          screenButtonTouchEvent.id, screenButtonTouchEvent.label, TftButton::decodeState(screenButtonTouchEvent.state));
+void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
+    DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n",
+          event.id, event.label, TftButton::decodeState(event.state));
+
+    if (event.id == SCRN_MENU_BTN_ID_START) {
+        DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 300, 150, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
+    }
 }
+
+/**
+ * Dialóg Button touch esemény feldolgozása
+ */
+void FmDisplay::processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {
+    DEBUG("FmDisplay::processDialogButtonResponse() -> id: %d, label: %s, state: %s\n",
+          event.id, event.label, TftButton::decodeState(event.state));
+
+    // Töröljük a dialógot
+    delete DisplayBase::pDialog;
+    DisplayBase::pDialog = nullptr;
+
+    // Újrarajzoljuk a képernyőt
+    drawScreen();
+};
