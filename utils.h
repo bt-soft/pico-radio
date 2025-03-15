@@ -72,10 +72,11 @@ bool isZeroArray(T (&arr)[N]) {
  * Várakozás a soros port megnyitására
  * @param pTft a TFT kijelző példánya
  */
-void debugWaitForSerial(TFT_eSPI *pTft);
+void debugWaitForSerial(TFT_eSPI &tft);
 
 //--- TFT ---
-void tftTouchCalibrate(TFT_eSPI *pTft, uint16_t (&calData)[5]);
+void tftTouchCalibrate(TFT_eSPI &tft, uint16_t (&calData)[5]);
+void displayException(TFT_eSPI &tft, const char *msg);
 
 //--- Beep ----
 /**

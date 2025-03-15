@@ -37,7 +37,7 @@ const Config_t DEFAULT_CONFIG = {
     .AGCgain = 1,
 
     //--- TFT
-    //.tftCalibrateData = {0, 0, 0, 0, 0}, // TFT touch kalibrációs adatok
-    .tftCalibrateData = {213, 3717, 234, 3613, 7},
+    .tftCalibrateData = {0, 0, 0, 0, 0}, // TFT touch kalibrációs adatok
+    //.tftCalibrateData = {213, 3717, 234, 3613, 7},
     .digitLigth = true, // Inaktív szegmens látszódjon?
 };

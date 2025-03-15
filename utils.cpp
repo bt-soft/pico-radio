@@ -4,51 +4,50 @@ namespace Utils {
 
 /**
  * Várakozás a soros port megnyitására
- * @param pTft a TFT kijelző példánya
- * @param beeper a Beeper példánya
+ * @param tft a TFT kijelző példánya
  */
-void debugWaitForSerial(TFT_eSPI *pTft) {
+void debugWaitForSerial(TFT_eSPI &tft) {
 #ifdef __DEBUG
     beepError();
-    pTft->setTextColor(TFT_WHITE);
-    pTft->drawString("Nyisd meg a soros portot!", 0, 0);
+    tft.setTextColor(TFT_WHITE);
+    tft.drawString("Nyisd meg a soros portot!", 0, 0);
     while (!Serial) {
     }
-    pTft->fillScreen(TFT_BLACK);
+    tft.fillScreen(TFT_BLACK);
     beepTick();
 #endif
 }
 
 /**
  * TFT érintőképernyő kalibráció
- * @param pTft TFT kijelző példánya
+ * @param tft TFT kijelző példánya
  * @param calData kalibrációs adatok
  */
-void tftTouchCalibrate(TFT_eSPI *pTft, uint16_t (&calData)[5]) {
+void tftTouchCalibrate(TFT_eSPI &tft, uint16_t (&calData)[5]) {
 
-    pTft->fillScreen(TFT_BLACK);
-    pTft->setTextFont(2);
-    pTft->setTextSize(2);
+    tft.fillScreen(TFT_BLACK);
+    tft.setTextFont(2);
+    tft.setTextSize(2);
     const __FlashStringHelper *txt = F("TFT touch calibration required\n");
-    pTft->setCursor((pTft->width() - pTft->textWidth(txt)) / 2, pTft->height() / 2 - 60);
-    pTft->setTextColor(TFT_ORANGE, TFT_BLACK);
-    pTft->println(txt);
+    tft.setCursor((tft.width() - tft.textWidth(txt)) / 2, tft.height() / 2 - 60);
+    tft.setTextColor(TFT_ORANGE, TFT_BLACK);
+    tft.println(txt);
 
-    pTft->setTextSize(1);
+    tft.setTextSize(1);
     txt = F("Touch the corners at the indicated places!\n");
-    pTft->setCursor((pTft->width() - pTft->textWidth(txt)) / 2, pTft->height() / 2 + 20);
-    pTft->setTextColor(TFT_YELLOW, TFT_BLACK);
-    pTft->println(txt);
+    tft.setCursor((tft.width() - tft.textWidth(txt)) / 2, tft.height() / 2 + 20);
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    tft.println(txt);
 
     // TFT_eSPI 'bóti' kalibráció indítása
-    pTft->calibrateTouch(calData, TFT_YELLOW, TFT_BLACK, 15);
+    tft.calibrateTouch(calData, TFT_YELLOW, TFT_BLACK, 15);
 
     txt = F("Kalibracio befejezodott!");
-    pTft->fillScreen(TFT_BLACK);
-    pTft->setCursor((pTft->width() - pTft->textWidth(txt)) / 2, pTft->height() / 2);
-    pTft->setTextColor(TFT_GREEN, TFT_BLACK);
-    pTft->setTextSize(1);
-    pTft->println(txt);
+    tft.fillScreen(TFT_BLACK);
+    tft.setCursor((tft.width() - tft.textWidth(txt)) / 2, tft.height() / 2);
+    tft.setTextColor(TFT_GREEN, TFT_BLACK);
+    tft.setTextSize(1);
+    tft.println(txt);
 
     DEBUG("// Használd ezt a kalibrációs kódot a setup()-ban:\n");
     DEBUG("  uint16_t calData[5] = { ");
@@ -59,7 +58,37 @@ void tftTouchCalibrate(TFT_eSPI *pTft, uint16_t (&calData)[5]) {
         }
     }
     DEBUG(" };\n");
-    DEBUG("  pTft->setTouch(calData);\n");
+    DEBUG("  tft.setTouch(calData);\n");
+}
+
+/**
+ * Hiba megjelenítése a képrnyőn
+ */
+void displayException(TFT_eSPI &tft, const char *msg) {
+
+    int16_t screenWidth = tft.width();
+    int16_t screenHeight = tft.height();
+
+    tft.fillScreen(TFT_BLACK);
+    tft.drawRect(0, 0, screenWidth, screenHeight, TFT_RED); // 2px széles piros keret
+    tft.drawRect(1, 1, screenWidth - 2, screenHeight - 2, TFT_RED);
+
+    tft.setTextColor(TFT_RED, TFT_BLACK);
+    tft.setTextDatum(MC_DATUM); // Középre igazítás
+    tft.setTextSize(2);
+
+    tft.drawString("HIBA!", screenWidth / 2, screenHeight / 3);
+    tft.setTextSize(1);
+    tft.drawString(msg, screenWidth / 2, screenHeight / 2);
+
+    DEBUG(msg);
+    // Végtelen ciklusba esünk  és a belső LED villogtatásával jelezzük hogy hiba van
+    while (true) {
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(300);
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(300);
+    }
 }
 
 /**

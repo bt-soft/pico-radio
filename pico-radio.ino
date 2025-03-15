@@ -19,6 +19,10 @@ Config config;
 #include "PicoMemoryInfo.h"
 #endif
 
+//------------------- Képernyő
+#include "FmDisplay.h"
+DisplayBase *pDisplay;
+
 /** ----------------------------------------------------------------------------------------------------------------------------------------
  *  Arduino Setup
  */
@@ -46,7 +50,7 @@ void setup() {
     tft.fillScreen(TFT_BLACK);
 
     // Várakozás a soros port megnyitására
-    //    Utils::debugWaitForSerial(&tft);
+    // Utils::debugWaitForSerial(tft);
 
     // Ha a bekapcsolás alatt nyomva tartjuk a rotary gombját, akkor töröljük a konfigot
     if (digitalRead(PIN_ENCODER_SW) == LOW) {
@@ -61,6 +65,19 @@ void setup() {
         // konfig betöltése
         config.load();
     }
+    // Kell kalibrálni a TFT Touch-t?
+    if (Utils::isZeroArray(config.data.tftCalibrateData)) {
+        Utils::beepError();
+        Utils::tftTouchCalibrate(tft, config.data.tftCalibrateData);
+    }
+    // Beállítjuk a touch scren-t
+    tft.setTouch(config.data.tftCalibrateData);
+
+    // Kezdő mód képernyőjének megjelenítése
+    pDisplay = new FmDisplay(tft);
+    pDisplay->drawScreen();
+
+    Utils::beepTick();
 }
 
 /** ----------------------------------------------------------------------------------------------------------------------------------------
@@ -94,7 +111,7 @@ void loop() {
 
     // Rotary Encoder olvasása
     RotaryEncoder::EncoderState encoderState = rotaryEncoder.read();
-    // Ha folymatosan nyomva tartják a rotary gombját akkor kikapcsolunk
+    // Ha folyamatosan nyomva tartják a rotary gombját akkor kikapcsolunk
     if (encoderState.buttonState == RotaryEncoder::ButtonState::Held) {
         // TODO: Kikapcsolás figyelését még implementálni
         DEBUG("Ki kellene kapcsolni...\n");
@@ -103,38 +120,18 @@ void loop() {
         return;
     }
 
-    // Ha klikkeltek VAGY van tekerés, akkor bizony piszkáltuk
-    if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
+    // Aktuális Display loopja
+    try {
 
-        if (encoderState.buttonState != RotaryEncoder::Open) {
-            switch (encoderState.buttonState) {
-            case RotaryEncoder::ButtonState::Pressed:
-                DEBUG("Rotary -> Pressed\n");
-                break;
-            case RotaryEncoder::ButtonState::Held:
-                DEBUG("Rotary -> Held\n");
-                break;
-            case RotaryEncoder::ButtonState::Released:
-                DEBUG("Rotary -> Released\n");
-                break;
-            case RotaryEncoder::ButtonState::Clicked:
-                DEBUG("Rotary -> Clicked\n");
-                break;
-            case RotaryEncoder::ButtonState::DoubleClicked:
-                DEBUG("Rotary -> DoubleClicked\n");
-                break;
-            }
-        }
+        pDisplay->loop(encoderState);
 
-        if (encoderState.direction != RotaryEncoder::Direction::None) {
-            switch (encoderState.direction) {
-            case RotaryEncoder::Direction::Up:
-                DEBUG("Rotary -> UP\n");
-                break;
-            case RotaryEncoder::Direction::Down:
-                DEBUG("Rotary -> DOWN\n");
-                break;
-            }
-        }
+    } catch (const std::exception &e) {
+        Utils::beepError();
+        String msg = "root::pDisplay->handleLoop() függvényben: '";
+        msg += e.what();
+        msg += "'";
+        Utils::displayException(tft, msg.c_str());
+    } catch (...) {
+        Utils::displayException(tft, "root::pDisplay->handleLoop() függvényben: 'ismeretlen hiba'");
     }
 }

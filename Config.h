@@ -78,4 +78,7 @@ public:
     }
 };
 
+// A főprogramban definiálva
+extern Config config;
+
 #endif // __CONFIG_H

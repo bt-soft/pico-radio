@@ -5,7 +5,8 @@
 #include <list>
 
 /**
- * Generikus wrapper ősosztály a mentés és betöltés + CRC számítás funkciókhoz
+ * Generikus wrapper ős osztály a mentés és betöltés + CRC számítás funkciókhoz
+ * A beburkolt objektum EEPROM-ban történő kezelését oldja meg
  */
 template <typename T>
 class StoreBase {
