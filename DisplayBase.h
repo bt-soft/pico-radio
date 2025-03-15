@@ -29,16 +29,24 @@
  */
 class DisplayBase : public IGuiEvents {
 
-protected:
-    // TFT objektum
-    TFT_eSPI &tft;
-
+private:
     // A dinamikusan létrehozott gombok tömbjére mutató pointer
     TftButton **screenButtons = nullptr;
     // A dinamikusan létrehozott gombok száma
     uint8_t screenButtonsCount = 0;
     // A lenyomott képernyő menügomb adatai
     TftButton::ButtonTouchEvent screenButtonTouchEvent = TftButton::noTouchEvent;
+
+protected:
+    // Képernyőgombok legyártását segítő rekord
+    struct BuildButtonData {
+        const char *label;
+        TftButton::ButtonType type;
+        TftButton::ButtonState state;
+    };
+
+    // TFT objektum
+    TFT_eSPI &tft;
 
     // A képernyőn megjelenő dialog pointere
     DialogBase *pDialog = nullptr;
@@ -71,7 +79,33 @@ protected:
     }
 
     /**
-     * Képernyőgombok kirajzolása
+     * Képernyő menügombok legyártása
+     */
+    void buildScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
+        // Dinamikusan létrehozzuk a gombokat
+        screenButtonsCount = buttonsDataLength;
+
+        // Lefoglaljuk a gombok tömbjét
+        screenButtons = new TftButton *[screenButtonsCount];
+
+        // Létrehozzuk a gombokat
+        for (uint8_t i = 0; i < screenButtonsCount; i++) {
+            screenButtons[i] = new TftButton(
+                startId++,            // A gomb ID-je
+                tft,                  // TFT objektum
+                getAutoX(i),          // Gomb X koordinátájának kiszámítása
+                getAutoY(i),          // Gomb Y koordinátájának kiszámítása
+                SCRN_BTN_W,           // Gomb szélessége
+                SCRN_BTN_H,           // Gomb magassága
+                buttonsData[i].label, // Gomb szövege (label)
+                buttonsData[i].type,  // Gomb típusa
+                buttonsData[i].state  // Gomb állapota
+            );
+        }
+    }
+
+    /**
+     * Képernyő menügombok kirajzolása
      */
     void drawScreenButtons() {
 
@@ -124,7 +158,7 @@ public:
     virtual void handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) = 0;
 
     /**
-     * Arduino loop
+     * Arduino loop hívás
      */
     virtual void loop(RotaryEncoder::EncoderState encoderState) final {
 
@@ -140,7 +174,8 @@ public:
                 this->handleRotary(encoderState);
             }
 
-            // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al, így visszatérhetünk, nem megyünk tovább
+            // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al
+            // Ha volt rotary esemény, akkor nem lehet touch, így nem megyünk tovább
             return;
         }
 
@@ -150,17 +185,17 @@ public:
         uint16_t tx, ty;
         bool touched = tft.getTouch(&tx, &ty, 40); // A treshold értékét megnöveljük a default 20msec-ről 40-re
 
-        // Ha van dialóg, akkor annak passzoljuk a touch eseményt
+        // Ha van dialóg, akkor annak passzoljuk a touch adatokat
         if (pDialog) {
 
             pDialog->handleTouch(touched, tx, ty);
 
-        } else if (screenButtons) { // Ha nincs dialóg, akkor a képernyő menügombjainak, ha vannak
+        } else if (screenButtons) { // Ha nincs dialóg, de vannak képernyő menügombok akkor azok kapják meg a touch adatokat
 
-            // Elküldjük a touch eseményt a képernyő gomboknak
+            // Elküldjük a touch adatokat a képernyő gomboknak
             for (uint8_t i = 0; i < screenButtonsCount; i++) {
 
-                // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk
+                // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
                 TftButton::ButtonTouchEvent touchEvent = screenButtons[i]->handleTouch(touched, tx, ty);
                 if (touchEvent != TftButton::noTouchEvent) {
                     screenButtonTouchEvent = touchEvent;

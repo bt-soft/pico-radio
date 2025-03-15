@@ -12,14 +12,14 @@ protected:
     void handleRotary(RotaryEncoder::EncoderState encoderState) override;
 
     /**
-     * Képernyő menügomb esemény feldolgozása
-     */
-    void handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) override;
-
-    /**
      * Touch (nem képrnyő button) esemény lekezelése
      */
     void handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
+
+    /**
+     * Képernyő menügomb esemény feldolgozása
+     */
+    void handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) override;
 
 public:
     FmDisplay(TFT_eSPI &tft);
