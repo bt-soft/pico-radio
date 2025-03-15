@@ -15,18 +15,20 @@ ButtonData SCREEN_BUTTONS_DATA[] = {
 };
 
 /**
- *
+ * Konstruktor
  */
 FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
-#define FM_SCRN_BTNS_CNT 1
 
     // Dinamikusan létrehozzuk a gombokat
     DisplayBase::screenButtonsCount = ARRAY_ITEM_COUNT(SCREEN_BUTTONS_DATA);
-    uint8_t id = SCRN_MENU_BTN_ID_START; // Kezdő sreenButton ID érték
+    // Kezdő sreenButton ID érték
+    uint8_t id = SCRN_MENU_BTN_ID_START;
 
-    DisplayBase::screenButtons = new TftButton *[FM_SCRN_BTNS_CNT]; // Lefoglaljuk a gombok tömbjét
+    // Lefoglaljuk a gombok tömbjét
+    DisplayBase::screenButtons = new TftButton *[DisplayBase::screenButtonsCount];
 
-    for (uint8_t i = 0; i < DisplayBase::screenButtonsCount; i++) { // Létrehozzuk a gombokat
+    // Létrehozzuk a gombokat
+    for (uint8_t i = 0; i < DisplayBase::screenButtonsCount; i++) {
         DisplayBase::screenButtons[i] = new TftButton(
             id++,                         // A gomb ID-je
             tft,                          // TFT objektum
@@ -56,12 +58,8 @@ void FmDisplay::drawScreen() {
     tft.fillScreen(TFT_BLACK);
     tft.setTextFont(2);
 
-    // Megjelenítjük a képernyő gombokat, ha vannak
-    if (DisplayBase::screenButtons) {
-        for (uint8_t i = 0; i < DisplayBase::screenButtonsCount; i++) {
-            DisplayBase::screenButtons[i]->draw();
-        }
-    }
+    // Gombok kirajzolása
+    DisplayBase::drawScreenButtons();
 }
 
 /**
@@ -105,30 +103,15 @@ void FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 }
 
 /**
- * Touch esemény lekezelése
+ * Touch (nem képrnyő button) esemény lekezelése
  */
 void FmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+}
 
-    // Töröljük  a korábban lenyomott gomb adatait
-    if (DisplayBase::buttonTouchEvent != TftButton::noTouchEvent) {
-        DisplayBase::buttonTouchEvent = TftButton::noTouchEvent;
-    }
-
-    // Elküldjük a touch eseményt a képernyő gomboknak
-    if (DisplayBase::screenButtons) {
-        for (uint8_t i = 0; i < DisplayBase::screenButtonsCount; i++) {
-
-            // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk
-            TftButton::ButtonTouchEvent touchEvent = DisplayBase::screenButtons[i]->handleTouch(touched, tx, ty);
-            if (touchEvent != TftButton::noTouchEvent) {
-                DisplayBase::buttonTouchEvent = touchEvent;
-                break;
-            }
-        }
-    }
-
-    if (DisplayBase::buttonTouchEvent != TftButton::noTouchEvent) {
-        DEBUG("Button Pressed: id->%d, label->%s, state->%s\n",
-              DisplayBase::buttonTouchEvent.id, DisplayBase::buttonTouchEvent.label, TftButton::decodeState(DisplayBase::buttonTouchEvent.state));
-    }
+/**
+ * Képernyő menügomb esemény feldolgozása
+ */
+void FmDisplay::handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) {
+    DEBUG("FmDisplay::handleScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n",
+          screenButtonTouchEvent.id, screenButtonTouchEvent.label, TftButton::decodeState(screenButtonTouchEvent.state));
 }

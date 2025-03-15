@@ -30,15 +30,15 @@
 class DisplayBase : public IGuiEvents {
 
 protected:
-    // A lenyomott képernyő menügomb adatai
-    TftButton::ButtonTouchEvent buttonTouchEvent = TftButton::noTouchEvent;
-
     // TFT objektum
     TFT_eSPI &tft;
 
-    // Dinamikusan létrehozott gombok tömbje
+    // A dinamikusan létrehozott gombok tömbjére mutató pointer
+    TftButton **screenButtons = nullptr;
+    // A dinamikusan létrehozott gombok száma
     uint8_t screenButtonsCount = 0;
-    TftButton **screenButtons = nullptr; // Pointerek tömbjére mutató pointer
+    // A lenyomott képernyő menügomb adatai
+    TftButton::ButtonTouchEvent screenButtonTouchEvent = TftButton::noTouchEvent;
 
     // A képernyőn megjelenő dialog pointere
     DialogBase *pDialog = nullptr;
@@ -68,6 +68,19 @@ protected:
 
         // Az adott sor Y koordinátája
         return firstRowY + row * (SCRN_BTN_H + SCREEN_BTN_ROW_SPACING);
+    }
+
+    /**
+     * Képernyőgombok kirajzolása
+     */
+    void drawScreenButtons() {
+
+        // Megjelenítjük a képernyő gombokat, ha vannak
+        if (screenButtons) {
+            for (uint8_t i = 0; i < screenButtonsCount; i++) {
+                screenButtons[i]->draw();
+            }
+        }
     }
 
 public:
@@ -101,38 +114,71 @@ public:
     }
 
     /**
-     *
+     * Képernyő kirajzolása
      */
     virtual void drawScreen() = 0;
+
+    /**
+     * ScreenButton touch esemény feldolgozása
+     */
+    virtual void handleScreenButtonTouchEvent(TftButton::ButtonTouchEvent &screenButtonTouchEvent) = 0;
 
     /**
      * Arduino loop
      */
     virtual void loop(RotaryEncoder::EncoderState encoderState) final {
 
+        //
+        // Rotary esemény vizsgálata
+        //
         if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
             // Ha van dialóg, akkor annak passzoljuk a rotary eseményt
             if (pDialog) {
                 pDialog->handleRotary(encoderState);
             } else {
-                // Ha nincs dialóg, akkor a képernyőnek
+                // Ha nincs dialóg, akkor a leszármazott képernyőnek
                 this->handleRotary(encoderState);
             }
 
-            // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al, így visszatérhetünk
+            // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al, így visszatérhetünk, nem megyünk tovább
             return;
         }
 
-        // Megnézzük, hogy nyomkodták-e a képernyőt?
+        //
+        // Touch esemény vizsgálata
+        //
         uint16_t tx, ty;
         bool touched = tft.getTouch(&tx, &ty, 40); // A treshold értékét megnöveljük a default 20msec-ről 40-re
 
         // Ha van dialóg, akkor annak passzoljuk a touch eseményt
         if (pDialog) {
+
             pDialog->handleTouch(touched, tx, ty);
-        } else {
-            // Ha nincs, akkor a képernyőnek
-            this->handleTouch(touched, tx, ty);
+
+        } else if (screenButtons) { // Ha nincs dialóg, akkor a képernyő menügombjainak, ha vannak
+
+            // Elküldjük a touch eseményt a képernyő gomboknak
+            for (uint8_t i = 0; i < screenButtonsCount; i++) {
+
+                // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk
+                TftButton::ButtonTouchEvent touchEvent = screenButtons[i]->handleTouch(touched, tx, ty);
+                if (touchEvent != TftButton::noTouchEvent) {
+                    screenButtonTouchEvent = touchEvent;
+                    break;
+                }
+            }
+        }
+
+        // Ha volt screenButton touch event, akkor azt továbbítjuk a képernyőnek
+        if (screenButtonTouchEvent != TftButton::noTouchEvent) {
+            handleScreenButtonTouchEvent(screenButtonTouchEvent);
+
+            // Töröljük a screenButton eseményt
+            screenButtonTouchEvent = TftButton::noTouchEvent;
+
+        } else if (touched) { // Ha nincs screeButton touch event, de nyomtak valamit, akkor azt továbbítjuk a képernyőnek
+
+            handleTouch(touched, tx, ty);
         }
     }
 };
