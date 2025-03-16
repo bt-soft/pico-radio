@@ -8,14 +8,14 @@
  */
 class IGuiEvents {
 
-public:
+   public:
     // Virtuális destruktor a származtatott osztályok megfelelő kezeléséhez
     virtual ~IGuiEvents() = default;
 
     /**
      * Rotary encoder esemény lekezelése
      */
-    virtual void handleRotary(RotaryEncoder::EncoderState encoderState) = 0;
+    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) = 0;
 
     /**
      * Touch esemény lekezelése
@@ -24,4 +24,4 @@ public:
     virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) = 0;
 };
 
-#endif // __IGUIEVENTS_H
+#endif  // __IGUIEVENTS_H

@@ -4,12 +4,16 @@
 #include "DisplayBase.h"
 
 class FmDisplay : public DisplayBase {
+   private:
+    bool ledState = false;
+    int volume = 5;
+    float temperature = 22.5;
 
-protected:
+   protected:
     /**
      * Rotary encoder esemény lekezelése
      */
-    void handleRotary(RotaryEncoder::EncoderState encoderState) override;
+    bool handleRotary(RotaryEncoder::EncoderState encoderState) override;
 
     /**
      * Touch (nem képrnyő button) esemény lekezelése
@@ -26,11 +30,11 @@ protected:
      */
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
 
-public:
+   public:
     FmDisplay(TFT_eSPI &tft);
     ~FmDisplay();
 
     void drawScreen() override;
 };
 
-#endif //__FMDISPLAY_H
+#endif  //__FMDISPLAY_H
