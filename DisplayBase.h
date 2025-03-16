@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <TFT_eSPI.h> // TFT_eSPI könyvtár
+#include <TFT_eSPI.h>  // TFT_eSPI könyvtár
 
 #include "DialogBase.h"
 #include "IDialogParent.h"
@@ -11,13 +11,13 @@
 #define SCRN_MENU_BTN_ID_START 50
 
 // Képernyő gomb méret és pozíció definíciók
-#define SCREEN_BTNS_X_START 5    // Gombok kezdő X koordinátája
-#define SCREEN_BTNS_Y_START 250  // Gombok kezdő Y koordinátája
-#define SCRN_BTN_H 30            // Gombok magassága
-#define SCRN_BTN_W 70            // Gombok szélessége
-#define SCREEN_BTNS_GAP 10       // Gombok közötti gap
-#define SCREEN_BUTTONS_PER_ROW 6 // Egy sorban hány gomb van
-#define SCREEN_BTN_ROW_SPACING 5 // Gombok sorai közötti távolság
+#define SCREEN_BTNS_X_START 5     // Gombok kezdő X koordinátája
+#define SCREEN_BTNS_Y_START 250   // Gombok kezdő Y koordinátája
+#define SCRN_BTN_H 30             // Gombok magassága
+#define SCRN_BTN_W 70             // Gombok szélessége
+#define SCREEN_BTNS_GAP 10        // Gombok közötti gap
+#define SCREEN_BUTTONS_PER_ROW 6  // Egy sorban hány gomb van
+#define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
 
 // A screen button x koordinátájának kiszámítása az 'n' sorszáma alapján
 #define SCREEN_BTNS_X(n) (SCREEN_BTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)
@@ -30,7 +30,7 @@
  */
 class DisplayBase : public IGuiEvents, public IDialogParent {
 
-private:
+   private:
     // A dinamikusan létrehozott gombok tömbjére mutató pointer
     TftButton **screenButtons = nullptr;
     // A dinamikusan létrehozott gombok száma
@@ -41,7 +41,7 @@ private:
     // A dialógban megnyomott gomb adatai
     TftButton::ButtonTouchEvent dialogButtonResponse = TftButton::noTouchEvent;
 
-protected:
+   protected:
     // Képernyőgombok legyártását segítő rekord
     struct BuildButtonData {
         const char *label;
@@ -56,19 +56,10 @@ protected:
     DialogBase *pDialog = nullptr;
 
     /**
-     * A dialog által átadott megnyomott gomb adatai
-     * Az IDialogParent-ből jön, a dialóg hívja, ha nyomtak rajta valamit
-     */
-    void setDialogResponse(TftButton::ButtonTouchEvent event) override {
-        // A dialogButtonResponse saját másolatot kap, független az eredeti event forrástól, a dialogot lehet törölni
-        dialogButtonResponse = event;
-    }
-
-    /**
      * Screen gombok automatikus X koordinátájának kiszámítása
      * Ha nem férnek el egy sorban a gombok, akkor nyit egy új sort
      */
-    uint16_t getAutoX(uint8_t index) {
+    inline uint16_t getAutoX(uint8_t index) {
         uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
         return SCREEN_BTNS_X_START + ((SCRN_BTN_W + SCREEN_BTNS_GAP) * (index % buttonsPerRow));
     }
@@ -77,8 +68,8 @@ protected:
      * Screen gombok automatikus Y koordinátájának kiszámítása
      * A gombok több sorban is elhelyezkedhetnek, az alsó sor a képernyő aljához igazodik
      */
-    uint16_t getAutoY(uint8_t index) {
-        uint8_t row = index / SCREEN_BUTTONS_PER_ROW; // Hányadik sorban van a gomb
+    inline uint16_t getAutoY(uint8_t index) {
+        uint8_t row = index / SCREEN_BUTTONS_PER_ROW;  // Hányadik sorban van a gomb
 
         // Teljes gombterület kiszámítása
         uint8_t totalRows = (screenButtonsCount + SCREEN_BUTTONS_PER_ROW - 1) / SCREEN_BUTTONS_PER_ROW;
@@ -94,7 +85,7 @@ protected:
     /**
      * Képernyő menügombok legyártása
      */
-    void buildScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
+    inline void buildScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
         // Dinamikusan létrehozzuk a gombokat
         screenButtonsCount = buttonsDataLength;
 
@@ -103,16 +94,15 @@ protected:
 
         // Létrehozzuk a gombokat
         for (uint8_t i = 0; i < screenButtonsCount; i++) {
-            screenButtons[i] = new TftButton(
-                startId++,            // A gomb ID-je
-                tft,                  // TFT objektum
-                getAutoX(i),          // Gomb X koordinátájának kiszámítása
-                getAutoY(i),          // Gomb Y koordinátájának kiszámítása
-                SCRN_BTN_W,           // Gomb szélessége
-                SCRN_BTN_H,           // Gomb magassága
-                buttonsData[i].label, // Gomb szövege (label)
-                buttonsData[i].type,  // Gomb típusa
-                buttonsData[i].state  // Gomb állapota
+            screenButtons[i] = new TftButton(startId++,             // A gomb ID-je
+                                             tft,                   // TFT objektum
+                                             getAutoX(i),           // Gomb X koordinátájának kiszámítása
+                                             getAutoY(i),           // Gomb Y koordinátájának kiszámítása
+                                             SCRN_BTN_W,            // Gomb szélessége
+                                             SCRN_BTN_H,            // Gomb magassága
+                                             buttonsData[i].label,  // Gomb szövege (label)
+                                             buttonsData[i].type,   // Gomb típusa
+                                             buttonsData[i].state   // Gomb állapota
             );
         }
     }
@@ -120,7 +110,7 @@ protected:
     /**
      * Képernyő menügombok kirajzolása
      */
-    void drawScreenButtons() {
+    inline void drawScreenButtons() {
 
         // Megjelenítjük a képernyő gombokat, ha vannak
         if (screenButtons) {
@@ -130,12 +120,11 @@ protected:
         }
     }
 
-public:
+   public:
     /**
      * Konstruktor
      */
-    DisplayBase(TFT_eSPI &tft) : tft(tft), pDialog(nullptr) {
-    }
+    DisplayBase(TFT_eSPI &tft) : tft(tft), pDialog(nullptr) {}
 
     /**
      * Destruktor
@@ -158,6 +147,24 @@ public:
             delete pDialog;
             pDialog = nullptr;
         }
+    }
+
+    /**
+     * A dialog által átadott megnyomott gomb adatai
+     * Az IDialogParent-ből jön, a dialóg hívja, ha nyomtak rajta valamit
+     */
+    inline void setDialogResponse(TftButton::ButtonTouchEvent event) override {
+        // A dialogButtonResponse saját másolatot kap, független az eredeti event forrástól, a dialogot lehet törölni
+        dialogButtonResponse = event;
+    }
+
+    /**
+     * A dialog által átadott megnyomott gomb adatainak lekérése
+     */
+    inline TftButton::ButtonTouchEvent getDialogResponse() override {
+
+        // Visszatérünk a lenyomott gomb adataival
+        return dialogButtonResponse;
     }
 
     /**
@@ -209,7 +216,7 @@ public:
             //
             // Touch esemény vizsgálata
             //
-            touched = tft.getTouch(&tx, &ty, 40); // A treshold értékét megnöveljük a default 20msec-ről 40-re
+            touched = tft.getTouch(&tx, &ty, 40);  // A treshold értékét megnöveljük a default 20msec-ről 40-re
 
             // Ha van dialóg, de még nincs dialogButtonResponse, akkor meghívjuk a dialóg touch handlerét
             if (pDialog != nullptr and dialogButtonResponse == TftButton::noTouchEvent and pDialog->handleTouch(touched, tx, ty)) {
@@ -245,7 +252,7 @@ public:
             // Töröljük a dialogButtonResponse eseményt
             dialogButtonResponse = TftButton::noTouchEvent;
 
-        } else if (touched) { // Ha nincs screeButton touch event, de nyomtak valamit, akkor azt továbbítjuk a képernyőnek
+        } else if (touched) {  // Ha nincs screeButton touch event, de nyomtak valamit, akkor azt továbbítjuk a képernyőnek
 
             handleTouch(touched, tx, ty);
         }

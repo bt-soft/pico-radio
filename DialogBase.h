@@ -119,17 +119,17 @@ class DialogBase : public IGuiEvents {
      * Alapesetben nem csinálunk semmit, akinek kell az majd felülírja és dolgozik vele
      * @return true ha lekezelte az eseményt
      */
-    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) override { return false; }
+    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) override {
+
+        // Alapesetben nem csinálunk semmit a rotary-ra
+        return false;
+    }
 
     /**
-     * A dialóg touch handlere, ezt  implementálnia kell a leszármazottnak
-     */
-    virtual bool dialogHandleTouch(bool touched, uint16_t tx, uint16_t ty) = 0;
-
-    /**
-     * A leszármazott meghívása előtt ellenőrizzük az 'X' gomb érintését
+     * Ellenőrizzük az 'X' gomb érintését
      */
     virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+
         // Az 'X' bezáró gomb touch vizsgálat
         if (touched) {
             if (tx >= closeButtonX && tx <= closeButtonX + DLG_CLOSE_BTN_SIZE && ty >= closeButtonY && ty <= closeButtonY + DLG_CLOSE_BTN_SIZE) {
@@ -138,8 +138,7 @@ class DialogBase : public IGuiEvents {
             }
         }
 
-        // Tovább vizsgálódunk a leszármazottban
-        return dialogHandleTouch(touched, tx, ty);
+        return false;
     }
 
    protected:

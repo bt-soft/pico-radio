@@ -47,7 +47,7 @@ class MessageDialog : public DialogBase {
     /**
      * Dialóg destruktor
      */
-    ~MessageDialog() {
+    virtual ~MessageDialog() {
         delete okButton;
         if (cancelButton) {
             delete cancelButton;
@@ -73,7 +73,7 @@ class MessageDialog : public DialogBase {
     /**
      * Rotary encoder esemény lekezelése
      */
-    bool handleRotary(RotaryEncoder::EncoderState encoderState) override {
+    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) override {
         // A messageDialognál a click az az OK gomb megnyomásával azonos eseményt vált ki
         if (encoderState.buttonState == RotaryEncoder::ButtonState::Clicked) {
             DialogBase::pParent->setDialogResponse(okButton->buildButtonTouchEvent());
@@ -86,7 +86,13 @@ class MessageDialog : public DialogBase {
     /**
      * Dialóg Touch esemény lekezelése
      */
-    bool dialogHandleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+
+        // Ha az ős lekezelte már az 'X' gomb eseményét, akkor nem megyünk tovább
+        if (DialogBase::handleTouch(touched, tx, ty)) {
+            return true;
+        }
+
         // OK gomb touch vizsgálat
         if (okButton->handleTouch(touched, tx, ty)) {
             DialogBase::pParent->setDialogResponse(okButton->buildButtonTouchEvent());

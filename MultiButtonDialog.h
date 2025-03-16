@@ -93,7 +93,7 @@ class MultiButtonDialog : public DialogBase {
     /**
      * Dialóg destruktor
      */
-    ~MultiButtonDialog() {
+    virtual ~MultiButtonDialog() {
         // Egyenként töröljük a gombokat
         for (uint8_t i = 0; i < buttonCount; i++) {
             delete buttonsArray[i];
@@ -120,7 +120,12 @@ class MultiButtonDialog : public DialogBase {
     /**
      * Touch esemény kezelése
      */
-    bool dialogHandleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+
+        // Ha az ős lekezelte már az 'X' gomb eseményét, akkor nem megyünk tovább
+        if (DialogBase::handleTouch(touched, tx, ty)) {
+            return true;
+        }
 
         // Végigmegyünk az összes gombon
         for (uint8_t i = 0; i < buttonCount; i++) {
