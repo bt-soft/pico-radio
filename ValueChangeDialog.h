@@ -53,9 +53,10 @@ class ValueChangeDialog : public MessageDialog {
     void drawValue() {
 
         tft.setTextSize(2);
-        tft.setCursor(x + 20, contentY + 30);
-        tft.fillRect(x + 20, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);
+        tft.setCursor(x + 30, contentY + 30);
+        tft.fillRect(x + 30, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);  // Korábbi érték törlése
 
+        tft.setTextColor(TFT_COLOR(40, 64, 128), DLG_BACKGROUND_COLOR);
         switch (valueType) {
             case ValueType::Boolean: {
                 auto val = *reinterpret_cast<bool *>(valuePtr);
@@ -133,10 +134,10 @@ class ValueChangeDialog : public MessageDialog {
     }
 
     /**
-     * DIalog kirajzolása
+     * Dialog kirajzolása
      */
     void drawDialog() override {
-        // Mivel ez nem virtual, így nem kell meghívni az ősök metódusát, a virtual miatt meghívódik automatikusan
+        // Nem kell meghívni az ősök metódusát!!
         // MessageDialog::drawDialog();
         drawValue();
     }
