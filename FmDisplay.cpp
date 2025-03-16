@@ -94,7 +94,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
           event.id, event.label, TftButton::decodeState(event.state));
 
     if (event.id == SCRN_MENU_BTN_ID_START) {
-        DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 300, 150, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
+        DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 280, 130, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
     }
 }
 
