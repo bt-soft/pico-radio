@@ -106,7 +106,7 @@ class MultiButtonDialog : public DialogBase {
     /**
      * Dialóg kirajzolása
      */
-    virtual void drawDialog() override {
+    void drawDialog() override {
 
         // Dialóg kirajzolása
         DialogBase::drawDialog();

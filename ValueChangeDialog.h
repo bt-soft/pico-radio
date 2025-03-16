@@ -133,10 +133,11 @@ class ValueChangeDialog : public MessageDialog {
     }
 
     /**
-     *
+     * DIalog kirajzolása
      */
     void drawDialog() override {
-        MessageDialog::drawDialog();
+        // Mivel ez nem virtual, így nem kell meghívni az ősök metódusát, a virtual miatt meghívódik automatikusan
+        // MessageDialog::drawDialog();
         drawValue();
     }
 

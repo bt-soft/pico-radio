@@ -1,12 +1,13 @@
 #ifndef __PICOMEMORYINFO_H
 #define __PICOMEMORYINFO_H
 
-#include "utils.h"
 #include <RP2040Support.h>
 
-#define FULL_FLASH_SIZE 2093056     // Teljes flash memória méret (2MB)
-#define FULL_MEMORY_SIZE 262144     // Teljes RAM méret (heap) byte-ban
-extern "C" char __flash_binary_end; // A program végét jelző cím
+#include "utils.h"
+
+#define FULL_FLASH_SIZE 2093056      // Teljes flash memória méret (2MB)
+#define FULL_MEMORY_SIZE 262144      // Teljes RAM méret (heap) byte-ban
+extern "C" char __flash_binary_end;  // A program végét jelző cím
 
 // Struktúra a memóriaállapot tárolására
 struct MemoryStatus_t {
@@ -25,14 +26,14 @@ struct MemoryStatus_t {
 };
 
 #ifdef __DEBUG
-#define MEASUREMENTS_COUNT 20 // A memóriahasználat mérésének száma
+#define MEASUREMENTS_COUNT 20  // A memóriahasználat mérésének száma
 
 /**
  * A memóriahasználat mérésének tárolása
  */
 struct UsedHeapMemoryMonitor {
-    uint32_t measurements[MEASUREMENTS_COUNT]; // A memóriahasználatot tároló tömb
-    int8_t index = -1;                         // Az aktuális mérési index -1-re állítjuk be a kezdeti értéket!!
+    uint32_t measurements[MEASUREMENTS_COUNT];  // A memóriahasználatot tároló tömb
+    int8_t index = -1;                          // Az aktuális mérési index -1-re állítjuk be a kezdeti értéket!!
     bool valid = false;
 
     UsedHeapMemoryMonitor() {
@@ -46,7 +47,7 @@ struct UsedHeapMemoryMonitor {
     void addMeasurement(uint32_t usedHeap) {
 
         // Ha az index elérte a maximális értéket, akkor elölről kezdjük
-        index = (index + 1) % MEASUREMENTS_COUNT; // Körkörös indexelés
+        index = (index + 1) % MEASUREMENTS_COUNT;  // Körkörös indexelés
 
         // Eltároljuk a mért Heap értéket
         measurements[index] = usedHeap;
@@ -137,29 +138,28 @@ MemoryStatus_t getMemoryStatus() {
 #ifdef __DEBUG
 void debugMemoryInfo() {
 
-    MemoryStatus_t status = getMemoryStatus(); // Adatok lekérése
+    MemoryStatus_t status = getMemoryStatus();  // Adatok lekérése
+
+    Serial.flush();
 
     DEBUG("===== Memory info =====\n");
 
     // Program memória (flash)
     DEBUG("Flash\t\t\t\t\t\tHeap\n");
-    DEBUG("Total: %d B (%.2f kB)\t\t\t%d B (%.2f kB)\n",
-          FULL_FLASH_SIZE, FULL_FLASH_SIZE / 1024.0, // Flash
-          status.heapSize, status.heapSize / 1024.0  // Heap
+    DEBUG("Total: %d B (%.2f kB)\t\t\t%d B (%.2f kB)\n", FULL_FLASH_SIZE, FULL_FLASH_SIZE / 1024.0,  // Flash
+          status.heapSize, status.heapSize / 1024.0                                                  // Heap
     );
-    DEBUG("Used: %d B (%.2f kB) - %.2f%%\t\t%d B (%.2f kB) - %.2f%%\n",
-          status.programSize, status.programSize / 1024.0, status.programPercent, // Flash
-          status.usedHeap, status.usedHeap / 1024.0, status.usedHeapPercent       // Heap
+    DEBUG("Used: %d B (%.2f kB) - %.2f%%\t\t%d B (%.2f kB) - %.2f%%\n", status.programSize, status.programSize / 1024.0, status.programPercent,  // Flash
+          status.usedHeap, status.usedHeap / 1024.0, status.usedHeapPercent                                                                      // Heap
     );
-    DEBUG("Free: %d B (%.2f kB) - %.2f%%\t\t%d B (%.2f kB) - %.2f%%\n",
-          status.freeFlash, status.freeFlash / 1024.0, status.freeFlashPercent, // Flash
-          status.freeHeap, status.freeHeap / 1024.0, status.freeHeapPercent     // Heap
+    DEBUG("Free: %d B (%.2f kB) - %.2f%%\t\t%d B (%.2f kB) - %.2f%%\n", status.freeFlash, status.freeFlash / 1024.0, status.freeFlashPercent,  // Flash
+          status.freeHeap, status.freeHeap / 1024.0, status.freeHeapPercent                                                                    // Heap
     );
 
     DEBUG("Heap usage:\n changed(from prev): %.2f kB, ave: %.2f kB - (%d/%d)\n",
-          usedHeapMemoryMonitor.getChangeFromPreviousMeasurement() / 1024.0, // Az előző méréshez képesti változás
-          usedHeapMemoryMonitor.getAverageUsedHeap() / 1024.0,               // average
-          usedHeapMemoryMonitor.index, MEASUREMENTS_COUNT                    // max grow
+          usedHeapMemoryMonitor.getChangeFromPreviousMeasurement() / 1024.0,  // Az előző méréshez képesti változás
+          usedHeapMemoryMonitor.getAverageUsedHeap() / 1024.0,                // average
+          usedHeapMemoryMonitor.index, MEASUREMENTS_COUNT                     // max grow
     );
 
     DEBUG("---\n");
@@ -168,4 +168,4 @@ void debugMemoryInfo() {
 }
 #endif
 
-#endif //__PICOMEMORYINFO_H
+#endif  //__PICOMEMORYINFO_H

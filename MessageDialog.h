@@ -55,10 +55,12 @@ class MessageDialog : public DialogBase {
     }
 
     /**
-     *
+     * Dialóg megjelenítése
+     * (Virtual így meg kell hívni az ős metódusát!!)
      */
     virtual void drawDialog() override {
-        // Kirajzoljuk a dialógot
+
+        // Mivel ez a metódus virtual, ezért meg kell hívni az ős metódusát is!!
         DialogBase::drawDialog();
 
         // Kirajzoljuk az OK gombot

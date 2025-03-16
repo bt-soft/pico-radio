@@ -72,9 +72,13 @@ class DialogBase : public IGuiEvents {
     virtual ~DialogBase() {}
 
     /**
-     *
+     * Dialóg kirajzolása
      */
     virtual void drawDialog() {
+
+        // 'Fátyol' kirajzolása
+        drawOverlay();
+
         // Kirajzoljuk a dialógot
         tft.fillRect(x, y, w, h, DLG_BACKGROUND_COLOR);  // háttér
 
@@ -141,11 +145,18 @@ class DialogBase : public IGuiEvents {
         return false;
     }
 
-   protected:
+   private:
     /**
-     * 'X' bezáró gomb touch vizsgálat
+     * Fátyol kirajzolása
      */
-    bool checkCloseButtonTouch(bool touched, uint16_t tx, uint16_t ty) { return false; }
+    inline void drawOverlay() {
+
+        for (int y = 0; y < tft.height(); y += 2) {
+            for (int x = 0; x < tft.width(); x += 2) {
+                tft.drawPixel(x, y, TFT_COLOR(90, 90, 90));  // Apró pontokkal csinálunk fátyolt
+            }
+        }
+    }
 };
 
 #endif  // __DIALOGBASE_H

@@ -108,7 +108,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         const char *buttonLabels[] = {"Opt-1", "Opt-2", "Opt-3", "Opt-4", "Opt-5", "Opt-6", "Opt-7", "Opt-8", "Opt-9", "Opt-10", "Opt-11", "Opt-12"};
         int buttonsCount = ARRAY_ITEM_COUNT(buttonLabels);
 
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 200, F("Valasszon opciot!"), buttonLabels, buttonsCount);
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("Valasszon opciot!"), buttonLabels, buttonsCount);
 
     } else if (STREQ("b-Val", event.label)) {
         // b-ValueChange
