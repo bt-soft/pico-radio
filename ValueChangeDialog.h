@@ -78,7 +78,7 @@ class ValueChangeDialog : public MessageDialog {
      * Boolean
      */
     ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, bool *value)
-        : MessageDialog(pParent, tft, w, h, title, message), valuePtr(value), valueType(ValueType::Boolean) {
+        : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"), valuePtr(value), valueType(ValueType::Boolean) {
 
         /// Tároljuk el az eredeti értéket
         originalValuePtr = new bool(*value);
@@ -92,7 +92,7 @@ class ValueChangeDialog : public MessageDialog {
      */
     ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, int *value, int minVal,
                       int maxVal, int step)
-        : MessageDialog(pParent, tft, w, h, title, message), valuePtr(value), valueType(ValueType::Integer), minValue(minVal), maxValue(maxVal), stepInt(step) {
+        : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"), valuePtr(value), valueType(ValueType::Integer), minValue(minVal), maxValue(maxVal), stepInt(step) {
 
         // Tároljuk el az eredeti értéket
         originalValuePtr = new int(*value);
@@ -106,7 +106,7 @@ class ValueChangeDialog : public MessageDialog {
      */
     ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, float *value,
                       float minVal, float maxVal, float step)
-        : MessageDialog(pParent, tft, w, h, title, message), valuePtr(value), valueType(ValueType::Float), minValueF(minVal), maxValueF(maxVal), stepFloat(step) {
+        : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"), valuePtr(value), valueType(ValueType::Float), minValueF(minVal), maxValueF(maxVal), stepFloat(step) {
 
         // Tároljuk el az eredeti értéket
         originalValuePtr = new float(*value);
