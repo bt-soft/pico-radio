@@ -9,6 +9,9 @@
  */
 class MultiButtonDialog : public DialogBase {
    private:
+    TftButton **buttonsArray;  // A megjelenítendő gombok mutatóinak tömbje.
+    uint8_t buttonCount;       // A párbeszédpanelen lévő gombok száma.
+
     /**
      * Kiszámítja a gombok elrendezését.
      *
@@ -22,7 +25,7 @@ class MultiButtonDialog : public DialogBase {
 
         // Próbáljuk feltölteni egy sort, amíg elférnek a gombok
         for (uint8_t i = 0; i < buttonCount; i++) {
-            uint16_t nextWidth = totalWidth + buttons[i]->getWidth() + (buttonsPerRow > 0 ? DLG_BTN_GAP : 0);
+            uint16_t nextWidth = totalWidth + buttonsArray[i]->getWidth() + (buttonsPerRow > 0 ? DLG_BTN_GAP : 0);
 
             if (nextWidth > maxRowWidth) {
                 break;  // Ha már nem fér el, kilépünk
@@ -42,6 +45,7 @@ class MultiButtonDialog : public DialogBase {
      * @param rowCount Hány sorra van szükség
      */
     void positionButtons(uint8_t buttonsPerRow, uint8_t rowCount) {
+
         uint16_t buttonHeight = DLG_BTN_H;
         uint16_t totalHeight = rowCount * buttonHeight + (rowCount - 1) * DLG_BTN_GAP;
 
@@ -54,14 +58,14 @@ class MultiButtonDialog : public DialogBase {
                 uint16_t rowWidth = 0;
                 uint8_t itemsInRow = min(buttonsPerRow, buttonCount - i);
                 for (uint8_t j = 0; j < itemsInRow; j++) {
-                    rowWidth += buttons[i + j]->getWidth();
+                    rowWidth += buttonsArray[i + j]->getWidth();
                 }
                 rowWidth += (itemsInRow - 1) * DLG_BTN_GAP;
                 startX = x + (w - rowWidth) / 2;
             }
 
-            buttons[i]->setPosition(startX, startY);
-            startX += buttons[i]->getWidth() + DLG_BTN_GAP;
+            buttonsArray[i]->setPosition(startX, startY);
+            startX += buttonsArray[i]->getWidth() + DLG_BTN_GAP;
             col++;
 
             if (col >= buttonsPerRow) {
@@ -73,9 +77,6 @@ class MultiButtonDialog : public DialogBase {
     }
 
    protected:
-    TftButton **buttons;  // A megjelenítendő gombok mutatóinak tömbje.
-    uint8_t buttonCount;  // A párbeszédpanelen lévő gombok száma.
-
     /**
      * Gombok legyártása a feliratok alapján
      */
@@ -85,14 +86,14 @@ class MultiButtonDialog : public DialogBase {
         }
 
         this->buttonCount = buttonCount;
-        buttons = new TftButton *[buttonCount];
+        buttonsArray = new TftButton *[buttonCount];
 
         // Kezdő multiButton ID érték
         uint8_t id = DLG_MULTI_BTN_ID_START;
 
         // Button array feltöltése a gombokkal
         for (uint8_t i = 0; i < buttonCount; i++) {
-            buttons[i] = new TftButton(id++, tft, MULTI_BTN_W, MULTI_BTN_H, buttonLabels[i], TftButton::ButtonType::Pushable);
+            buttonsArray[i] = new TftButton(id++, tft, MULTI_BTN_W, MULTI_BTN_H, buttonLabels[i], TftButton::ButtonType::Pushable);
         }
     }
 
@@ -100,7 +101,7 @@ class MultiButtonDialog : public DialogBase {
      * @brief A gombok elhelyezésének fő metódusa.
      */
     virtual void placeButtons() {
-        if (!buttons || buttonCount == 0) {
+        if (!buttonsArray || buttonCount == 0) {
             return;
         }
 
@@ -118,7 +119,8 @@ class MultiButtonDialog : public DialogBase {
      * @param w A párbeszédpanel szélessége.
      * @param h A párbeszédpanel magassága.
      * @param title A dialógus címe (opcionális).
-     * @param buttons A gombok mutatóinak tömbje.
+     * @param buttonLabels A gombok feliratainak a tömbje.
+     * @param buttonCount A gombok száma
      */
     MultiButtonDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const char *buttonLabels[] = nullptr,
                       uint8_t buttonCount = 0)
@@ -129,6 +131,9 @@ class MultiButtonDialog : public DialogBase {
 
         // Elrendezzük a gombokat, ha vannak
         placeButtons();
+
+        // Ki is rajzoljuk a dialógust
+        drawDialog();
     }
 
     /**
@@ -137,9 +142,9 @@ class MultiButtonDialog : public DialogBase {
      */
     ~MultiButtonDialog() {
         for (uint8_t i = 0; i < buttonCount; i++) {
-            delete buttons[i];
+            delete buttonsArray[i];
         }
-        delete[] buttons;
+        delete[] buttonsArray;
     }
 
     /**
@@ -152,9 +157,9 @@ class MultiButtonDialog : public DialogBase {
         DialogBase::drawDialog();
 
         // Gombok kirajzolása, ha vannak
-        if (buttons) {
+        if (buttonsArray) {
             for (uint8_t i = 0; i < buttonCount; i++) {
-                buttons[i]->draw();
+                buttonsArray[i]->draw();
             }
         }
     }
@@ -168,8 +173,8 @@ class MultiButtonDialog : public DialogBase {
         for (uint8_t i = 0; i < buttonCount; i++) {
 
             // Ha valamelyiket megíhvták annak a touch adatait visszaírjuk a képernyőbe, és kilépünk
-            if (buttons[i]->handleTouch(touched, tx, ty)) {
-                DialogBase::pParent->setDialogResponse(buttons[i]->buildButtonTouchEvent());
+            if (buttonsArray[i]->handleTouch(touched, tx, ty)) {
+                DialogBase::pParent->setDialogResponse(buttonsArray[i]->buildButtonTouchEvent());
                 return true;
             }
         }

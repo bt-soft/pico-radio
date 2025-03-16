@@ -120,7 +120,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     } else if (STREQ("f-Val", event.label)) {
         // f-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, -15.0, +30.0, 0.5);
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, -15.0, +30.0, 0.05);
     }
 }
 
