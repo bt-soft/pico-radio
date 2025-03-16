@@ -16,10 +16,9 @@ class IDialogParent {
     virtual void setDialogResponse(TftButton::ButtonTouchEvent event) = 0;
 
     /**
-     * A dialog button adatainak lekérése
-     * (A ValueChangeDialog használja, hogy meg tudja állapítani, hogy 'X'-et (cancel-t) nyomtak-e?
+     * Cancelt vagy 'X'-et nyomtak a dialogon?
      */
-    virtual TftButton::ButtonTouchEvent getDialogResponse() = 0;
+    virtual bool isDialogResponseCancelOrCloseX() = 0;
 };
 
 #endif  // __IDIALOGPARENT_H

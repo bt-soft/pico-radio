@@ -159,12 +159,11 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 
     /**
-     * A dialog által átadott megnyomott gomb adatainak lekérése
+     * Cancelt vagy 'X'-et nyomtak a dialogon?
      */
-    inline TftButton::ButtonTouchEvent getDialogResponse() override {
-
-        // Visszatérünk a lenyomott gomb adataival
-        return dialogButtonResponse;
+    inline bool isDialogResponseCancelOrCloseX() override {
+        // Ha 'Cancel'-t vagy 'X'-et nyomtak, akkor true-val térünk vissza
+        return (dialogButtonResponse.id == DLG_CLOSE_BUTTON_ID or dialogButtonResponse.id == DLG_CANCEL_BUTTON_ID);
     }
 
     /**

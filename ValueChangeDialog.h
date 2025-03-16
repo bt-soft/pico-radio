@@ -188,11 +188,8 @@ class ValueChangeDialog : public MessageDialog {
         //  'X' esetén (ez a cancel esemény) vissza kell-e állítani az eredeti értéket
         if (MessageDialog::handleTouch(touched, tx, ty)) {
 
-            // Lekérjük, hogy az ős mit állított be
-            TftButton::ButtonTouchEvent event = DialogBase::pParent->getDialogResponse();
-
             // Ha 'Cancel'-t vagy 'X'-et nyomtak, akkor visszaállítjuk az eredeti értéket
-            if (event.id == DLG_CLOSE_BUTTON_ID or event.id == DLG_CANCEL_BUTTON_ID) {
+            if (DialogBase::pParent->isDialogResponseCancelOrCloseX()) {
                 // Itt állítjuk vissza az eredeti értéket...
                 restoreOriginalValue();
             }
