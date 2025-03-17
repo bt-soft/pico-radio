@@ -1,13 +1,9 @@
-#ifndef __FMDISPLAY_H
-#define __FMDISPLAY_H
+#ifndef __AMDISPLAY_H
+#define __AMDISPLAY_H
 
 #include "DisplayBase.h"
 
-class FmDisplay : public DisplayBase {
-   private:
-    bool ledState = false;
-    int volume = 5;
-    float temperature = 22.5;
+class AmDisplay : public DisplayBase {
 
    protected:
     /**
@@ -31,8 +27,8 @@ class FmDisplay : public DisplayBase {
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
 
    public:
-    FmDisplay(TFT_eSPI &tft);
-    ~FmDisplay();
+    AmDisplay(TFT_eSPI &tft);
+    ~AmDisplay();
 
     /**
      * Képernyő kirajzolása
@@ -41,4 +37,4 @@ class FmDisplay : public DisplayBase {
     void drawScreen() override;
 };
 
-#endif  //__FMDISPLAY_H
+#endif  //__AMDISPLAY_H

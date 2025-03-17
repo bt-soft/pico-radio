@@ -12,6 +12,8 @@
 FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
     // Képernyőgombok definiálása
     DisplayBase::BuildButtonData buttonsData[] = {
+        {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
+        {"Scan", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},   //
         {"Popup", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
         {"Multi", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
 
@@ -43,6 +45,11 @@ void FmDisplay::drawScreen() {
 
     // Gombok kirajzolása
     DisplayBase::drawScreenButtons();
+
+    tft.setTextSize(2);
+    tft.setTextDatum(MC_DATUM);  // Középre igazítás
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.drawString("FM display", tft.width() / 2, tft.height() / 2);
 }
 
 /**
@@ -99,7 +106,13 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
 
-    if (STREQ("Popup", event.label)) {
+    if (STREQ("AM", event.label)) {
+        ::displayChangeType = DisplayBase::DisplayType::AmDisplayType;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+
+    } else if (STREQ("Scan", event.label)) {
+        ::displayChangeType = DisplayBase::DisplayType::FreqScanDisplayType;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+
+    } else if (STREQ("Popup", event.label)) {
         // Popup
         DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 280, 130, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
 

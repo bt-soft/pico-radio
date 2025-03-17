@@ -1,3 +1,6 @@
+#ifndef __DISPLAY_BASE_H
+#define __DISPLAY_BASE_H
+
 #include <Arduino.h>
 #include <TFT_eSPI.h>  // TFT_eSPI könyvtár
 
@@ -26,9 +29,13 @@
 #define SCREEN_COMPS_REFRESH_TIME_MSEC 500
 
 /**
- *
+ * DisplayBase base osztály
  */
 class DisplayBase : public IGuiEvents, public IDialogParent {
+
+   public:
+    // Lehetséges képernyő típusok
+    enum DisplayType { noneDisplayType, FmDisplayType, AmDisplayType, FreqScanDisplayType };
 
    private:
     // A dinamikusan létrehozott gombok tömbjére mutató pointer
@@ -257,3 +264,8 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
         }
     }
 };
+
+// Aktuális kijelző váltása (a főprogramban implementálva)
+extern DisplayBase::DisplayType displayChangeType;
+
+#endif  //__DISPLAY_BASE_H
