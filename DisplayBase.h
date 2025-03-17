@@ -189,7 +189,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) = 0;
 
     /**
-     * Arduino loop hívás
+     * Arduino loop hívás (a leszármazott nem írhatja felül)
      */
     virtual void loop(RotaryEncoder::EncoderState encoderState) final {
 
@@ -265,7 +265,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 };
 
-// Aktuális kijelző váltása (a főprogramban implementálva)
-extern DisplayBase::DisplayType displayChangeType;
+// Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)
+extern DisplayBase::DisplayType displayChange;
 
 #endif  //__DISPLAY_BASE_H

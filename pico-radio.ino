@@ -26,11 +26,11 @@ Config config;
 DisplayBase *pDisplay = nullptr;
 
 /**
- * Aktuális kijelző váltásának előjegyzése
+ * GLobális változó az aktuális kijelző váltásának előjegyzése
  * Induláskor FM - módban indulunk
- * Ezt a globális változót a képernyők állítgatják, ha más képernyőt választnanak
+ * (Ezt a globális változót a képernyők állítgatják, ha más képernyőt választ a felhasználó)
  */
-DisplayBase::DisplayType displayChangeType = DisplayBase::DisplayType::FmDisplayType;
+DisplayBase::DisplayType displayChange = DisplayBase::DisplayType::FmDisplayType;
 
 /**
  * Aktuális kijelző váltása
@@ -44,7 +44,7 @@ void changeDisplay() {
     }
 
     // Létrehozzuk a kijelző példányát
-    switch (displayChangeType) {
+    switch (displayChange) {
         case DisplayBase::DisplayType::FmDisplayType:
             pDisplay = new FmDisplay(tft);
             break;
@@ -60,7 +60,7 @@ void changeDisplay() {
     pDisplay->drawScreen();
 
     // Jelezzük, hogy nem akarunk képernyőváltást már
-    displayChangeType = DisplayBase::DisplayType::noneDisplayType;
+    displayChange = DisplayBase::DisplayType::noneDisplayType;
 }
 
 /** ----------------------------------------------------------------------------------------------------------------------------------------
@@ -125,7 +125,8 @@ void setup() {
  */
 void loop() {
 
-    if (::displayChangeType != DisplayBase::DisplayType::noneDisplayType) {
+    // Ha kell display-t váltani, akkor azt itt tesszük meg
+    if (::displayChange != DisplayBase::DisplayType::noneDisplayType) {
         changeDisplay();
     }
 

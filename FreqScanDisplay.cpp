@@ -59,10 +59,10 @@ void FreqScanDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent 
     DEBUG("FreqScanDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
 
     if (STREQ("FM", event.label)) {
-        ::displayChangeType = DisplayBase::DisplayType::FmDisplayType;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        ::displayChange = DisplayBase::DisplayType::FmDisplayType;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
 
     } else if (STREQ("AM", event.label)) {
-        ::displayChangeType = DisplayBase::DisplayType::AmDisplayType;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        ::displayChange = DisplayBase::DisplayType::AmDisplayType;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
     }
 }
 
