@@ -8,6 +8,7 @@
 
 #define DLG_BACKGROUND_COLOR TFT_DARKGREY
 
+#define DLG_Y_POS_OFFSET 20         // A dialog a középtől ennyivel magasabban kezdődjön
 #define DLG_HEADER_H 30             // Fejléc magassága
 #define DLG_CLOSE_BTN_SIZE 20       // Az 'X' gomb mérete
 #define DLG_CLOSE_BUTTON_ID 254     // Jobb felső sarok bezáró gomb ID-je
@@ -38,9 +39,8 @@ class DialogBase : public IGuiEvents {
    protected:
     IDialogParent *pParent;  // A dialógot létrehozó objektum referencia
     TFT_eSPI &tft;           // TFT objektum referencua
-    uint16_t y;              // A leszármazottak nem láthatják az y pozíciót, csak a contentY alapján pozíciónálhatnak  <--- ezt majd pontosítani!!
-    uint16_t x, w, h;        // a dialógus koordinátái az y érték nélkül
-    uint16_t contentY;       // Ezt az y értéket láthatják a leszármazottak
+    uint16_t x, y, w, h;     // A dialógus méretei
+    uint16_t contentY;       // Ehhez az y értékhez igazíthatják a tartalmukat a leszármazottak
 
    public:
     // static constexpr TftButton::ButtonTouchEvent okButtonTouchEvent = {DLG_CANCEL_BUTTON_ID, "<ok>", TftButton::ButtonState::Pushed};
@@ -60,7 +60,7 @@ class DialogBase : public IGuiEvents {
         : pParent(pParent), tft(tft), w(w), h(h), title(title), message(message) {
         // Dialóg bal felső sarkának kiszámítása a képernyő középre igzaításához
         x = (tft.width() - w) / 2;
-        y = (tft.height() - h) / 2;
+        y = ((tft.height() - h) / 2) - DLG_Y_POS_OFFSET;  // Kicsit feljebb húzzuk a tetejét
 
         messageY = y + (title ? DLG_HEADER_H + 15 : 5);       // Az üzenet a fejléc utánkezdődjön, ha van fejléc
         contentY = messageY + (message != nullptr ? 15 : 0);  // A belső tér az üzenet után kezdődjön, ha van üzenet
