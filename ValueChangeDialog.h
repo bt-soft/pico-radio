@@ -23,8 +23,16 @@ class ValueChangeDialog : public MessageDialog {
      * Ez a metódus segít az eredeti érték másolatának létrehozásában
      */
     template <typename T>
-    void copyValue(T *src, T &dst) {
+    inline void copyValue(T *src, T &dst) {
         dst = *src;
+    }
+
+    /**
+     * Segédfüggvény az értékek összehasonlítására és a megfelelő szín beállítására
+     */
+    template <typename T>
+    inline uint16_t getTextColor(T *original, T *current) {
+        return (*original == *current) ? TFT_COLOR(40, 64, 128) : TFT_WHITE;
     }
 
     /**
@@ -56,21 +64,26 @@ class ValueChangeDialog : public MessageDialog {
         tft.setCursor(x + 30, contentY + 30);
         tft.fillRect(x + 30, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);  // Korábbi érték törlése
 
-        tft.setTextColor(TFT_COLOR(40, 64, 128), DLG_BACKGROUND_COLOR);
+        // Ha az eredeti érték van, akkor azt egy sötétebb színnel jelezzük
         switch (valueType) {
             case ValueType::Boolean: {
                 auto val = *reinterpret_cast<bool *>(valuePtr);
+                tft.setTextColor(getTextColor(reinterpret_cast<bool *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
                 tft.print(val ? F("On") : F("Off"));
                 break;
             }
-
-            case ValueType::Integer:
-                tft.print(*reinterpret_cast<int *>(valuePtr));
+            case ValueType::Integer: {
+                auto val = *reinterpret_cast<int *>(valuePtr);
+                tft.setTextColor(getTextColor(reinterpret_cast<int *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
+                tft.print(val);
                 break;
-
-            case ValueType::Float:
-                tft.print(*reinterpret_cast<float *>(valuePtr), 2);
+            }
+            case ValueType::Float: {
+                auto val = *reinterpret_cast<float *>(valuePtr);
+                tft.setTextColor(getTextColor(reinterpret_cast<float *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
+                tft.print(val, 2);
                 break;
+            }
         }
     }
 
