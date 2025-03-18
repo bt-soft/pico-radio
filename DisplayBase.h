@@ -204,14 +204,15 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
             // Ha nincs feldolgozandó képernyő vagy dialóg gomb esemény, akkor ...
 
             //
-            // Rotary esemény vizsgálata
+            // Rotary esemény vizsgálata (ha nem tekergetik vagy nem nyomogatják, akkor nem reagálunk rá)
             //
             if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
-                // Ha van dialóg, akkor annak passzoljuk a rotary eseményt
+
+                // Ha van dialóg, akkor annak passzoljuk a rotary eseményt, de csak ha van esemény
                 if (pDialog) {
                     pDialog->handleRotary(encoderState);
                 } else {
-                    // Ha nincs dialóg, akkor a leszármazott képernyőnek
+                    // Ha nincs dialóg, akkor a leszármazott képernyőnek, de csak ha van esemény
                     this->handleRotary(encoderState);
                 }
 
@@ -259,7 +260,8 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
             // Töröljük a dialogButtonResponse eseményt
             dialogButtonResponse = TftButton::noTouchEvent;
 
-        } else if (touched) {  // Ha nincs screeButton touch event, de nyomtak valamit, akkor azt továbbítjuk a képernyőnek
+        } else if (touched or getDisplayType() == DisplayType::screenSaver) {
+            // Ha nincs screeButton touch event, de nyomtak valamit, VAGY ScreenSaver a képernőy, meghívjuk a handleTouch() metódusát
 
             handleTouch(touched, tx, ty);
         }
@@ -270,7 +272,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     /**
      * Aktuális képernyő típusának lekérdezése
      */
-    virtual inline DisplayBase::DisplayType getDisplayType() = 0;
+    virtual inline DisplayType getDisplayType() = 0;
 };
 
 // Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)

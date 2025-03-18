@@ -5,30 +5,42 @@
 
 class ScreenSaverDisplay : public DisplayBase {
 
+   private:
+    bool userInteraction = false;
+    uint16_t saverX;
+    uint16_t saverY;
+    uint16_t posSaver = 0;
+    long elapsedSaver = millis();
+
    protected:
     /**
      * Rotary encoder esemény lekezelése
+     * A ScreeSaver nem figyeli a rotary-t, azt már a főprogram figyeli
      */
-    bool handleRotary(RotaryEncoder::EncoderState encoderState) override;
+    bool handleRotary(RotaryEncoder::EncoderState encoderState) override { return false; };
 
     /**
      * Touch (nem képrnyő button) esemény lekezelése
+     * A ScreeSaver nem figyeli a touch, azt már a főprogram figyeli
+     * Ezt a metódust a ScreenSaver animációjára használjuk
      */
     bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
 
     /**
      * Képernyő menügomb esemény feldolgozása
+     * A ScreeSaver-nek nincsenek menügombjai
      */
-    void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override;
+    void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override {};
 
     /**
      * Dialóg Button touch esemény feldolgozása
+     * A ScreeSaver-nek nincsenek dialógusai
      */
-    void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
+    void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override {};
 
    public:
-    ScreenSaverDisplay(TFT_eSPI &tft);
-    ~ScreenSaverDisplay();
+    ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {};
+    ~ScreenSaverDisplay() {};
 
     /**
      * Képernyő kirajzolása
