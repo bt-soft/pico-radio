@@ -11,7 +11,7 @@ class ScreenSaverDisplay : public DisplayBase {
     uint16_t saverX;
     uint16_t saverY;
     uint16_t posSaver = 0;
-    long elapsedSaver = millis();
+    uint32_t elapsedSaver = millis();
     uint8_t saverLineColors[63];  // A vonal színeinek tömbje
 
    protected:

@@ -35,11 +35,11 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
 bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
     // Nincs szükség a touched, tx, ty változókra, de a DisplayBase megköveteli.
 
-    int t = posSaver;
+    uint16_t t = posSaver;
     posSaver++;
     if (posSaver == SAVER_ANIMATION_STEPS) posSaver = 0;
 
-    for (int i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
+    for (uint8_t i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
         int c = saverLineColors[i];  // Használjuk az előre kiszámított 'c' értékeket
 
         if (t < 200) {
