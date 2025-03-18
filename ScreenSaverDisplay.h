@@ -1,16 +1,18 @@
 #ifndef __SCREENSAVERDISPLAY_H
 #define __SCREENSAVERDISPLAY_H
 
+#include <Arduino.h>
+
 #include "DisplayBase.h"
 
 class ScreenSaverDisplay : public DisplayBase {
 
    private:
-    bool userInteraction = false;
     uint16_t saverX;
     uint16_t saverY;
     uint16_t posSaver = 0;
     long elapsedSaver = millis();
+    uint8_t saverLineColors[63];  // A vonal színeinek tömbje
 
    protected:
     /**
@@ -20,7 +22,7 @@ class ScreenSaverDisplay : public DisplayBase {
     bool handleRotary(RotaryEncoder::EncoderState encoderState) override { return false; };
 
     /**
-     * Touch (nem képrnyő button) esemény lekezelése
+     * Touch (nem képernyő button) esemény lekezelése
      * A ScreeSaver nem figyeli a touch, azt már a főprogram figyeli
      * Ezt a metódust a ScreenSaver animációjára használjuk
      */
@@ -39,14 +41,20 @@ class ScreenSaverDisplay : public DisplayBase {
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override {};
 
    public:
-    ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {};
+    /**
+     * Konstruktor
+     */
+    ScreenSaverDisplay(TFT_eSPI &tft);
+    /**
+     * Destruktor
+     */
     ~ScreenSaverDisplay() {};
 
     /**
      * Képernyő kirajzolása
      * (Az esetleges dialóg eltűnése után a teljes képernyőt újra rajzoljuk)
      */
-    void drawScreen() override;
+    void drawScreen() override {};
 
     /**
      * Aktuális képernyő típusának lekérdezése

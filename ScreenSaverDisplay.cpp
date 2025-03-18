@@ -2,48 +2,60 @@
 
 #include <Arduino.h>
 
-/**
- * Képernyő kirajzolása
- * (Az esetleges dialóg eltűnése után a teljes képernyőt újra rajzoljuk)
- */
-void ScreenSaverDisplay::drawScreen() {
-    tft.fillScreen(TFT_BLACK);
-    // tft.setFreeFont();
-    // tft.setTextFont(2);
+#define SAVER_ANIMATION_STEPS 500          // Az animáció ciklusának hossza
+#define SAVER_ANIMATION_LINE_LENGTH 63     // A vonal hossza
+#define SAVER_LINE_CENTER 31               // A vonal közepe
+#define SAVER_X_OFFSET_1 10                // X eltolás a t < 200 szakaszon
+#define SAVER_Y_OFFSET_1 5                 // Y eltolás a t < 200 szakaszon
+#define SAVER_X_OFFSET_2 189               // X eltolás a 200 <= t < 250 szakaszon
+#define SAVER_Y_OFFSET_2 205               // Y eltolás a 200 <= t < 250 szakaszon
+#define SAVER_X_OFFSET_3 439               // X eltolás a 250 <= t < 450 szakaszon
+#define SAVER_Y_OFFSET_3 44                // Y eltolás a 250 <= t < 450 szakaszon
+#define SAVER_X_OFFSET_4 10                // X eltolás az t >= 450 szakaszon
+#define SAVER_Y_OFFSET_4 494               // Y eltolás az t >= 450 szakaszon
+#define SAVER_ANIMATION_STEP_JUMP 3        // Ugrás az animációs ciklusban
+#define SAVER_NEW_POS_INTERVAL_MSEC 15000  // Új pozíció generálásának intervalluma (15 másodperc)
+#define SAVER_COLOR_FACTOR 64              // szín tényező
 
-    // tft.setTextSize(2);
-    // tft.setTextDatum(MC_DATUM);  // Középre igazítás
-    // tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    // tft.drawString("ScreenSaver display", tft.width() / 2, tft.height() / 2);
+/**
+ * Konstruktor
+ */
+ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
+    // Előre kiszámítjuk a 'c' értékeket a vonalhoz
+    for (int i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
+        saverLineColors[i] = (31 - abs(i - SAVER_LINE_CENTER));
+    }
 }
 
 /**
- * Touch (nem képrnyő button) esemény lekezelése
- * A ScreeSaver nem figyeli a touch, azt már a főprogram figyeli
+ * Touch (nem képernyő button) esemény lekezelése
+ * A ScreenSaver nem figyeli a touch, azt már a főprogram figyeli
  * Ezt a metódust a ScreenSaver animációjára használjuk
  */
 bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+    // Nincs szükség a touched, tx, ty változókra, de a DisplayBase megköveteli.
 
     int t = posSaver;
     posSaver++;
-    if (posSaver == 500) posSaver = 0;
+    if (posSaver == SAVER_ANIMATION_STEPS) posSaver = 0;
 
-    for (int i = 0; i < 63; i++) {
-        int c = 31 - abs(i - 31);
+    for (int i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
+        int c = saverLineColors[i];  // Használjuk az előre kiszámított 'c' értékeket
+
         if (t < 200) {
-            tft.drawPixel(saverX - 10 + t, saverY - 5, (c * 64) + c);
+            tft.drawPixel(saverX - SAVER_X_OFFSET_1 + t, saverY - SAVER_Y_OFFSET_1, (c * SAVER_COLOR_FACTOR) + c);
         } else if (t >= 200 and t < 250) {
-            tft.drawPixel(saverX + 189, saverY - 205 + t, (c * 64) + c);
+            tft.drawPixel(saverX + SAVER_X_OFFSET_2, saverY - SAVER_Y_OFFSET_2 + t, (c * SAVER_COLOR_FACTOR) + c);
         } else if (t >= 250 and t < 450) {
-            tft.drawPixel(saverX + 439 - t, saverY + 44, (c * 64) + c);
+            tft.drawPixel(saverX + SAVER_X_OFFSET_3 - t, saverY + SAVER_Y_OFFSET_3, (c * SAVER_COLOR_FACTOR) + c);
         } else {
-            tft.drawPixel(saverX - 10, saverY + 494 - t, (c * 64) + c);
+            tft.drawPixel(saverX - SAVER_X_OFFSET_4, saverY + SAVER_Y_OFFSET_4 - t, (c * SAVER_COLOR_FACTOR) + c);
         }
-        t += 3;
-        if (t > 499) t -= 500;
+        t += SAVER_ANIMATION_STEP_JUMP;
+        if (t >= SAVER_ANIMATION_STEPS) t -= SAVER_ANIMATION_STEPS;
     }
 
-    if ((elapsedSaver + 15000) < millis()) {  // 15 mp-enként
+    if ((elapsedSaver + SAVER_NEW_POS_INTERVAL_MSEC) < millis()) {  // 15 másodpercenként
         elapsedSaver = millis();
 
         tft.fillScreen(TFT_BLACK);
@@ -55,6 +67,8 @@ bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
         saverX = random(120) + 10;
         saverY = random(190) + 5;
         // }
+
+        // Ide jöhetne a további kirajzolás, pl. akkumulátor jelzés, stb.
 
         // FreqDraw(freq, 0);
 
