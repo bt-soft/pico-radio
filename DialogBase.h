@@ -82,6 +82,11 @@ class DialogBase : public IGuiEvents {
         // Kirajzoljuk a dialógot
         tft.fillRect(x, y, w, h, DLG_BACKGROUND_COLOR);  // háttér
 
+        // Fontváltás a title és a message kiírásához
+        tft.setFreeFont(&FreeSansBold9pt7b);
+        tft.setTextSize(1);
+        tft.setTextPadding(0);
+
         // Title kiírása
         if (title != nullptr) {
             // Fejléc háttér kitöltése
@@ -109,10 +114,6 @@ class DialogBase : public IGuiEvents {
         // Üzenet kirajzolása, ha van üzenet
         if (message != nullptr) {
             tft.setTextColor(TFT_WHITE);
-
-            // tft.setTextDatum(MC_DATUM);
-            // tft.drawString(message, x + w / 2, messageY);
-
             tft.setTextDatum(ML_DATUM);
             tft.drawString(message, x + 10, messageY);  // Belső padding 10px
         }

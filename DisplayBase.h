@@ -273,9 +273,14 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
      * Aktuális képernyő típusának lekérdezése
      */
     virtual inline DisplayType getDisplayType() = 0;
+
+    /**
+     * Dialóg pointer lekérése
+     */
+    DialogBase *getPDialog() { return pDialog; }
 };
 
 // Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)
-extern DisplayBase::DisplayType displayChange;
+extern DisplayBase::DisplayType newDisplay;
 
 #endif  //__DISPLAY_BASE_H

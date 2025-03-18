@@ -31,10 +31,11 @@ DisplayBase *pDisplay = nullptr;
  * Induláskor FM - módban indulunk
  * (Ezt a globális változót a képernyők állítgatják, ha más képernyőt választ a felhasználó)
  */
-DisplayBase::DisplayType displayChange = DisplayBase::DisplayType::fm;
+DisplayBase::DisplayType newDisplay = DisplayBase::DisplayType::fm;
+DisplayBase::DisplayType currentDisplay = DisplayBase::DisplayType::none;
 
-// A képernyővédő elindulása előtti screen, majd erre állunk vissza
-DisplayBase::DisplayType displayBeforeScreenSaver = DisplayBase::DisplayType::none;
+// A képernyővédő elindulása előtti screen pointere, majd erre állunk vissza
+DisplayBase *pDisplayBeforeScreenSaver = nullptr;
 
 /**
  * Aktuális kijelző váltása
@@ -42,36 +43,60 @@ DisplayBase::DisplayType displayBeforeScreenSaver = DisplayBase::DisplayType::no
  */
 void changeDisplay() {
 
-    // Ha volt aktuális képernyő, akkor azt töröljük
-    if (pDisplay) {
-        delete pDisplay;
+    // Ha a ScreenSaver-re váltunk...
+    if (::newDisplay == DisplayBase::DisplayType::screenSaver) {
+
+        // Elmentjük az aktuális képernyő pointerét
+        ::pDisplayBeforeScreenSaver = ::pDisplay;
+
+        // Létrehozzuk a ScreenSaver képernyőt
+        ::pDisplay = new ScreenSaverDisplay(tft);
+
+    } else if (::currentDisplay == DisplayBase::DisplayType::screenSaver and ::newDisplay != DisplayBase::DisplayType::screenSaver) {
+        // Ha ScreenSaver-ről váltunk vissza az eredeti képernyőre
+        delete ::pDisplay;  // akkor töröljük a ScreenSaver-t
+
+        // Visszaállítjuk a korábbi képernyő pointerét
+        ::pDisplay = ::pDisplayBeforeScreenSaver;
+        ::pDisplayBeforeScreenSaver = nullptr;
+
+    } else {
+
+        // Ha más képernyőről váltunk egy másik képernyőre, akkor az aktuáils képernyőt töröljük
+        if (::pDisplay) {
+            delete ::pDisplay;
+        }
+
+        // Létrehozzuk az új képernyő példányát
+        switch (newDisplay) {
+
+            case DisplayBase::DisplayType::fm:
+                ::pDisplay = new FmDisplay(tft);
+                break;
+
+            case DisplayBase::DisplayType::am:
+                ::pDisplay = new AmDisplay(tft);
+                break;
+
+            case DisplayBase::DisplayType::freqScan:
+                ::pDisplay = new FreqScanDisplay(tft);
+                break;
+        }
     }
 
-    // Létrehozzuk a kijelző példányát
-    switch (displayChange) {
+    // Megjeleníttetjük az új képernyőt
+    ::pDisplay->drawScreen();
 
-        case DisplayBase::DisplayType::fm:
-            pDisplay = new FmDisplay(tft);
-            break;
-
-        case DisplayBase::DisplayType::am:
-            pDisplay = new AmDisplay(tft);
-            break;
-
-        case DisplayBase::DisplayType::freqScan:
-            pDisplay = new FreqScanDisplay(tft);
-            break;
-
-        case DisplayBase::DisplayType::screenSaver:
-            pDisplay = new ScreenSaverDisplay(tft);
-            break;
+    // Ha volt aktív dialógja a képernyőnek (még mielőtt a képernyővédő aktivvá vált volna), akkor azt is kirajzoltatjuk
+    if (::pDisplay->getPDialog() != nullptr) {
+        ::pDisplay->getPDialog()->drawDialog();
     }
 
-    // Megjeleníttetjük a képernyőt
-    pDisplay->drawScreen();
+    // Elmentjük az aktuális képernyő típust
+    ::currentDisplay = newDisplay;
 
-    // Jelezzük, hogy nem akarunk képernyőváltást már
-    displayChange = DisplayBase::DisplayType::none;
+    // Jelezzük, hogy nem akarunk képernyőváltást, megtörtént már
+    ::newDisplay = DisplayBase::DisplayType::none;
 }
 
 /** ----------------------------------------------------------------------------------------------------------------------------------------
@@ -137,7 +162,7 @@ void setup() {
 void loop() {
 
     // Ha kell display-t váltani, akkor azt itt tesszük meg
-    if (::displayChange != DisplayBase::DisplayType::none) {
+    if (::newDisplay != DisplayBase::DisplayType::none) {
         changeDisplay();
     }
 
@@ -188,12 +213,11 @@ void loop() {
         bool userInteraction = (touched or encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None);
 
         if (userInteraction) {
+            // Ha volt interakció, akkor megnézzük, hogy az a képernyővédőn történt-e
+            if (::currentDisplay == DisplayBase::DisplayType::screenSaver) {
 
-            // Ha van interakció, megnézzük, hogy képernyővédőn történt-e
-            if (pDisplay->getDisplayType() == DisplayBase::DisplayType::screenSaver) {
                 // Ha képernyővédőn volt az interakció, visszaállítjuk az előző képernyőt
-                ::displayChange = ::displayBeforeScreenSaver;                 // Bejegyezzük visszaállításra a korábbi képernyőt
-                ::displayBeforeScreenSaver = DisplayBase::DisplayType::none;  // töröljük a korábbi képernyő mentését
+                ::newDisplay = ::pDisplayBeforeScreenSaver->getDisplayType();  // Bejegyezzük visszaállításra a korábbi képernyőt
             }
 
             // Minden esetben frissítjük a timeoutot
@@ -205,9 +229,8 @@ void loop() {
             if (millis() - lastScreenSaver >= SCREEN_SAVER_TIME) {
 
                 // Ha letelt a timeout és nem a képernyővédőn vagyunk, elindítjuk a képernyővédőt
-                if (pDisplay->getDisplayType() != DisplayBase::DisplayType::screenSaver) {
-                    displayBeforeScreenSaver = pDisplay->getDisplayType();
-                    displayChange = DisplayBase::DisplayType::screenSaver;
+                if (::currentDisplay != DisplayBase::DisplayType::screenSaver) {
+                    ::newDisplay = DisplayBase::DisplayType::screenSaver;
 
                 } else {
                     // ha a screen saver már fut, akkor a timeout-ot frissítjük

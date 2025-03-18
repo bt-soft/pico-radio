@@ -107,10 +107,10 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
     DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
 
     if (STREQ("AM", event.label)) {
-        ::displayChange = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
 
     } else if (STREQ("Scan", event.label)) {
-        ::displayChange = DisplayBase::DisplayType::freqScan;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        ::newDisplay = DisplayBase::DisplayType::freqScan;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
 
     } else if (STREQ("Popup", event.label)) {
         // Popup
