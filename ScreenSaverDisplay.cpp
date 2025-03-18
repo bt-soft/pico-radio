@@ -37,10 +37,12 @@ bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
 
     uint16_t t = posSaver;
     posSaver++;
-    if (posSaver == SAVER_ANIMATION_STEPS) posSaver = 0;
+    if (posSaver == SAVER_ANIMATION_STEPS) {
+        posSaver = 0;
+    }
 
     for (uint8_t i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
-        int c = saverLineColors[i];  // Használjuk az előre kiszámított 'c' értékeket
+        uint8_t c = saverLineColors[i];  // Használjuk az előre kiszámított 'c' értékeket
 
         if (t < 200) {
             tft.drawPixel(saverX - SAVER_X_OFFSET_1 + t, saverY - SAVER_Y_OFFSET_1, (c * SAVER_COLOR_FACTOR) + c);
@@ -51,8 +53,11 @@ bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
         } else {
             tft.drawPixel(saverX - SAVER_X_OFFSET_4, saverY + SAVER_Y_OFFSET_4 - t, (c * SAVER_COLOR_FACTOR) + c);
         }
+
         t += SAVER_ANIMATION_STEP_JUMP;
-        if (t >= SAVER_ANIMATION_STEPS) t -= SAVER_ANIMATION_STEPS;
+        if (t >= SAVER_ANIMATION_STEPS) {
+            t -= SAVER_ANIMATION_STEPS;
+        }
     }
 
     if ((elapsedSaver + SAVER_NEW_POS_INTERVAL_MSEC) < millis()) {  // 15 másodpercenként
