@@ -39,6 +39,11 @@ class FmDisplay : public DisplayBase {
      * (Az esetleges dialóg eltűnése után a teljes képernyőt újra rajzoljuk)
      */
     void drawScreen() override;
+
+    /**
+     * Aktuális képernyő típusának lekérdezése
+     */
+    inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::fm; };
 };
 
 #endif  //__FMDISPLAY_H

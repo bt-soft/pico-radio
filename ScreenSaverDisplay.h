@@ -1,9 +1,9 @@
-#ifndef __AMDISPLAY_H
-#define __AMDISPLAY_H
+#ifndef __SCREENSAVERDISPLAY_H
+#define __SCREENSAVERDISPLAY_H
 
 #include "DisplayBase.h"
 
-class AmDisplay : public DisplayBase {
+class ScreenSaverDisplay : public DisplayBase {
 
    protected:
     /**
@@ -27,8 +27,8 @@ class AmDisplay : public DisplayBase {
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
 
    public:
-    AmDisplay(TFT_eSPI &tft);
-    ~AmDisplay();
+    ScreenSaverDisplay(TFT_eSPI &tft);
+    ~ScreenSaverDisplay();
 
     /**
      * Képernyő kirajzolása
@@ -39,7 +39,7 @@ class AmDisplay : public DisplayBase {
     /**
      * Aktuális képernyő típusának lekérdezése
      */
-    inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::am; };
+    inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::screenSaver; };
 };
 
-#endif  //__AMDISPLAY_H
+#endif  //__SCREENSAVERDISPLAY_H

@@ -35,6 +35,11 @@ class FreqScanDisplay : public DisplayBase {
      * (Az esetleges dialóg eltűnése után a teljes képernyőt újra rajzoljuk)
      */
     void drawScreen() override;
+
+    /**
+     * Aktuális képernyő típusának lekérdezése
+     */
+    inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::freqScan; };
 };
 
 #endif  //__FREQSCANDISPLAY_H

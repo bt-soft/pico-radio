@@ -35,7 +35,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
    public:
     // Lehetséges képernyő típusok
-    enum DisplayType { noneDisplayType, FmDisplayType, AmDisplayType, FreqScanDisplayType };
+    enum DisplayType { none, fm, am, freqScan, screenSaver };
 
    private:
     // A dinamikusan létrehozott gombok tömbjére mutató pointer
@@ -190,8 +190,9 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
     /**
      * Arduino loop hívás (a leszármazott nem írhatja felül)
+     * @return true -> ha volt valalami touch vagy rotary esemény kezelés, a screensavert resetelni kell ilyenkor
      */
-    virtual void loop(RotaryEncoder::EncoderState encoderState) final {
+    virtual bool loop(RotaryEncoder::EncoderState encoderState) final {
 
         // Touch adatok változói
         uint16_t tx, ty;
@@ -216,7 +217,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
                 // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al
                 // Ha volt rotary esemény, akkor nem lehet touch, így nem megyünk tovább
-                return;
+                return true;
             }
 
             //
@@ -228,7 +229,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
             if (pDialog != nullptr and dialogButtonResponse == TftButton::noTouchEvent and pDialog->handleTouch(touched, tx, ty)) {
 
                 // Ha ide értünk, akkor be van állítva a dialogButtonResponse
-                return;
+                return true;
 
             } else if (pDialog == nullptr and screenButtonTouchEvent == TftButton::noTouchEvent and screenButtons) {
                 // Ha nincs dialóg, de vannak képernyő menügombok és még nincs scrrenButton esemény, akkor azok kapják meg a touch adatokat
@@ -262,7 +263,14 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
             handleTouch(touched, tx, ty);
         }
+
+        return touched;
     }
+
+    /**
+     * Aktuális képernyő típusának lekérdezése
+     */
+    virtual inline DisplayBase::DisplayType getDisplayType() = 0;
 };
 
 // Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)

@@ -23,6 +23,7 @@ Config config;
 #include "AmDisplay.h"
 #include "FmDisplay.h"
 #include "FreqScanDisplay.h"
+#include "ScreenSaverDisplay.h"
 DisplayBase *pDisplay = nullptr;
 
 /**
@@ -30,7 +31,10 @@ DisplayBase *pDisplay = nullptr;
  * Induláskor FM - módban indulunk
  * (Ezt a globális változót a képernyők állítgatják, ha más képernyőt választ a felhasználó)
  */
-DisplayBase::DisplayType displayChange = DisplayBase::DisplayType::FmDisplayType;
+DisplayBase::DisplayType displayChange = DisplayBase::DisplayType::fm;
+
+// A képernyővédő elindulása előtti screen, majd erre állunk vissza
+DisplayBase::DisplayType displayBeforeScreenSaver = DisplayBase::DisplayType::none;
 
 /**
  * Aktuális kijelző váltása
@@ -45,14 +49,21 @@ void changeDisplay() {
 
     // Létrehozzuk a kijelző példányát
     switch (displayChange) {
-        case DisplayBase::DisplayType::FmDisplayType:
+
+        case DisplayBase::DisplayType::fm:
             pDisplay = new FmDisplay(tft);
             break;
-        case DisplayBase::DisplayType::AmDisplayType:
+
+        case DisplayBase::DisplayType::am:
             pDisplay = new AmDisplay(tft);
             break;
-        case DisplayBase::DisplayType::FreqScanDisplayType:
+
+        case DisplayBase::DisplayType::freqScan:
             pDisplay = new FreqScanDisplay(tft);
+            break;
+
+        case DisplayBase::DisplayType::screenSaver:
+            pDisplay = new ScreenSaverDisplay(tft);
             break;
     }
 
@@ -60,7 +71,7 @@ void changeDisplay() {
     pDisplay->drawScreen();
 
     // Jelezzük, hogy nem akarunk képernyőváltást már
-    displayChange = DisplayBase::DisplayType::noneDisplayType;
+    displayChange = DisplayBase::DisplayType::none;
 }
 
 /** ----------------------------------------------------------------------------------------------------------------------------------------
@@ -126,7 +137,7 @@ void setup() {
 void loop() {
 
     // Ha kell display-t váltani, akkor azt itt tesszük meg
-    if (::displayChange != DisplayBase::DisplayType::noneDisplayType) {
+    if (::displayChange != DisplayBase::DisplayType::none) {
         changeDisplay();
     }
 
@@ -165,10 +176,45 @@ void loop() {
         return;
     }
 
-    // Aktuális Display loopja
     try {
 
-        pDisplay->loop(encoderState);
+        // Aktuális Display loopja
+        bool touched = pDisplay->loop(encoderState);
+
+#define SCREEN_SAVER_TIME 1000 * 60 * 1  // 5 perc
+        static uint32_t lastScreenSaver = millis();
+        // Ha volt touch valamelyik képernyőn, vagy volt rotary esemény...
+        // Volt felhasználói interakció?
+        bool userInteraction = (touched or encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None);
+
+        if (userInteraction) {
+
+            // Ha van interakció, megnézzük, hogy képernyővédőn történt-e
+            if (pDisplay->getDisplayType() == DisplayBase::DisplayType::screenSaver) {
+                // Ha képernyővédőn volt az interakció, visszaállítjuk az előző képernyőt
+                ::displayChange = ::displayBeforeScreenSaver;                 // Bejegyezzük visszaállításra a korábbi képernyőt
+                ::displayBeforeScreenSaver = DisplayBase::DisplayType::none;  // töröljük a korábbi képernyő mentését
+            }
+
+            // Minden esetben frissítjük a timeoutot
+            lastScreenSaver = millis();
+
+        } else {
+
+            // Ha nincs interakció, megnézzük, hogy lejárt-e a timeout
+            if (millis() - lastScreenSaver >= SCREEN_SAVER_TIME) {
+
+                // Ha letelt a timeout és nem a képernyővédőn vagyunk, elindítjuk a képernyővédőt
+                if (pDisplay->getDisplayType() != DisplayBase::DisplayType::screenSaver) {
+                    displayBeforeScreenSaver = pDisplay->getDisplayType();
+                    displayChange = DisplayBase::DisplayType::screenSaver;
+
+                } else {
+                    // ha a screen saver már fut, akkor a timeout-ot frissítjük
+                    lastScreenSaver = millis();
+                }
+            }
+        }
 
     } catch (const std::exception &e) {
         Utils::beepError();
