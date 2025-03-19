@@ -23,6 +23,7 @@
                 "C:\\Users\\BT\\Documents\\Arduino\\libraries\\TFT_eSPI",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\hardware\\rp2040\\4.4.4\\libraries\\SPI\\src",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\hardware\\rp2040\\4.4.4\\libraries\\LittleFS\\src",
+                "C:\\Users\\BT\\Documents\\Arduino\\libraries\\RPI_PICO_TimerInterrupt\\src",
                 "C:\\Users\\BT\\Documents\\Arduino\\libraries\\CRC\\src",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\hardware\\rp2040\\4.4.4\\libraries\\EEPROM\\src",
                 "C:\\Users\\BT\\Documents\\Arduino\\libraries\\PU2CLR_SI4735\\src",

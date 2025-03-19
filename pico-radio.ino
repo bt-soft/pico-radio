@@ -7,7 +7,12 @@
 #include <TFT_eSPI.h>  // TFT_eSPI könyvtár
 TFT_eSPI tft;          // TFT objektum
 
-//------------------- Rotary Encoder (Nem használunk hardware timert, az interrupt védelmekkel nem akarunk foglalkozni)
+//------------------- Rotary Encoder
+// Pico Hardware timer a Rotary encoder olvasására
+#include <RPi_Pico_TimerInterrupt.h>
+RPI_PICO_Timer ITimer1(1);
+#define TIMER1_INTERVAL_USEC 1000 * 5  // 5ms
+
 #include "RotaryEncoder.h"
 RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW);
 
@@ -108,6 +113,14 @@ void changeDisplay() {
     ::newDisplay = DisplayBase::DisplayType::none;
 }
 
+/**
+ * Hardware timer interrupt service routine a rotaryhoz
+ */
+bool hardwareTimerHandler1(struct repeating_timer *t) {
+    rotaryEncoder.service();
+    return true;
+}
+
 /** ----------------------------------------------------------------------------------------------------------------------------------------
  *  Arduino Setup
  */
@@ -127,7 +140,9 @@ void setup() {
 
     // Rotary Encoder beállítása
     rotaryEncoder.setDoubleClickEnabled(true);
-    rotaryEncoder.setAccelerationEnabled(true);
+    rotaryEncoder.setAccelerationEnabled(false);
+    // Pico HW Timer1 beállítása a rotaryhoz
+    ITimer1.attachInterruptInterval(TIMER1_INTERVAL_USEC, hardwareTimerHandler1);
 
     // TFT inicializálása
     tft.init();
@@ -230,13 +245,14 @@ void loop() {
     }
 // ================================================================
 
-//------------------- Rotary Encoder Service
-#define ROTARY_ENCODER_SERVICE_INTERVAL 5  // 5msec
-    static uint32_t lastRotaryEncoderService = 0;
-    if (millis() - lastRotaryEncoderService >= ROTARY_ENCODER_SERVICE_INTERVAL) {
-        rotaryEncoder.service();
-        lastRotaryEncoderService = millis();
-    }
+// //------------------- Rotary Encoder Service
+// #define ROTARY_ENCODER_SERVICE_INTERVAL 5  // 5msec
+//     static uint32_t lastRotaryEncoderService = 0;
+//     if (millis() - lastRotaryEncoderService >= ROTARY_ENCODER_SERVICE_INTERVAL) {
+//         rotaryEncoder.service();
+//         lastRotaryEncoderService = millis();
+//     }
+
 //------------------- EEprom mentés figyelése
 #define EEPROM_SAVE_CHECK_INTERVAL 5 * 60 * 1000  // 5 perc
     static uint32_t lastEepromSaveCheck = 0;
