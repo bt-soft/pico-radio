@@ -2,12 +2,26 @@
 #define __FMDISPLAY_H
 
 #include "DisplayBase.h"
+#include "Rds.h"
+#include "SMeter.h"
+#include "SevenSegmentFreq.h"
 
+/**
+ *
+ */
 class FmDisplay : public DisplayBase {
    private:
     bool ledState = false;
     int volume = 5;
     float temperature = 22.5;
+    Rds *pRds;
+    SMeter *pSMeter;
+    SevenSegmentFreq *pSevenSegmentFreq;
+
+    /**
+     * Mono/Stereó felirat megjelenítése
+     */
+    void showMonoStereo(bool stereo);
 
    protected:
     /**
@@ -29,6 +43,11 @@ class FmDisplay : public DisplayBase {
      * Dialóg Button touch esemény feldolgozása
      */
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
+
+    /**
+     * Esemény nélküli display loop
+     */
+    void displayLoop() override;
 
    public:
     FmDisplay(TFT_eSPI &tft);

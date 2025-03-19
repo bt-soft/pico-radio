@@ -46,6 +46,11 @@ void FreqScanDisplay::drawScreen() {
 }
 
 /**
+ * Esemény nélküli display loop -> Adatok periódikus megjelenítése
+ */
+void FreqScanDisplay::displayLoop() {}
+
+/**
  * Touch (nem képrnyő button) esemény lekezelése
  * A további gui elemek vezérléséhez
  */

@@ -25,6 +25,8 @@
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\hardware\\rp2040\\4.4.4\\libraries\\LittleFS\\src",
                 "C:\\Users\\BT\\Documents\\Arduino\\libraries\\CRC\\src",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\hardware\\rp2040\\4.4.4\\libraries\\EEPROM\\src",
+                "C:\\Users\\BT\\Documents\\Arduino\\libraries\\PU2CLR_SI4735\\src",
+                "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\hardware\\rp2040\\4.4.4\\libraries\\Wire\\src",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-gcc\\4.0.1-8ec9d6f\\arm-none-eabi\\include\\c++\\14.2.0",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-gcc\\4.0.1-8ec9d6f\\arm-none-eabi\\include\\c++\\14.2.0\\arm-none-eabi\\thumb",
                 "C:\\Users\\BT\\AppData\\Local\\Arduino15\\packages\\rp2040\\tools\\pqt-gcc\\4.0.1-8ec9d6f\\arm-none-eabi\\include\\c++\\14.2.0\\backward",

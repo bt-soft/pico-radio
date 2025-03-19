@@ -52,6 +52,11 @@ void AmDisplay::drawScreen() {
 bool AmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) { return false; }
 
 /**
+ * Esemény nélküli display loop -> Adatok periódikus megjelenítése
+ */
+void AmDisplay::displayLoop() {}
+
+/**
  * Képernyő menügomb esemény feldolgozása
  */
 void AmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {

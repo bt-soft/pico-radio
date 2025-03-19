@@ -9,7 +9,21 @@
 /**
  * Konstruktor
  */
-FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
+FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft), pSMeter(nullptr), pRds(nullptr), pSevenSegmentFreq(nullptr) {
+
+    // SMeter példányosítása
+    pSMeter = new SMeter(tft, 0, 80);
+
+    // RDS példányosítása
+    pRds = new Rds(tft, si4735, 80, 62,  // Station x,y
+                   0, 80,                // Message x,y
+                   2, 42,                // Time x,y
+                   0, 140                // program type x,y
+    );
+
+    // Frekvencia kijelzés pédányosítása
+    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY);
+
     // Képernyőgombok definiálása
     DisplayBase::BuildButtonData buttonsData[] = {
         {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
@@ -32,7 +46,23 @@ FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
 /**
  *
  */
-FmDisplay::~FmDisplay() {}
+FmDisplay::~FmDisplay() {
+
+    // SMeter trölése
+    if (pSMeter) {
+        delete pSMeter;
+    }
+
+    // RDS trölése
+    if (pRds) {
+        delete pRds;
+    }
+
+    // Frekvencia kijelző törlése
+    if (pSevenSegmentFreq) {
+        delete pSevenSegmentFreq;
+    }
+}
 
 /**
  * Képernyő kirajzolása
@@ -40,57 +70,48 @@ FmDisplay::~FmDisplay() {}
  */
 void FmDisplay::drawScreen() {
     tft.setFreeFont();
-    tft.fillScreen(TFT_BLACK);
-    tft.setTextFont(2);
+    tft.fillScreen(TFT_COLOR_BACKGROUND);
+
+    // RSSI skála kirajzoltatása
+    pSMeter->drawSmeterScale();
+
+    // RSSI aktuális érték
+    si4735.getCurrentReceivedSignalQuality();
+    uint8_t rssi = si4735.getCurrentRSSI();
+    uint8_t snr = si4735.getCurrentSNR();
+    pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
+
+    // RDS (erőből a 'valamilyen' adatok megjelenítése)
+    pRds->displayRds(true);
+
+    // Mono/Stereo aktuális érték
+    this->showMonoStereo(si4735.getCurrentPilot());
+
+    // Frekvencia
+    float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    pSevenSegmentFreq->FreqDraw(currFreq, 0);
 
     // Gombok kirajzolása
     DisplayBase::drawScreenButtons();
-
-    tft.setTextSize(2);
-    tft.setTextDatum(MC_DATUM);  // Középre igazítás
-    tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString("FM display", tft.width() / 2, tft.height() / 2);
 }
 
 /**
  * Rotary encoder esemény lekezelése
  */
 bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
-    // Ha klikkeltek VAGY van tekerés, akkor bizony piszkáltuk
-    if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
-        if (encoderState.buttonState != RotaryEncoder::Open) {
-            switch (encoderState.buttonState) {
-                case RotaryEncoder::ButtonState::Pressed:
-                    DEBUG("Rotary -> Pressed\n");
-                    break;
-                case RotaryEncoder::ButtonState::Held:
-                    DEBUG("Rotary -> Held\n");
-                    break;
-                case RotaryEncoder::ButtonState::Released:
-                    DEBUG("Rotary -> Released\n");
-                    break;
-                case RotaryEncoder::ButtonState::Clicked:
-                    DEBUG("Rotary -> Clicked\n");
-                    break;
-                case RotaryEncoder::ButtonState::DoubleClicked:
-                    DEBUG("Rotary -> DoubleClicked\n");
-                    break;
-            }
-        }
 
-        if (encoderState.direction != RotaryEncoder::Direction::None) {
-            switch (encoderState.direction) {
-                case RotaryEncoder::Direction::Up:
-                    DEBUG("Rotary -> UP\n");
-                    break;
-                case RotaryEncoder::Direction::Down:
-                    DEBUG("Rotary -> DOWN\n");
-                    break;
-            }
-        }
+    switch (encoderState.direction) {
+        case RotaryEncoder::Direction::Up:
+            si4735.frequencyUp();
+            break;
+        case RotaryEncoder::Direction::Down:
+            si4735.frequencyDown();
+            break;
     }
+    band.getBandByIdx(config.data.bandIdx).currentFreq = si4735.getFrequency();
+    pRds->clearRds();
 
-    return false;
+    return true;
 }
 
 /**
@@ -98,6 +119,71 @@ bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
  * A további gui elemek vezérléséhez
  */
 bool FmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) { return false; }
+
+/**
+ * Mono/Stereo vétel megjelenítése
+ */
+void FmDisplay::showMonoStereo(bool stereo) {
+
+    // STEREO/MONO háttér
+    uint32_t backGroundColor = stereo ? TFT_RED : TFT_BLUE;
+    tft.fillRect(rtv::freqDispX + 191, rtv::freqDispY + 60, 38, 12, backGroundColor);
+
+    // Felirat
+    tft.setFreeFont();
+    tft.setTextColor(TFT_WHITE, backGroundColor);
+    tft.setTextSize(1);
+    tft.setTextDatum(BC_DATUM);
+    tft.setTextPadding(0);
+    char buffer[10];  // Useful to handle string
+    sprintf(buffer, "%s", stereo ? "STEREO" : "MONO");
+    tft.drawString(buffer, rtv::freqDispX + 210, rtv::freqDispY + 71);
+}
+
+/**
+ * Esemény nélküli display loop -> Adatok periódikus megjelenítése
+ */
+void FmDisplay::displayLoop() {
+
+    // Ha van dialóg, akkor nem frissítjük a komponenseket
+    if (DisplayBase::pDialog != nullptr) {
+        return;
+    }
+
+    // Néhány adatot csak ritkábban frissítünk
+    static long elapsedTimedValues = 0;  // Kezdőérték nulla
+    if ((millis() - elapsedTimedValues) >= SCREEN_COMPS_REFRESH_TIME_MSEC) {
+
+        // RSSI
+        si4735.getCurrentReceivedSignalQuality();
+        uint8_t rssi = si4735.getCurrentRSSI();
+        uint8_t snr = si4735.getCurrentSNR();
+        pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
+
+        // RDS
+        pRds->showRDS(snr);
+
+        // Mono/Stereo
+        static bool prevStereo = false;
+        bool stereo = si4735.getCurrentPilot();
+        // Ha változott, akkor frissítünk
+        if (stereo != prevStereo) {
+            this->showMonoStereo(stereo);
+            prevStereo = stereo;  // Frissítsük az előző értéket
+        }
+
+        // Frissítjük az időbélyeget
+        elapsedTimedValues = millis();
+    }
+
+    // A Freqkvenciát azonnal frisítjuk, de csak ha változott
+    static float lastFreq = 0;
+    float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    if (lastFreq != currFreq) {
+        pSevenSegmentFreq->FreqDraw(currFreq, 0);
+        lastFreq = currFreq;
+    }
+}
 
 /**
  * Képernyő menügomb esemény feldolgozása

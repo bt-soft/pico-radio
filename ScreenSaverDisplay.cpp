@@ -22,19 +22,16 @@
  */
 ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
     // Előre kiszámítjuk a 'c' értékeket a vonalhoz
-    for (int i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
+    for (uint8_t i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
         saverLineColors[i] = (31 - abs(i - SAVER_LINE_CENTER));
     }
 }
 
 /**
- * Touch (nem képernyő button) esemény lekezelése
- * A ScreenSaver nem figyeli a touch, azt már a főprogram figyeli
- * Ezt a metódust a ScreenSaver animációjára használjuk
+ * Esemény nélküli display loop - ScreenSaver futtatása
+ * Nem kell figyelni a touch eseményt, azt már a főprogram figyeli és leállítja/törli a ScreenSaver-t
  */
-bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
-    // Nincs szükség a touched, tx, ty változókra, de a DisplayBase megköveteli.
-
+void ScreenSaverDisplay::displayLoop() {
     uint16_t t = posSaver;
     posSaver++;
     if (posSaver == SAVER_ANIMATION_STEPS) {
@@ -96,6 +93,4 @@ bool ScreenSaverDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
         //     tftRusPrint(String(bat) + "%", saverX + 164, saverY + 15);
         // }
     }
-
-    return false;
 }

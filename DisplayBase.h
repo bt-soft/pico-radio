@@ -10,6 +10,14 @@
 #include "TftButton.h"
 #include "utils.h"
 
+// A főprogramban definiálva
+#include <SI4735.h>
+extern SI4735 si4735;
+
+// A főprogramban definiálva
+#include "Band.h"
+extern Band band;
+
 // A képernyő menübuttonok kezdő ID-je
 #define SCRN_MENU_BTN_ID_START 50
 
@@ -189,6 +197,11 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) = 0;
 
     /**
+     * Esemény nélküli display loop -> Adatok periódikus megjelenítése
+     */
+    virtual void displayLoop() = 0;
+
+    /**
      * Arduino loop hívás (a leszármazott nem írhatja felül)
      * @return true -> ha volt valalami touch vagy rotary esemény kezelés, a screensavert resetelni kell ilyenkor
      */
@@ -255,6 +268,8 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
             screenButtonTouchEvent = TftButton::noTouchEvent;
 
         } else if (dialogButtonResponse != TftButton::noTouchEvent) {
+
+            // VOlt dialóg touch response, feldolgozzuk
             processDialogButtonResponse(dialogButtonResponse);
 
             // Töröljük a dialogButtonResponse eseményt
@@ -264,6 +279,10 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
             // Ha nincs screeButton touch event, de nyomtak valamit, VAGY ScreenSaver a képernőy, meghívjuk a handleTouch() metódusát
 
             handleTouch(touched, tx, ty);
+
+        } else {
+            // Semmilyen touch esemény nem volt, meghívjuk a képernyő loop-ját
+            displayLoop();
         }
 
         return touched;

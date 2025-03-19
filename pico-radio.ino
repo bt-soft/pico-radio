@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "rtVars.h"
 #include "utils.h"
 
 //------------------ TFT
@@ -13,6 +14,14 @@ RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN
 //------------------- EEPROM Config
 #include "Config.h"
 Config config;
+
+//------------------- si4735
+#include <SI4735.h>
+SI4735 si4735;
+
+//------------------- Band
+#include "Band.h"
+Band band(si4735);
 
 //------------------- Memória információk megjelenítése
 #ifdef __DEBUG
@@ -123,7 +132,7 @@ void setup() {
     // TFT inicializálása
     tft.init();
     tft.setRotation(1);
-    tft.fillScreen(TFT_BLACK);
+    tft.fillScreen(TFT_COLOR_BACKGROUND);
 
     // Várakozás a soros port megnyitására
     // Utils::debugWaitForSerial(tft);
@@ -149,6 +158,40 @@ void setup() {
     // Beállítjuk a touch scren-t
     tft.setTouch(config.data.tftCalibrateData);
 
+    // Az si473x (Nem a default I2C lábakon [4,5] van!!!)
+    Wire.setSDA(PIN_SI4735_I2C_SDA);  // I2C for SI4735 SDA
+    Wire.setSCL(PIN_SI4735_I2C_SCL);  // I2C for SI4735 SCL
+    Wire.begin();
+
+    // Si4735 inicializálása
+    int16_t si4735Addr = si4735.getDeviceI2CAddress(PIN_SI4735_RESET);
+    if (si4735Addr == 0) {
+        tft.setTextColor(TFT_RED, TFT_COLOR_BACKGROUND);
+        const char *txt = "Si4735 not detected";
+        tft.print(txt);
+        DEBUG(txt);
+        Utils::beepError();
+        while (true)  // nem megyünk tovább
+            ;
+    }
+    si4735.setDeviceI2CAddress(si4735Addr == 0x11 ? 0 : 1);  // Sets the I2C Bus Address, erre is szükség van...
+
+    // Megtaláltuk az SI4735-öt, kiírjuk az I2C címét a képernyőre
+    tft.setFreeFont();
+    tft.setTextSize(2);
+    tft.setTextColor(TFT_GREEN, TFT_COLOR_BACKGROUND);
+    tft.print(F("Si473X addr:  0x"));
+    tft.println(si4735Addr, HEX);
+    delay(1500);
+
+    // Band init
+    band.BandInit();
+    band.BandSet();
+
+    // Si4735 init
+    si4735.setVolume(config.data.currentVOL);   // Hangerő
+    si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
+
     // Kezdő mód képernyőjének megjelenítése
     changeDisplay();
 
@@ -165,6 +208,27 @@ void loop() {
     if (::newDisplay != DisplayBase::DisplayType::none) {
         changeDisplay();
     }
+
+    // ======================= Manage Squelch =========================
+    // squelchIndicator(pCfg->vars.currentSquelch);
+    if (!rtv::muteStat) {
+        si4735.getCurrentReceivedSignalQuality();
+        uint8_t rssi = si4735.getCurrentRSSI();
+        uint8_t snr = si4735.getCurrentSNR();
+
+        uint8_t signalQuality = config.data.squelchUsesRSSI ? rssi : snr;
+        if (signalQuality >= config.data.currentSquelch) {
+            if (rtv::SCANpause == true) {
+                si4735.setAudioMute(AUDIO_MUTE_OFF);
+                rtv::squelchDecay = millis();
+            }
+        } else {
+            if (millis() > (rtv::squelchDecay + SQUELCH_DECAY_TIME)) {
+                si4735.setAudioMute(AUDIO_MUTE_ON);
+            }
+        }
+    }
+// ================================================================
 
 //------------------- Rotary Encoder Service
 #define ROTARY_ENCODER_SERVICE_INTERVAL 5  // 5msec

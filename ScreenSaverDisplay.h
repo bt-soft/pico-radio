@@ -23,10 +23,15 @@ class ScreenSaverDisplay : public DisplayBase {
 
     /**
      * Touch (nem képernyő button) esemény lekezelése
-     * A ScreeSaver nem figyeli a touch, azt már a főprogram figyeli
-     * Ezt a metódust a ScreenSaver animációjára használjuk
      */
-    bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
+    bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override { return false; };
+
+    /**
+     * Esemény nélküli display loop
+     * Ezt a metódust a ScreenSaver animációjára használjuk
+     * Nem kell figyelni a touch eseményt, azt már a főprogram figyeli és leállítja/törli a ScreenSaver-t
+     */
+    void displayLoop() override;
 
     /**
      * Képernyő menügomb esemény feldolgozása

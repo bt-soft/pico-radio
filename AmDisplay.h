@@ -26,6 +26,11 @@ class AmDisplay : public DisplayBase {
      */
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
 
+    /**
+     * Esemény nélküli display loop
+     */
+    void displayLoop() override;
+
    public:
     AmDisplay(TFT_eSPI &tft);
     ~AmDisplay();

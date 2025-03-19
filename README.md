@@ -6,7 +6,7 @@ Rotary Encoder
 
 
 
-Insired by: https://github.com/IU4ALH/IU4ALH
+Inspired by: https://github.com/IU4ALH/IU4ALH
 
 
 Arduino-Pico: https://arduino-pico.readthedocs.io/en/latest/index.html

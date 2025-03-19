@@ -17,6 +17,11 @@ class FreqScanDisplay : public DisplayBase {
     bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
 
     /**
+     * Esemény nélküli display loop
+     */
+    void displayLoop() override;
+
+    /**
      * Képernyő menügomb esemény feldolgozása
      */
     void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override;
