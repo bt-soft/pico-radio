@@ -20,7 +20,8 @@
 /**
  * Konstruktor
  */
-ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
+ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
+
     // Előre kiszámítjuk a 'c' értékeket a vonalhoz
     for (uint8_t i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
         saverLineColors[i] = (31 - abs(i - SAVER_LINE_CENTER));
@@ -31,7 +32,6 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
  * Képernyő kirajzolása
  * A ScreenSaver rögtön a képernyő törlésével kezd
  */
-
 void ScreenSaverDisplay::drawScreen() { tft.fillScreen(TFT_COLOR_BACKGROUND); }
 
 /**

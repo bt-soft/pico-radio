@@ -9,7 +9,7 @@
 /**
  * Konstruktor
  */
-FmDisplay::FmDisplay(TFT_eSPI &tft) : DisplayBase(tft), pSMeter(nullptr), pRds(nullptr), pSevenSegmentFreq(nullptr) {
+FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), pSMeter(nullptr), pRds(nullptr), pSevenSegmentFreq(nullptr) {
 
     // SMeter példányosítása
     pSMeter = new SMeter(tft, 0, 80);

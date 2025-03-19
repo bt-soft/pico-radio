@@ -32,7 +32,7 @@ class FreqScanDisplay : public DisplayBase {
     void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
 
    public:
-    FreqScanDisplay(TFT_eSPI &tft);
+    FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735);
     ~FreqScanDisplay();
 
     /**

@@ -32,7 +32,7 @@ class AmDisplay : public DisplayBase {
     void displayLoop() override;
 
    public:
-    AmDisplay(TFT_eSPI &tft);
+    AmDisplay(TFT_eSPI &tft, SI4735 &si4735);
     ~AmDisplay();
 
     /**

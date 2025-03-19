@@ -5,7 +5,7 @@
 /**
  * Konstruktor
  */
-AmDisplay::AmDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
+AmDisplay::AmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
 
     // Képernyőgombok definiálása
     DisplayBase::BuildButtonData buttonsData[] = {

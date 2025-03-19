@@ -2,21 +2,15 @@
 #define __DISPLAY_BASE_H
 
 #include <Arduino.h>
-#include <TFT_eSPI.h>  // TFT_eSPI könyvtár
+#include <SI4735.h>
+#include <TFT_eSPI.h>
 
+#include "Band.h"
 #include "DialogBase.h"
 #include "IDialogParent.h"
 #include "IGuiEvents.h"
 #include "TftButton.h"
 #include "utils.h"
-
-// A főprogramban definiálva
-#include <SI4735.h>
-extern SI4735 si4735;
-
-// A főprogramban definiálva
-#include "Band.h"
-extern Band band;
 
 // A képernyő menübuttonok kezdő ID-je
 #define SCRN_MENU_BTN_ID_START 50
@@ -69,6 +63,9 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
     // A képernyőn megjelenő dialog pointere
     DialogBase *pDialog = nullptr;
+
+    // SI4735
+    SI4735 &si4735;
 
     /**
      * Screen gombok automatikus X koordinátájának kiszámítása
@@ -139,7 +136,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     /**
      * Konstruktor
      */
-    DisplayBase(TFT_eSPI &tft) : tft(tft), pDialog(nullptr) {}
+    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : tft(tft), si4735(si4735), pDialog(nullptr) {}
 
     /**
      * Destruktor

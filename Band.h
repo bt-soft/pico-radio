@@ -64,4 +64,7 @@ class Band {
     BandTable &getBandByIdx(uint8_t bandIdx);
 };
 
+// A főprogramban definiálva
+extern Band band;
+
 #endif  // __BAND_H

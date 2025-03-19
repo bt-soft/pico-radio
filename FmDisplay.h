@@ -50,7 +50,7 @@ class FmDisplay : public DisplayBase {
     void displayLoop() override;
 
    public:
-    FmDisplay(TFT_eSPI &tft);
+    FmDisplay(TFT_eSPI &tft, SI4735 &si4735);
     ~FmDisplay();
 
     /**

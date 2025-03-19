@@ -4,11 +4,7 @@
 #include "rtVars.h"
 
 #define TFT_COLOR_INACTIVE_SEGMENT TFT_COLOR(50, 50, 50)  // Nem aktív szegmens színe
-
 #define COLOR_INDICATOR_FREQ TFT_GOLD
-
-// A főprogramban definiálva
-extern Band band;
 
 /**
  *

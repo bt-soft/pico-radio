@@ -59,7 +59,7 @@ void changeDisplay() {
         ::pDisplayBeforeScreenSaver = ::pDisplay;
 
         // Létrehozzuk a ScreenSaver képernyőt
-        ::pDisplay = new ScreenSaverDisplay(tft);
+        ::pDisplay = new ScreenSaverDisplay(tft, si4735);
 
     } else if (::currentDisplay == DisplayBase::DisplayType::screenSaver and ::newDisplay != DisplayBase::DisplayType::screenSaver) {
         // Ha ScreenSaver-ről váltunk vissza az eredeti képernyőre
@@ -77,18 +77,18 @@ void changeDisplay() {
         }
 
         // Létrehozzuk az új képernyő példányát
-        switch (newDisplay) {
+        switch (::newDisplay) {
 
             case DisplayBase::DisplayType::fm:
-                ::pDisplay = new FmDisplay(tft);
+                ::pDisplay = new FmDisplay(tft, si4735);
                 break;
 
             case DisplayBase::DisplayType::am:
-                ::pDisplay = new AmDisplay(tft);
+                ::pDisplay = new AmDisplay(tft, si4735);
                 break;
 
             case DisplayBase::DisplayType::freqScan:
-                ::pDisplay = new FreqScanDisplay(tft);
+                ::pDisplay = new FreqScanDisplay(tft, si4735);
                 break;
         }
     }
