@@ -165,7 +165,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 
     /**
-     * Aktuális képernyő típusának lekérdezése
+     * Aktuális képernyő típusának lekérdezése, implemnetálnia kell a leszármazottnak
      */
     virtual inline DisplayType getDisplayType() = 0;
 
@@ -192,7 +192,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 
     /**
-     * Képernyő kirajzolása
+     * Képernyő kirajzolása, implemnetálnia kell a leszármazottnak
      */
     virtual void drawScreen() = 0;
 
@@ -207,7 +207,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {};
 
     /**
-     * Esemény nélküli display loop -> Adatok periódikus megjelenítése
+     * Esemény nélküli display loop -> Adatok periódikus megjelenítése, implemnetálnia kell a leszármazottnak
      */
     virtual void displayLoop() = 0;
 
