@@ -108,7 +108,11 @@ bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
             si4735.frequencyDown();
             break;
     }
+
+    // Elmentjük a band táblába az aktuális frekvencia értékét
     band.getBandByIdx(config.data.bandIdx).currentFreq = si4735.getFrequency();
+
+    // RDS törlés
     pRds->clearRds();
 
     return true;

@@ -265,51 +265,39 @@ void loop() {
         return;
     }
 
-    try {
+    // Aktuális Display loopja
+    bool touched = pDisplay->loop(encoderState);
 
-        // Aktuális Display loopja
-        bool touched = pDisplay->loop(encoderState);
+#define SCREEN_SAVER_TIME 1000 * 60 * 1  // 5 perc a képernyővédő időzítése
+    static uint32_t lastScreenSaver = millis();
+    // Ha volt touch valamelyik képernyőn, vagy volt rotary esemény...
+    // Volt felhasználói interakció?
+    bool userInteraction = (touched or encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None);
 
-#define SCREEN_SAVER_TIME 1000 * 60 * 5  // 5 perc a képernyővédő időzítése
-        static uint32_t lastScreenSaver = millis();
-        // Ha volt touch valamelyik képernyőn, vagy volt rotary esemény...
-        // Volt felhasználói interakció?
-        bool userInteraction = (touched or encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None);
+    if (userInteraction) {
+        // Ha volt interakció, akkor megnézzük, hogy az a képernyővédőn történt-e
+        if (::currentDisplay == DisplayBase::DisplayType::screenSaver) {
 
-        if (userInteraction) {
-            // Ha volt interakció, akkor megnézzük, hogy az a képernyővédőn történt-e
-            if (::currentDisplay == DisplayBase::DisplayType::screenSaver) {
-
-                // Ha képernyővédőn volt az interakció, visszaállítjuk az előző képernyőt
-                ::newDisplay = ::pDisplayBeforeScreenSaver->getDisplayType();  // Bejegyezzük visszaállításra a korábbi képernyőt
-            }
-
-            // Minden esetben frissítjük a timeoutot
-            lastScreenSaver = millis();
-
-        } else {
-
-            // Ha nincs interakció, megnézzük, hogy lejárt-e a timeout
-            if (millis() - lastScreenSaver >= SCREEN_SAVER_TIME) {
-
-                // Ha letelt a timeout és nem a képernyővédőn vagyunk, elindítjuk a képernyővédőt
-                if (::currentDisplay != DisplayBase::DisplayType::screenSaver) {
-                    ::newDisplay = DisplayBase::DisplayType::screenSaver;
-
-                } else {
-                    // ha a screen saver már fut, akkor a timeout-ot frissítjük
-                    lastScreenSaver = millis();
-                }
-            }
+            // Ha képernyővédőn volt az interakció, visszaállítjuk az előző képernyőt
+            ::newDisplay = ::pDisplayBeforeScreenSaver->getDisplayType();  // Bejegyezzük visszaállításra a korábbi képernyőt
         }
 
-    } catch (const std::exception &e) {
-        Utils::beepError();
-        String msg = "root::pDisplay->handleLoop() függvényben: '";
-        msg += e.what();
-        msg += "'";
-        Utils::displayException(tft, msg.c_str());
-    } catch (...) {
-        Utils::displayException(tft, "root::pDisplay->handleLoop() függvényben: 'ismeretlen hiba'");
+        // Minden esetben frissítjük a timeoutot
+        lastScreenSaver = millis();
+
+    } else {
+
+        // Ha nincs interakció, megnézzük, hogy lejárt-e a timeout
+        if (millis() - lastScreenSaver >= SCREEN_SAVER_TIME) {
+
+            // Ha letelt a timeout és nem a képernyővédőn vagyunk, elindítjuk a képernyővédőt
+            if (::currentDisplay != DisplayBase::DisplayType::screenSaver) {
+                ::newDisplay = DisplayBase::DisplayType::screenSaver;
+
+            } else {
+                // ha a screen saver már fut, akkor a timeout-ot frissítjük
+                lastScreenSaver = millis();
+            }
+        }
     }
 }

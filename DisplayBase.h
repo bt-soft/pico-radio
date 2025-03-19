@@ -165,6 +165,16 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 
     /**
+     * Aktuális képernyő típusának lekérdezése
+     */
+    virtual inline DisplayType getDisplayType() = 0;
+
+    /**
+     * Dialóg pointer lekérése
+     */
+    inline DialogBase *getPDialog() { return pDialog; }
+
+    /**
      * A dialog által átadott megnyomott gomb adatai
      * Az IDialogParent-ből jön, a dialóg hívja, ha nyomtak rajta valamit
      */
@@ -189,12 +199,12 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     /**
      * ScreenButton touch esemény feldolgozása
      */
-    virtual void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) = 0;
+    virtual void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {};
 
     /**
      * Dialóg Button touch esemény feldolgozása
      */
-    virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) = 0;
+    virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {};
 
     /**
      * Esemény nélküli display loop -> Adatok periódikus megjelenítése
@@ -226,7 +236,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
                     pDialog->handleRotary(encoderState);
                 } else {
                     // Ha nincs dialóg, akkor a leszármazott képernyőnek, de csak ha van esemény
-                    this->handleRotary(encoderState);
+                    this->handleRotary(encoderState);  // Az IGuiEvents interfészből
                 }
 
                 // Egyszerre tekergetni vagy gombot nyomogatni nem lehet a Touch-al
@@ -262,41 +272,31 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
         // Ha volt screenButton touch event, akkor azt továbbítjuk a képernyőnek
         if (screenButtonTouchEvent != TftButton::noTouchEvent) {
-            processScreenButtonTouchEvent(screenButtonTouchEvent);
+            this->processScreenButtonTouchEvent(screenButtonTouchEvent);
 
             // Töröljük a screenButton eseményt
             screenButtonTouchEvent = TftButton::noTouchEvent;
 
         } else if (dialogButtonResponse != TftButton::noTouchEvent) {
 
-            // VOlt dialóg touch response, feldolgozzuk
-            processDialogButtonResponse(dialogButtonResponse);
+            // Volt dialóg touch response, feldolgozzuk
+            this->processDialogButtonResponse(dialogButtonResponse);
 
             // Töröljük a dialogButtonResponse eseményt
             dialogButtonResponse = TftButton::noTouchEvent;
 
-        } else if (touched or getDisplayType() == DisplayType::screenSaver) {
-            // Ha nincs screeButton touch event, de nyomtak valamit, VAGY ScreenSaver a képernőy, meghívjuk a handleTouch() metódusát
+        } else if (touched) {
+            // Ha nincs screeButton touch event, de nyomtak valamit a képernyőn
 
-            handleTouch(touched, tx, ty);
+            this->handleTouch(touched, tx, ty);  // Az IGuiEvents interfészből
 
         } else {
             // Semmilyen touch esemény nem volt, meghívjuk a képernyő loop-ját
-            displayLoop();
+            this->displayLoop();
         }
 
         return touched;
     }
-
-    /**
-     * Aktuális képernyő típusának lekérdezése
-     */
-    virtual inline DisplayType getDisplayType() = 0;
-
-    /**
-     * Dialóg pointer lekérése
-     */
-    DialogBase *getPDialog() { return pDialog; }
 };
 
 // Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)

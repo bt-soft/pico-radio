@@ -15,13 +15,13 @@ class IGuiEvents {
     /**
      * Rotary encoder esemény lekezelése
      */
-    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) = 0;
+    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) { return false; };
 
     /**
      * Touch esemény lekezelése
      * true, ha valaki rámozdult az eseményre
      */
-    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) = 0;
+    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) { return false; };
 };
 
 #endif  // __IGUIEVENTS_H

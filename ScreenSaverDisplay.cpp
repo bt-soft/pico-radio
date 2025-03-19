@@ -28,6 +28,13 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft) : DisplayBase(tft) {
 }
 
 /**
+ * Képernyő kirajzolása
+ * A ScreenSaver rögtön a képernyő törlésével kezd
+ */
+
+void ScreenSaverDisplay::drawScreen() { tft.fillScreen(TFT_COLOR_BACKGROUND); }
+
+/**
  * Esemény nélküli display loop - ScreenSaver futtatása
  * Nem kell figyelni a touch eseményt, azt már a főprogram figyeli és leállítja/törli a ScreenSaver-t
  */
@@ -60,7 +67,7 @@ void ScreenSaverDisplay::displayLoop() {
     if ((elapsedSaver + SAVER_NEW_POS_INTERVAL_MSEC) < millis()) {  // 15 másodpercenként
         elapsedSaver = millis();
 
-        tft.fillScreen(TFT_BLACK);
+        tft.fillScreen(TFT_COLOR_BACKGROUND);
 
         // if (screenV) {
         //     saverX = random(40) + 10;
