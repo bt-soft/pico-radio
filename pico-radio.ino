@@ -268,7 +268,7 @@ void loop() {
     // Aktuális Display loopja
     bool touched = pDisplay->loop(encoderState);
 
-#define SCREEN_SAVER_TIME 1000 * 60 * 1  // 5 perc a képernyővédő időzítése
+#define SCREEN_SAVER_TIME 1000 * 60 * 10  // 10 perc a képernyővédő időzítése
     static uint32_t lastScreenSaver = millis();
     // Ha volt touch valamelyik képernyőn, vagy volt rotary esemény...
     // Volt felhasználói interakció?
