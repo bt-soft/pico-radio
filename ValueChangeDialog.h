@@ -63,8 +63,11 @@ class ValueChangeDialog : public MessageDialog {
      */
     void drawValue() {
         tft.setTextSize(2);
-        tft.setCursor(x + 30, contentY + 30);
-        tft.fillRect(x + 30, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);
+
+#define VALUECHANGE_X_OFFSET 50
+        tft.setCursor(x + VALUECHANGE_X_OFFSET, contentY + 30);
+        tft.fillRect(x + VALUECHANGE_X_OFFSET, contentY, w - VALUECHANGE_X_OFFSET - 10, 40, DLG_BACKGROUND_COLOR);
+#undef VALUECHANGE_X_OFFSET  // már nem kell
 
         switch (valueType) {
             case ValueType::Boolean:

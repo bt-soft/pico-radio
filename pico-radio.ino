@@ -8,7 +8,7 @@
 TFT_eSPI tft;          // TFT objektum
 
 //------------------- Rotary Encoder
-#define __USE_ROTARY_ENCODER_IN_HW_TIMER
+// #define __USE_ROTARY_ENCODER_IN_HW_TIMER
 #ifdef __USE_ROTARY_ENCODER_IN_HW_TIMER
 // Pico Hardware timer a Rotary encoder olvasására
 #include <RPi_Pico_TimerInterrupt.h>
@@ -17,7 +17,7 @@ RPI_PICO_Timer ITimer1(1);
 
 #include "RotaryEncoder.h"
 RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW);
-#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 5  // 5msec
+#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 1  // 1msec
 
 //------------------- EEPROM Config
 #include "Config.h"

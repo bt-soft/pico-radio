@@ -195,8 +195,6 @@ void FmDisplay::displayLoop() {
  */
 void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
-    DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
-
     if (STREQ("Vol", event.label)) {
 
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,
@@ -239,7 +237,6 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 void FmDisplay::processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {
 
     DEBUG("FmDisplay::processDialogButtonResponse() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
-    DEBUG("FmDisplay::processDialogButtonResponse() -> ledState: %s, volume: %d, state: %.02f\n", ledState ? "ON" : "OFF", config.data.currVolume, temperature);
 
     // Töröljük a dialógot
     delete DisplayBase::pDialog;
