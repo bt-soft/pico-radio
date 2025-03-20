@@ -58,7 +58,7 @@ class ValueChangeDialog : public MessageDialog {
      */
     template <typename T>
     ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, T *valuePtr, T minVal,
-                      T maxVal, T step, std::function<void(double)> callback = nullptr)  // Módosítva: std::function<void(double)>
+                      T maxVal, T step, std::function<void(double)> callback = nullptr)
         : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"),
           minVal(static_cast<double>(minVal)),
           maxVal(static_cast<double>(maxVal)),
@@ -122,13 +122,9 @@ class ValueChangeDialog : public MessageDialog {
             float &val = std::get<float>(value);
             val = (encoderState.direction == RotaryEncoder::Direction::Up) ? std::min(static_cast<float>(val + step), static_cast<float>(maxVal))
                                                                            : std::max(static_cast<float>(val - step), static_cast<float>(minVal));
-        } else if (valueType == ValueType::Boolean) {  // Hozzáadva: bool kezelése
+        } else if (valueType == ValueType::Boolean) {
             bool &val = std::get<bool>(value);
-            if (val and encoderState.direction == RotaryEncoder::Direction::Down) {
-                val = false;
-            } else if (!val and encoderState.direction == RotaryEncoder::Direction::Up) {
-                val = true;
-            }
+            val = (encoderState.direction == RotaryEncoder::Direction::Up);
         }
 
         // Kiírjuk az új értéket
@@ -142,7 +138,7 @@ class ValueChangeDialog : public MessageDialog {
                 onValueChanged(std::get<int>(value));
             } else if (valueType == ValueType::Float) {
                 onValueChanged(std::get<float>(value));
-            } else if (valueType == ValueType::Boolean) {  // Hozzáadva: bool kezelése
+            } else if (valueType == ValueType::Boolean) {
                 onValueChanged(std::get<bool>(value));
             }
         }
@@ -162,6 +158,7 @@ class ValueChangeDialog : public MessageDialog {
                 // Visszaállítani az eredeti értéket
                 restoreOriginalValue();
             }
+
             // Ha van callback, akkor azt meghívjuk
             if (onValueChanged) {
                 if (valueType == ValueType::Uint8) {
