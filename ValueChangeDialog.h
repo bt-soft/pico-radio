@@ -6,26 +6,24 @@
 #include "MessageDialog.h"
 
 /**
- * Adatok (bool, int, float) értékének állítását végző dialóg
+ *
  */
 class ValueChangeDialog : public MessageDialog {
    public:
     enum class ValueType { Boolean, Uint8, Integer, Float };
 
    private:
-    void *valuePtr;
-    ValueType valueType;
-    int minValue, maxValue, stepInt;
-    float minValueF, maxValueF, stepFloat;
+    ValueType valueType;                    // A változtatott érték típusa
+    void *valuePtr;                         // A recegtettett érték
+    void *originalValuePtr;                 // Eredeti érték
+    int minValue, maxValue, stepInt;        // int step- és határértékek
+    float minValueF, maxValueF, stepFloat;  // float step- és határértékek
 
-    // Az eredeti érték tárolása
-    void *originalValuePtr;
-
-    // Callback függvény -ha állítgatás van, akkor ezt visszahívja, illetve cancel esetén is az eredeti érték visszaállításakor
+    // Általános callback függvény
     std::function<void()> onValueChanged;
 
     /**
-     * Ez a metódus segít az eredeti érték másolatának létrehozásában
+     * Típushelyes értékmásolás
      */
     template <typename T>
     inline void copyValue(T *src, T &dst) {
@@ -33,7 +31,7 @@ class ValueChangeDialog : public MessageDialog {
     }
 
     /**
-     * Segédfüggvény az értékek összehasonlítására és a megfelelő szín beállítására
+     * Ha eltérő az eredeti és a jelenlegi érték, akkor azt más színnel jelenítjük meg
      */
     template <typename T>
     inline uint16_t getTextColor(T *original, T *current) {
@@ -41,23 +39,19 @@ class ValueChangeDialog : public MessageDialog {
     }
 
     /**
-     * Az eredeti érték visszaállítása
+     * Eredeti érték visszaállítása
      */
     void restoreOriginalValue() {
-
         switch (valueType) {
             case ValueType::Boolean:
                 *reinterpret_cast<bool *>(valuePtr) = *reinterpret_cast<bool *>(originalValuePtr);
                 break;
-
             case ValueType::Uint8:
                 *reinterpret_cast<uint8_t *>(valuePtr) = *reinterpret_cast<uint8_t *>(originalValuePtr);
                 break;
-
             case ValueType::Integer:
                 *reinterpret_cast<int *>(valuePtr) = *reinterpret_cast<int *>(originalValuePtr);
                 break;
-
             case ValueType::Float:
                 *reinterpret_cast<float *>(valuePtr) = *reinterpret_cast<float *>(originalValuePtr);
                 break;
@@ -65,136 +59,93 @@ class ValueChangeDialog : public MessageDialog {
     }
 
     /**
-     * Aktuális érték megjelenítése
+     * Érték kirajzolása
      */
     void drawValue() {
-
         tft.setTextSize(2);
         tft.setCursor(x + 30, contentY + 30);
-        tft.fillRect(x + 30, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);  // Korábbi érték törlése
+        tft.fillRect(x + 30, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);
 
-        // Ha az eredeti érték van, akkor azt egy sötétebb színnel jelezzük
         switch (valueType) {
-            case ValueType::Boolean: {
-                auto val = *reinterpret_cast<bool *>(valuePtr);
-                tft.setTextColor(getTextColor(reinterpret_cast<bool *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
-                tft.print(val ? F("On") : F("Off"));
+            case ValueType::Boolean:
+                tft.setTextColor(getTextColor(reinterpret_cast<bool *>(originalValuePtr), reinterpret_cast<bool *>(valuePtr)), DLG_BACKGROUND_COLOR);
+                tft.print(*reinterpret_cast<bool *>(valuePtr) ? F("On") : F("Off"));
                 break;
-            }
-            case ValueType::Uint8: {
-                auto val = *reinterpret_cast<uint8_t *>(valuePtr);
-                tft.setTextColor(getTextColor(reinterpret_cast<uint8_t *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
-                tft.print(val);
+            case ValueType::Uint8:
+                tft.setTextColor(getTextColor(reinterpret_cast<uint8_t *>(originalValuePtr), reinterpret_cast<uint8_t *>(valuePtr)), DLG_BACKGROUND_COLOR);
+                tft.print(*reinterpret_cast<uint8_t *>(valuePtr));
                 break;
-            }
-            case ValueType::Integer: {
-                auto val = *reinterpret_cast<int *>(valuePtr);
-                tft.setTextColor(getTextColor(reinterpret_cast<int *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
-                tft.print(val);
+            case ValueType::Integer:
+                tft.setTextColor(getTextColor(reinterpret_cast<int *>(originalValuePtr), reinterpret_cast<int *>(valuePtr)), DLG_BACKGROUND_COLOR);
+                tft.print(*reinterpret_cast<int *>(valuePtr));
                 break;
-            }
-            case ValueType::Float: {
-                auto val = *reinterpret_cast<float *>(valuePtr);
-                tft.setTextColor(getTextColor(reinterpret_cast<float *>(originalValuePtr), &val), DLG_BACKGROUND_COLOR);
-                tft.print(val, 2);
+            case ValueType::Float:
+                tft.setTextColor(getTextColor(reinterpret_cast<float *>(originalValuePtr), reinterpret_cast<float *>(valuePtr)), DLG_BACKGROUND_COLOR);
+                tft.print(*reinterpret_cast<float *>(valuePtr), 2);
                 break;
-            }
         }
     }
 
    public:
     /**
-     * Boolean
+     * Generikus konstruktor
      */
-    ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, bool *value,
-                      std::function<void()> callback = nullptr)
-        : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"), valuePtr(value), valueType(ValueType::Boolean), onValueChanged(callback) {
-
-        /// Tároljuk el az eredeti értéket
-        originalValuePtr = new bool(*value);
-
-        // Ki is rajzoljuk a dialógust
-        drawDialog();
-    }
-
-    /**
-     * Uint8
-     */
-    ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, uint8_t *value,
-                      uint8_t minVal, uint8_t maxVal, uint8_t step, std::function<void()> callback = nullptr)
+    template <typename T>
+    ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, T *value, T minVal,
+                      T maxVal, T step, std::function<void()> callback = nullptr)  // Módosítva: std::function<void()>
         : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"),
           valuePtr(value),
-          valueType(ValueType::Uint8),
-          minValue(minVal),
-          maxValue(maxVal),
-          stepInt(step),
-          onValueChanged(callback) {
+          minValue(static_cast<int>(minVal)),
+          maxValue(static_cast<int>(maxVal)),
+          stepInt(static_cast<int>(step)),
+          minValueF(static_cast<float>(minVal)),
+          maxValueF(static_cast<float>(maxVal)),
+          stepFloat(static_cast<float>(step)) {
 
-        // Tároljuk el az eredeti értéket
-        originalValuePtr = new uint8_t(*value);
-
-        // Ki is rajzoljuk a dialógust
-        drawDialog();
-    }
-
-    /**
-     * Integer
-     */
-    ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, int *value, int minVal,
-                      int maxVal, int step, std::function<void()> callback = nullptr)
-        : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"),
-          valuePtr(value),
-          valueType(ValueType::Integer),
-          minValue(minVal),
-          maxValue(maxVal),
-          stepInt(step),
-          onValueChanged(callback) {
-
-        // Tároljuk el az eredeti értéket
-        originalValuePtr = new int(*value);
-
-        // Ki is rajzoljuk a dialógust
-        drawDialog();
-    }
-
-    /**
-     * Float
-     */
-    ValueChangeDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const __FlashStringHelper *message, float *value,
-                      float minVal, float maxVal, float step, std::function<void()> callback = nullptr)
-        : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"),
-          valuePtr(value),
-          valueType(ValueType::Float),
-          minValueF(minVal),
-          maxValueF(maxVal),
-          stepFloat(step),
-          onValueChanged(callback) {
-
-        // Tároljuk el az eredeti értéket
-        originalValuePtr = new float(*value);
-
-        // Ki is rajzoljuk a dialógust
-        drawDialog();
-    }
-
-    /**
-     * Destruktor: Töröljük az eredeti érték tárolóját
-     */
-    virtual ~ValueChangeDialog() {
-
-        // Eredeti érték tárolójának törlése (void pointer a C++-ban nem törölhető, így előtte cast-olni kell)
-        if (valueType == ValueType::Boolean) {
-            delete reinterpret_cast<bool *>(originalValuePtr);
-
-        } else if (valueType == ValueType::Uint8) {
-            delete reinterpret_cast<uint8_t *>(originalValuePtr);
-
-        } else if (valueType == ValueType::Integer) {
-            delete reinterpret_cast<int *>(originalValuePtr);
-
-        } else if (valueType == ValueType::Float) {
-            delete reinterpret_cast<float *>(originalValuePtr);
+        if constexpr (std::is_same_v<T, bool>) {
+            valueType = ValueType::Boolean;
+            originalValuePtr = new bool(*value);
+        } else if constexpr (std::is_same_v<T, uint8_t>) {
+            valueType = ValueType::Uint8;
+            originalValuePtr = new uint8_t(*value);
+        } else if constexpr (std::is_same_v<T, int>) {
+            valueType = ValueType::Integer;
+            originalValuePtr = new int(*value);
+        } else if constexpr (std::is_same_v<T, float>) {
+            valueType = ValueType::Float;
+            originalValuePtr = new float(*value);
         }
+
+        // Callbackot általánosítjuk
+        if (callback) {
+            onValueChanged = [value, callback]() {  // Módosítva: Nincs paraméter
+                if constexpr (std::is_same_v<T, bool>) {
+                    callback();
+                } else if constexpr (std::is_same_v<T, uint8_t>) {
+                    callback();
+                } else if constexpr (std::is_same_v<T, int>) {
+                    callback();
+                } else if constexpr (std::is_same_v<T, float>) {
+                    callback();
+                }
+            };
+        }
+
+        drawDialog();
+    }
+
+    /**
+     * Destruktor
+     */
+    ~ValueChangeDialog() {
+        if (valueType == ValueType::Boolean)
+            delete reinterpret_cast<bool *>(originalValuePtr);
+        else if (valueType == ValueType::Uint8)
+            delete reinterpret_cast<uint8_t *>(originalValuePtr);
+        else if (valueType == ValueType::Integer)
+            delete reinterpret_cast<int *>(originalValuePtr);
+        else if (valueType == ValueType::Float)
+            delete reinterpret_cast<float *>(originalValuePtr);
     }
 
     /**
@@ -207,80 +158,62 @@ class ValueChangeDialog : public MessageDialog {
     }
 
     /**
-     * Rotary encoder esemény lekezelése
+     * Rotary handler
      */
     bool handleRotary(RotaryEncoder::EncoderState encoderState) override {
 
-        // A click eseményt az ősre bízzuk, ha lekezelte akkor kilépünk
-        if (MessageDialog::handleRotary(encoderState)) {
-            return true;
-        }
+        // Ős rotary handlerének meghívása
+        if (MessageDialog::handleRotary(encoderState)) return true;
 
-        // Csak a tekergetésre reagálunk
-        if (encoderState.direction == RotaryEncoder::Direction::None) {
-            return false;
-        }
+        // Ha nincs változás akkor nem megyünk tovább
+        if (encoderState.direction == RotaryEncoder::Direction::None) return false;
 
+        // Az érték változtatása a Rotary irányának megfelelően
         switch (valueType) {
-            case ValueType::Boolean: {
-                auto *val = reinterpret_cast<bool *>(valuePtr);
-                *val = encoderState.direction == RotaryEncoder::Direction::Up;
+            case ValueType::Boolean:
+                *reinterpret_cast<bool *>(valuePtr) = encoderState.direction == RotaryEncoder::Direction::Up;
                 break;
-            }
-
-            case ValueType::Uint8: {
-                auto *val = reinterpret_cast<uint8_t *>(valuePtr);
-                *val = (encoderState.direction == RotaryEncoder::Direction::Up) ? min(*val + stepInt, maxValue) : max(*val - stepInt, minValue);
+            case ValueType::Uint8:
+                *reinterpret_cast<uint8_t *>(valuePtr) = (encoderState.direction == RotaryEncoder::Direction::Up)
+                                                             ? min(*reinterpret_cast<uint8_t *>(valuePtr) + stepInt, static_cast<uint8_t>(maxValue))
+                                                             : max(*reinterpret_cast<uint8_t *>(valuePtr) - stepInt, static_cast<uint8_t>(minValue));
                 break;
-            }
-
-            case ValueType::Integer: {
-                auto *val = reinterpret_cast<int *>(valuePtr);
-                *val = (encoderState.direction == RotaryEncoder::Direction::Up) ? min(*val + stepInt, maxValue) : max(*val - stepInt, minValue);
+            case ValueType::Integer:
+                *reinterpret_cast<int *>(valuePtr) = (encoderState.direction == RotaryEncoder::Direction::Up) ? min(*reinterpret_cast<int *>(valuePtr) + stepInt, maxValue)
+                                                                                                              : max(*reinterpret_cast<int *>(valuePtr) - stepInt, minValue);
                 break;
-            }
-
-            case ValueType::Float: {
-                auto *val = reinterpret_cast<float *>(valuePtr);
-                *val = (encoderState.direction == RotaryEncoder::Direction::Up) ? min(*val + stepFloat, maxValueF) : max(*val - stepFloat, minValueF);
+            case ValueType::Float:
+                *reinterpret_cast<float *>(valuePtr) = (encoderState.direction == RotaryEncoder::Direction::Up) ? min(*reinterpret_cast<float *>(valuePtr) + stepFloat, maxValueF)
+                                                                                                                : max(*reinterpret_cast<float *>(valuePtr) - stepFloat, minValueF);
                 break;
-            }
         }
+
+        // Kiírjuk az új értéket
         drawValue();
 
-        // Callback meghívása, ha van: érvényesíteni az új értéket (pl: hangerő változtatása)
-        if (onValueChanged) {
-            onValueChanged();
-        }
+        // Ha van callback, akkor azt meghívjuk
+        if (onValueChanged) onValueChanged();  // Módosítva: Nincs paraméter
 
         return true;
     }
 
     /**
-     * Dialóg Touch esemény lekezelése
+     * Touch esemény lekezelése
      */
-    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+    bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
 
-        // Ha az ős (MessageDialog az OK gombbal), vagy annak az őse (DialogBase az 'X' bezáró gombbal)
-        // Lekezelte már a touch-ot, akkor megvizsgáljuk, hogy milyen gomb is kereült lenyomásra
-        //  'X' esetén (ez a cancel esemény) vissza kell-e állítani az eredeti értéket
         if (MessageDialog::handleTouch(touched, tx, ty)) {
 
-            // Ha 'Cancel'-t vagy 'X'-et nyomtak, akkor visszaállítjuk az eredeti értéket
+            // Az 'X'-etnyomták meg?
             if (DialogBase::pParent->isDialogResponseCancelOrCloseX()) {
-                // Itt állítjuk vissza az eredeti értéket...
+                // Visszaállítani az eredeti értéket
                 restoreOriginalValue();
 
-                // Callback meghívása, ha van: visszaállítani az eredeti értéket
-                if (onValueChanged) {
-                    onValueChanged();
-                }
+                // Ha van callback, akkor azt meghívjuk
+                if (onValueChanged) onValueChanged();  // Módosítva: Nincs paraméter
             }
-
             return true;
         }
-
-        // Ez a dialóg nem kezel touch eseményt, csak a Rotary-t használja
         return false;
     }
 };

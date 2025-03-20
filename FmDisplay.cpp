@@ -198,8 +198,9 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
     DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
 
     if (STREQ("Vol", event.label)) {
-        DisplayBase::pDialog =
-            new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, 0, 63, 1, [&]() { this->volumeChanged(); });
+
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,
+                                                     [this]() { this->volumeChanged(config.data.currVolume); });
 
     } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
@@ -220,15 +221,15 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     } else if (STREQ("b-Val", event.label)) {
         // b-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState);
+        // DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState);
 
     } else if (STREQ("i-Val", event.label)) {
         // i-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, 0, 63, 1);
+        // DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, 0, 63, 1);
 
     } else if (STREQ("f-Val", event.label)) {
         // f-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, -15.0, +30.0, 0.05);
+        // DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, -15.0, +30.0, 0.05);
     }
 }
 

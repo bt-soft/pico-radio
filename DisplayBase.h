@@ -300,7 +300,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     /**
      * Hangerő állítása dialógusból
      */
-    inline void volumeChanged() { si4735.setVolume(config.data.currVolume); }
+    inline void volumeChanged(uint8_t newValue) { si4735.setVolume(newValue); }
 };
 
 // Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)
