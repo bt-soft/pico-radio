@@ -155,7 +155,7 @@ class ValueChangeDialog : public MessageDialog {
 
             // Az 'X'-etnyomták meg?
             if (DialogBase::pParent->isDialogResponseCancelOrCloseX()) {
-                // Visszaállítani az eredeti értéket
+                // Visszaállítjuk az eredeti értéket
                 restoreOriginalValue();
             }
 
@@ -167,7 +167,7 @@ class ValueChangeDialog : public MessageDialog {
                     onValueChanged(std::get<int>(value));
                 } else if (valueType == ValueType::Float) {
                     onValueChanged(std::get<float>(value));
-                } else if (valueType == ValueType::Boolean) {  // Hozzáadva: bool kezelése
+                } else if (valueType == ValueType::Boolean) {
                     onValueChanged(std::get<bool>(value));
                 }
             }
