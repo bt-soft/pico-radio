@@ -198,7 +198,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
     if (STREQ("Vol", event.label)) {
 
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,
-                                                     [this]() { this->volumeChanged(config.data.currVolume); });
+                                                     std::bind(&FmDisplay::volumeChanged, this, std::placeholders::_1));
 
     } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
@@ -219,15 +219,16 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     } else if (STREQ("b-Val", event.label)) {
         // b-ValueChange
-        // DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState);
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState, false, true, false,
+                                                     std::bind(&FmDisplay::ledStateChanged, this, std::placeholders::_1));  // Hozzáadva: bool dialógus
 
     } else if (STREQ("i-Val", event.label)) {
         // i-ValueChange
-        // DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, 0, 63, 1);
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, (int)0, (int)63, (int)1);
 
     } else if (STREQ("f-Val", event.label)) {
         // f-ValueChange
-        // DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, -15.0, +30.0, 0.05);
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, (float)-15.0, (float)+30.0, (float)0.05);
     }
 }
 
