@@ -101,6 +101,11 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
         // Dinamikusan létrehozzuk a gombokat
         screenButtonsCount = buttonsDataLength;
 
+        // Ha nincsenek képernyő gombok, akkor nem megyünk tovább
+        if (screenButtonsCount == 0) {
+            return;
+        }
+
         // Lefoglaljuk a gombok tömbjét
         screenButtons = new TftButton *[screenButtonsCount];
 

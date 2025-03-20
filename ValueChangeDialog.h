@@ -24,7 +24,7 @@ class ValueChangeDialog : public MessageDialog {
     void *valuePtr;             // A konstruktorban átadott pointer
     ValuePtrType valuePtrType;  // A valuePtr típusa
 
-    // Általános callback függvény
+    // Általános callback függvény (különböző adattípusok <uint8_t, int, float, bool> beleférnek)
     std::function<void(double)> onValueChanged;
 
     /**

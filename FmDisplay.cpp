@@ -198,7 +198,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
     if (STREQ("Vol", event.label)) {
 
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,
-                                                     std::bind(&FmDisplay::volumeChanged, this, std::placeholders::_1));
+                                                     [this](uint8_t newValue) { this->volumeChanged(newValue); });
 
     } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
@@ -220,7 +220,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
     } else if (STREQ("b-Val", event.label)) {
         // b-ValueChange
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState, false, true, false,
-                                                     std::bind(&FmDisplay::ledStateChanged, this, std::placeholders::_1));  // Hozzáadva: bool dialógus
+                                                     [this](double newValue) { this->ledStateChanged(newValue); });
 
     } else if (STREQ("i-Val", event.label)) {
         // i-ValueChange
