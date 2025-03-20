@@ -73,7 +73,7 @@ class ValueChangeDialog : public MessageDialog {
             *static_cast<bool *>(valuePtr) = std::get<bool>(value);
         }
 
-        // Ha van callback, akkor azt meghívjuk
+        // Ha van callback, akkor azt is meghívjuk
         if (onValueChanged) {
             if (valueType == ValueType::Uint8) {
                 onValueChanged(std::get<uint8_t>(value));
@@ -105,16 +105,19 @@ class ValueChangeDialog : public MessageDialog {
             value = *valuePtr;
             originalValue = *valuePtr;
             this->valuePtrType = ValuePtrType::Uint8;
+
         } else if constexpr (std::is_same_v<T, int>) {
             valueType = ValueType::Integer;
             value = *valuePtr;
             originalValue = *valuePtr;
             this->valuePtrType = ValuePtrType::Integer;
+
         } else if constexpr (std::is_same_v<T, float>) {
             valueType = ValueType::Float;
             value = *valuePtr;
             originalValue = *valuePtr;
             this->valuePtrType = ValuePtrType::Float;
+
         } else if constexpr (std::is_same_v<T, bool>) {
             valueType = ValueType::Boolean;
             value = *valuePtr;
@@ -123,8 +126,11 @@ class ValueChangeDialog : public MessageDialog {
             this->step = 1;    // a bool-nak nincs lépésköze, de a kód igényli
             this->minVal = 0;  // a bool-nak nincs minimuma, de a kód igényli
             this->maxVal = 1;  // a bool-nak nincs maximuma, de a kód igényli
+
         } else {
             this->valuePtrType = ValuePtrType::Unknown;
+            Utils::beepTick();
+            DEBUG("ValueChangeDialog: Ismeretlen adattípus!\n");
         }
 
         // Callbackot általánosítjuk
