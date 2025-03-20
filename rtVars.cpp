@@ -1,5 +1,7 @@
 #include "rtVars.h"
 
+#include "defaults.h"
+
 namespace rtv {
 
 // Frekvencia kijelzés pozíciója

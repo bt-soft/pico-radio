@@ -9,7 +9,8 @@
 namespace rtv {
 
 // Frekvencia kijelzés pozíciója
-extern uint16_t freqDispX, freqDispY;
+extern uint16_t freqDispX;
+extern uint16_t freqDispY;
 
 // AGC
 extern uint8_t currentAGCgain;

@@ -29,17 +29,17 @@ struct Config_t {
 
     // Squelch
     uint8_t currentSquelch;
-    bool squelchUsesRSSI; // A squlech RSSI alapú legyen?
+    bool squelchUsesRSSI;  // A squlech RSSI alapú legyen?
 
     // Hangerő
-    uint8_t currentVOL;
+    uint8_t currVolume;
 
     // AGC
     uint8_t AGCgain;
 
     //--- TFT
-    uint16_t tftCalibrateData[5]; // TFT touch kalibrációs adatok
-    bool digitLigth;              // Inaktív szegmens látszódjon?
+    uint16_t tftCalibrateData[5];  // TFT touch kalibrációs adatok
+    bool digitLigth;               // Inaktív szegmens látszódjon?
 };
 
 // Alapértelmezett konfigurációs adatok (readonly, const)
@@ -50,20 +50,18 @@ extern const Config_t DEFAULT_CONFIG;
  */
 class Config : public StoreBase<Config_t> {
 
-public:
+   public:
     // A 'config' változó, alapértelmezett értékeket veszi fel a konstruktorban
     // Szándékosan public, nem kell a sok getter egy embedded rendszerben
     Config_t data;
 
-protected:
+   protected:
     /**
      * Referencia az adattagra, csak az ős használja
      */
-    Config_t &r() override {
-        return data;
-    };
+    Config_t &r() override { return data; };
 
-public:
+   public:
     /**
      * Konstruktor
      * @param pData Pointer a konfigurációs adatokhoz
@@ -73,12 +71,10 @@ public:
     /**
      * Alapértelmezett adatok betöltése
      */
-    void loadDefaults() override {
-        memcpy(&data, &DEFAULT_CONFIG, sizeof(Config_t));
-    }
+    void loadDefaults() override { memcpy(&data, &DEFAULT_CONFIG, sizeof(Config_t)); }
 };
 
 // A főprogramban definiálva
 extern Config config;
 
-#endif // __CONFIG_H
+#endif  // __CONFIG_H

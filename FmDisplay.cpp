@@ -26,6 +26,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
 
     // Képernyőgombok definiálása
     DisplayBase::BuildButtonData buttonsData[] = {
+        {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},    //
         {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
         {"Scan", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},   //
         {"Popup", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
@@ -196,7 +197,11 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
 
-    if (STREQ("AM", event.label)) {
+    if (STREQ("Vol", event.label)) {
+        DisplayBase::pDialog =
+            new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, 0, 63, 1, [&]() { this->volumeChanged(); });
+
+    } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
 
     } else if (STREQ("Scan", event.label)) {
@@ -233,7 +238,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 void FmDisplay::processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {
 
     DEBUG("FmDisplay::processDialogButtonResponse() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
-    DEBUG("FmDisplay::processDialogButtonResponse() -> ledState: %s, volume: %d, state: %.02f\n", ledState ? "ON" : "OFF", volume, temperature);
+    DEBUG("FmDisplay::processDialogButtonResponse() -> ledState: %s, volume: %d, state: %.02f\n", ledState ? "ON" : "OFF", config.data.currVolume, temperature);
 
     // Töröljük a dialógot
     delete DisplayBase::pDialog;

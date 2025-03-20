@@ -8,13 +8,16 @@
 TFT_eSPI tft;          // TFT objektum
 
 //------------------- Rotary Encoder
+#define __USE_ROTARY_ENCODER_IN_HW_TIMER
+#ifdef __USE_ROTARY_ENCODER_IN_HW_TIMER
 // Pico Hardware timer a Rotary encoder olvasására
 #include <RPi_Pico_TimerInterrupt.h>
 RPI_PICO_Timer ITimer1(1);
-#define TIMER1_INTERVAL_USEC 1000 * 5  // 5ms
+#endif
 
 #include "RotaryEncoder.h"
 RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW);
+#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 5  // 5msec
 
 //------------------- EEPROM Config
 #include "Config.h"
@@ -113,6 +116,7 @@ void changeDisplay() {
     ::newDisplay = DisplayBase::DisplayType::none;
 }
 
+#ifdef __USE_ROTARY_ENCODER_IN_HW_TIMER
 /**
  * Hardware timer interrupt service routine a rotaryhoz
  */
@@ -120,6 +124,7 @@ bool hardwareTimerHandler1(struct repeating_timer *t) {
     rotaryEncoder.service();
     return true;
 }
+#endif
 
 /** ----------------------------------------------------------------------------------------------------------------------------------------
  *  Arduino Setup
@@ -141,8 +146,10 @@ void setup() {
     // Rotary Encoder beállítása
     rotaryEncoder.setDoubleClickEnabled(true);
     rotaryEncoder.setAccelerationEnabled(false);
+#ifdef __USE_ROTARY_ENCODER_IN_HW_TIMER
     // Pico HW Timer1 beállítása a rotaryhoz
-    ITimer1.attachInterruptInterval(TIMER1_INTERVAL_USEC, hardwareTimerHandler1);
+    ITimer1.attachInterruptInterval(ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC * 1000, hardwareTimerHandler1);
+#endif
 
     // TFT inicializálása
     tft.init();
@@ -204,7 +211,7 @@ void setup() {
     band.BandSet();
 
     // Si4735 init
-    si4735.setVolume(config.data.currentVOL);   // Hangerő
+    si4735.setVolume(config.data.currVolume);   // Hangerő
     si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
 
     // Kezdő mód képernyőjének megjelenítése
@@ -243,15 +250,16 @@ void loop() {
             }
         }
     }
-// ================================================================
+    // ================================================================
 
-// //------------------- Rotary Encoder Service
-// #define ROTARY_ENCODER_SERVICE_INTERVAL 5  // 5msec
-//     static uint32_t lastRotaryEncoderService = 0;
-//     if (millis() - lastRotaryEncoderService >= ROTARY_ENCODER_SERVICE_INTERVAL) {
-//         rotaryEncoder.service();
-//         lastRotaryEncoderService = millis();
-//     }
+#if !defined(__USE_ROTARY_ENCODER_IN_HW_TIMER)
+    //------------------- Rotary Encoder Service
+    static uint32_t lastRotaryEncoderService = 0;
+    if (millis() - lastRotaryEncoderService >= ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC) {
+        rotaryEncoder.service();
+        lastRotaryEncoderService = millis();
+    }
+#endif
 
 //------------------- EEprom mentés figyelése
 #define EEPROM_SAVE_CHECK_INTERVAL 5 * 60 * 1000  // 5 perc
