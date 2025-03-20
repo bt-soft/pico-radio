@@ -12,12 +12,17 @@
 class ValueChangeDialog : public MessageDialog {
    public:
     enum class ValueType { Uint8, Integer, Float, Boolean };
+    enum class ValuePtrType { Uint8, Integer, Float, Boolean, Unknown };
 
    private:
     ValueType valueType;                                    // A változtatott érték típusa
     std::variant<uint8_t, int, float, bool> value;          // A kezelt érték
     std::variant<uint8_t, int, float, bool> originalValue;  // Eredeti érték
     double minVal, maxVal, step;                            // step- és határértékek
+
+    // A pointer által mutatott érték megváltoztatásához (ha nincs callback, akkor csak ez változtatja az értéket)
+    void *valuePtr;             // A konstruktorban átadott pointer
+    ValuePtrType valuePtrType;  // A valuePtr típusa
 
     // Általános callback függvény
     std::function<void(double)> onValueChanged;
@@ -52,6 +57,36 @@ class ValueChangeDialog : public MessageDialog {
         }
     }
 
+    /**
+     *
+     */
+    void setValue() {
+
+        // Frissítjük a valuePtr által mutatott értéket
+        if (valuePtrType == ValuePtrType::Uint8) {
+            *static_cast<uint8_t *>(valuePtr) = std::get<uint8_t>(value);
+        } else if (valuePtrType == ValuePtrType::Integer) {
+            *static_cast<int *>(valuePtr) = std::get<int>(value);
+        } else if (valuePtrType == ValuePtrType::Float) {
+            *static_cast<float *>(valuePtr) = std::get<float>(value);
+        } else if (valuePtrType == ValuePtrType::Boolean) {
+            *static_cast<bool *>(valuePtr) = std::get<bool>(value);
+        }
+
+        // Ha van callback, akkor azt meghívjuk
+        if (onValueChanged) {
+            if (valueType == ValueType::Uint8) {
+                onValueChanged(std::get<uint8_t>(value));
+            } else if (valueType == ValueType::Integer) {
+                onValueChanged(std::get<int>(value));
+            } else if (valueType == ValueType::Float) {
+                onValueChanged(std::get<float>(value));
+            } else if (valueType == ValueType::Boolean) {
+                onValueChanged(std::get<bool>(value));
+            }
+        }
+    }
+
    public:
     /**
      * Generikus konstruktor
@@ -62,27 +97,34 @@ class ValueChangeDialog : public MessageDialog {
         : MessageDialog(pParent, tft, w, h, title, message, "OK", "Cancel"),
           minVal(static_cast<double>(minVal)),
           maxVal(static_cast<double>(maxVal)),
-          step(static_cast<double>(step)) {
+          step(static_cast<double>(step)),
+          valuePtr(static_cast<void *>(valuePtr)) {
 
         if constexpr (std::is_same_v<T, uint8_t>) {
             valueType = ValueType::Uint8;
             value = *valuePtr;
             originalValue = *valuePtr;
+            this->valuePtrType = ValuePtrType::Uint8;
         } else if constexpr (std::is_same_v<T, int>) {
             valueType = ValueType::Integer;
             value = *valuePtr;
             originalValue = *valuePtr;
+            this->valuePtrType = ValuePtrType::Integer;
         } else if constexpr (std::is_same_v<T, float>) {
             valueType = ValueType::Float;
             value = *valuePtr;
             originalValue = *valuePtr;
-        } else if constexpr (std::is_same_v<T, bool>) {  // Hozzáadva: bool kezelése
+            this->valuePtrType = ValuePtrType::Float;
+        } else if constexpr (std::is_same_v<T, bool>) {
             valueType = ValueType::Boolean;
             value = *valuePtr;
             originalValue = *valuePtr;
+            this->valuePtrType = ValuePtrType::Boolean;
             this->step = 1;    // a bool-nak nincs lépésköze, de a kód igényli
             this->minVal = 0;  // a bool-nak nincs minimuma, de a kód igényli
             this->maxVal = 1;  // a bool-nak nincs maximuma, de a kód igényli
+        } else {
+            this->valuePtrType = ValuePtrType::Unknown;
         }
 
         // Callbackot általánosítjuk
@@ -104,10 +146,17 @@ class ValueChangeDialog : public MessageDialog {
     /**
      * Rotary handler
      */
-    bool handleRotary(RotaryEncoder::EncoderState encoderState) override {
+    virtual bool handleRotary(RotaryEncoder::EncoderState encoderState) override {
 
-        // Ha nincs változás akkor nem megyünk tovább
-        if (encoderState.direction == RotaryEncoder::Direction::None) return false;
+        // Ha klikkeltek, akkor becsukjuk a dialogot, ugyan az mint az OK gomb
+        if (MessageDialog::handleRotary(encoderState)) {
+            return true;
+        }
+
+        // Ha nincs tekergetés akkor nem megyünk tovább
+        if (encoderState.direction == RotaryEncoder::Direction::None) {
+            return false;
+        }
 
         // Az érték változtatása a Rotary irányának megfelelően
         if (valueType == ValueType::Uint8) {
@@ -130,18 +179,8 @@ class ValueChangeDialog : public MessageDialog {
         // Kiírjuk az új értéket
         drawValue();
 
-        // Ha van callback, akkor azt meghívjuk
-        if (onValueChanged) {
-            if (valueType == ValueType::Uint8) {
-                onValueChanged(std::get<uint8_t>(value));
-            } else if (valueType == ValueType::Integer) {
-                onValueChanged(std::get<int>(value));
-            } else if (valueType == ValueType::Float) {
-                onValueChanged(std::get<float>(value));
-            } else if (valueType == ValueType::Boolean) {
-                onValueChanged(std::get<bool>(value));
-            }
-        }
+        // beállítjuk az új értéket (pointer + callback)
+        setValue();
 
         return true;
     }
@@ -149,7 +188,7 @@ class ValueChangeDialog : public MessageDialog {
     /**
      * Touch esemény lekezelése
      */
-    bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
+    virtual bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override {
 
         if (MessageDialog::handleTouch(touched, tx, ty)) {
 
@@ -159,20 +198,12 @@ class ValueChangeDialog : public MessageDialog {
                 restoreOriginalValue();
             }
 
-            // Ha van callback, akkor azt meghívjuk
-            if (onValueChanged) {
-                if (valueType == ValueType::Uint8) {
-                    onValueChanged(std::get<uint8_t>(value));
-                } else if (valueType == ValueType::Integer) {
-                    onValueChanged(std::get<int>(value));
-                } else if (valueType == ValueType::Float) {
-                    onValueChanged(std::get<float>(value));
-                } else if (valueType == ValueType::Boolean) {
-                    onValueChanged(std::get<bool>(value));
-                }
-            }
+            // beállítjuk az új értéket (pointer + callback)
+            setValue();
+
             return true;
         }
+
         return false;
     }
 };
