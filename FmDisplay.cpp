@@ -97,7 +97,7 @@ void FmDisplay::drawScreen() {
 
     // Frekvencia
     float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
-    pSevenSegmentFreq->FreqDraw(currFreq, 0);
+    pSevenSegmentFreq->freqDraw(currFreq, 0);
 
     // Gombok kirajzolása
     DisplayBase::drawScreenButtons();
@@ -192,7 +192,7 @@ void FmDisplay::displayLoop() {
     static float lastFreq = 0;
     float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
-        pSevenSegmentFreq->FreqDraw(currFreq, 0);
+        pSevenSegmentFreq->freqDraw(currFreq, 0);
         lastFreq = currFreq;
     }
 }

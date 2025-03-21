@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "DisplayBase.h"
+#include "SevenSegmentFreq.h"
 
 class ScreenSaverDisplay : public DisplayBase {
 
@@ -11,8 +12,11 @@ class ScreenSaverDisplay : public DisplayBase {
     uint16_t saverX;
     uint16_t saverY;
     uint16_t posSaver = 0;
-    uint32_t elapsedSaver = millis();
+    uint32_t elapsedSaver = 0;
     uint8_t saverLineColors[63];  // A vonal színeinek tömbje
+
+    SevenSegmentFreq *pSevenSegmentFreq;
+    float currFreq;
 
    protected:
     /**
@@ -31,7 +35,7 @@ class ScreenSaverDisplay : public DisplayBase {
     /**
      * Destruktor
      */
-    ~ScreenSaverDisplay() {};
+    ~ScreenSaverDisplay();
 
     /**
      * Képernyő kirajzolása

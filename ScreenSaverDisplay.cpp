@@ -26,7 +26,16 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayB
     for (uint8_t i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
         saverLineColors[i] = (31 - abs(i - SAVER_LINE_CENTER));
     }
+
+    // Frekvencia kijelzés pédányosítása
+    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY, true);
+    currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
 }
+
+/**
+ * Destruktor
+ */
+ScreenSaverDisplay::~ScreenSaverDisplay() { delete (pSevenSegmentFreq); }
 
 /**
  * Képernyő kirajzolása
@@ -77,9 +86,9 @@ void ScreenSaverDisplay::displayLoop() {
         saverY = random(190) + 5;
         // }
 
-        // Ide jöhetne a további kirajzolás, pl. akkumulátor jelzés, stb.
-
-        // FreqDraw(freq, 0);
+        // Freqkvensia kijelzése
+        pSevenSegmentFreq->setPositions(saverX - 50, saverY - 20);
+        pSevenSegmentFreq->freqDraw(currFreq, 0);
 
         // if (batShow) {
         //     // float vsupply = 3.724 * analogRead(PIN_BAT_INFO) / 2047; // 3.3v

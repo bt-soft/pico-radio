@@ -3,13 +3,17 @@
 #include "DSEG7_Classic_Mini_Regular_34.h"
 #include "rtVars.h"
 
-#define TFT_COLOR_INACTIVE_SEGMENT TFT_COLOR(50, 50, 50)  // Nem aktív szegmens színe
-#define COLOR_INDICATOR_FREQ TFT_GOLD
+#define COLOR_ACTIVE_SEGMENT TFT_GOLD                 // Aktív szegmens színe
+#define COLOR_ACTIVE_SEGMENT_SCREENSAVER TFT_SKYBLUE  // Aktív szegmens színe a képernyővédő alatt
+#define COLOR_INACTIVE_SEGMENT TFT_COLOR(50, 50, 50)  // Nem aktív szegmens színe
+
+#define BFO_COLOR_ACTIVE_SEGMENT TFT_ORANGE   // Aktív szegmens színe BFO esetén
+#define BFO_COLOR_INACTIVE_SEGMENT TFT_BROWN  // Inaktív szegmens színe BFO esetén
 
 /**
  *
  */
-void SevenSegmentFreq::Segment(String freq, String mask, int d) {
+void SevenSegmentFreq::segment(String freq, String mask, int d) {
 
     if (!config.data.digitLigth) {
         mask = "";
@@ -32,11 +36,13 @@ void SevenSegmentFreq::Segment(String freq, String mask, int d) {
     spr.setFreeFont(&DSEG7_Classic_Mini_Regular_34);
     spr.setTextDatum(BR_DATUM);
     int x = 222;
+
     if (rtv::bfoOn) {
         x = 110;
-        spr.setTextColor(TFT_BROWN);
+        spr.setTextColor(BFO_COLOR_INACTIVE_SEGMENT);
         spr.drawString(mask, x, 38);
-        spr.setTextColor(TFT_ORANGE);
+
+        spr.setTextColor(BFO_COLOR_ACTIVE_SEGMENT);
         spr.drawString(freq, x, 38);
 
     } else {
@@ -49,20 +55,12 @@ void SevenSegmentFreq::Segment(String freq, String mask, int d) {
             x = 144;
         }
 
-        if (rtv::bfoOn) {
-            spr.setTextColor(TFT_BROWN);
-        } else {
-            spr.setTextColor(TFT_COLOR_INACTIVE_SEGMENT);  // Nem aktív szegmens színe
-        }
-
+        // Nem aktív szegmens
+        spr.setTextColor(rtv::bfoOn ? BFO_COLOR_INACTIVE_SEGMENT : COLOR_INACTIVE_SEGMENT);
         spr.drawString(mask, x, 38);
 
-        if (rtv::bfoOn) {
-            spr.setTextColor(TFT_ORANGE);
-        } else {
-            spr.setTextColor(COLOR_INDICATOR_FREQ);
-        }
-
+        // Aktív szegmens - ha a screensaver aktív, akkor más színnel rajzoljuk ki
+        spr.setTextColor(rtv::bfoOn ? BFO_COLOR_ACTIVE_SEGMENT : screenSaverActive ? COLOR_ACTIVE_SEGMENT_SCREENSAVER : COLOR_ACTIVE_SEGMENT);
         spr.drawString(freq, x, 38);
     }
 
@@ -74,9 +72,9 @@ void SevenSegmentFreq::Segment(String freq, String mask, int d) {
 /**
  *
  */
-void SevenSegmentFreq::FreqDraw(float freq, int d) {
+void SevenSegmentFreq::freqDraw(float freq, int d) {
 
-    String unitStr = "MHz";
+    const __FlashStringHelper* unit = F("MHz");
     float displayFreq = 0;
 
     // ELőző érték törlése
@@ -85,19 +83,19 @@ void SevenSegmentFreq::FreqDraw(float freq, int d) {
     // FM?
     if (band.currentMode == FM) {
         displayFreq = freq / 100;
-        Segment(String(displayFreq, 2), "188.88", d - 10);
+        segment(String(displayFreq, 2), "188.88", d - 10);
 
     } else {
         // AM vagy LW?
         uint8_t bandType = band.getBandByIdx(config.data.bandIdx).bandType;
         if (bandType == MW_BAND_TYPE or bandType == LW_BAND_TYPE) {
             displayFreq = freq;
-            Segment(String(displayFreq, 0), "1888", d);
-            unitStr = "kHz";
+            segment(String(displayFreq, 0), "1888", d);
+            unit = F("kHz");
 
         } else {  // SW !
             displayFreq = freq / 1000;
-            Segment(String(displayFreq, 3), "88.888", d);
+            segment(String(displayFreq, 3), "88.888", d);
         }
     }
 
@@ -105,6 +103,6 @@ void SevenSegmentFreq::FreqDraw(float freq, int d) {
     tft.setTextDatum(BC_DATUM);
     tft.setFreeFont();
     tft.setTextSize(2);
-    tft.setTextColor(TFT_YELLOW, TFT_COLOR_BACKGROUND);
-    tft.drawString(unitStr, freqDispX + 215 + d, freqDispY + 60);
+    tft.setTextColor(screenSaverActive ? COLOR_ACTIVE_SEGMENT_SCREENSAVER : COLOR_ACTIVE_SEGMENT, TFT_COLOR_BACKGROUND);
+    tft.drawString(unit, freqDispX + 215 + d, freqDispY + 60);
 }

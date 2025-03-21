@@ -16,13 +16,29 @@ class SevenSegmentFreq {
     TFT_eSPI &tft;
     TFT_eSprite spr;
     uint16_t freqDispX, freqDispY;
+    bool screenSaverActive;
 
-    void Segment(String freq, String mask, int d);
+    void segment(String freq, String mask, int d);
 
    public:
-    SevenSegmentFreq(TFT_eSPI &tft, uint16_t freqDispX, uint16_t freqDispY) : tft(tft), freqDispX(freqDispX), freqDispY(freqDispY), spr(&tft) {}
+    /**
+     *
+     */
+    SevenSegmentFreq(TFT_eSPI &tft, uint16_t freqDispX, uint16_t freqDispY, bool screenSaverActive = false)
+        : tft(tft), freqDispX(freqDispX), freqDispY(freqDispY), screenSaverActive(screenSaverActive), spr(&tft) {}
 
-    void FreqDraw(float freq, int d);
+    /**
+     *
+     */
+    void freqDraw(float freq, int d);
+
+    /**
+     * Pozíció beállítása (pl.: a ScreenSaver számára)
+     */
+    inline void setPositions(uint16_t freqDispX, uint16_t freqDispY) {
+        this->freqDispX = freqDispX;
+        this->freqDispY = freqDispY;
+    }
 };
 
 #endif  //__SEVENSEGMENTFREQ_H
