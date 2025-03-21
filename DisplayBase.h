@@ -2,13 +2,13 @@
 #define __DISPLAY_BASE_H
 
 #include <Arduino.h>
-#include <SI4735.h>
 #include <TFT_eSPI.h>
 
 #include "Band.h"
 #include "DialogBase.h"
 #include "IDialogParent.h"
 #include "IGuiEvents.h"
+#include "Si4735Utils.h"
 #include "TftButton.h"
 #include "utils.h"
 
@@ -36,7 +36,7 @@
 /**
  * DisplayBase base osztály
  */
-class DisplayBase : public IGuiEvents, public IDialogParent {
+class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent {
 
    public:
     // Lehetséges képernyő típusok
@@ -73,9 +73,6 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
     // A képernyőn megjelenő dialog pointere
     DialogBase *pDialog = nullptr;
-
-    // SI4735
-    SI4735 &si4735;
 
     /**
      * Gombok automatikus pozicionálása
@@ -121,11 +118,28 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
      */
     bool handleButtonTouch(TftButton **buttons, uint8_t buttonsCount, bool touched, uint16_t tx, uint16_t ty);
 
+    /**
+     * Megkeresi a gombot a label alapján
+     * @param label A keresett gomb label-je
+     * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
+     */
+    TftButton *findButtonByLabel(const char *label);
+
+   private:
+    /**
+     * Megkeresi a gombot a label alapján a megadott tömbben
+     * @param buttons A gombok tömbje
+     * @param buttonsCount A gombok száma
+     * @param label A keresett gomb label-je
+     * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
+     */
+    TftButton *findButtonInArray(TftButton **buttons, uint8_t buttonsCount, const char *label);
+
    public:
     /**
      * Konstruktor (üres)
      */
-    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : tft(tft), si4735(si4735), pDialog(nullptr) {}
+    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) {}
 
     /**
      * Destruktor

@@ -110,6 +110,44 @@ bool DisplayBase::handleButtonTouch(TftButton **buttons, uint8_t buttonsCount, b
 }
 
 /**
+ * Megkeresi a gombot a label alapján a megadott tömbben
+ * @param buttons A gombok tömbje
+ * @param buttonsCount A gombok száma
+ * @param label A keresett gomb label-je
+ * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
+ */
+TftButton *DisplayBase::findButtonInArray(TftButton **buttons, uint8_t buttonsCount, const char *label) {
+
+    if (buttons == nullptr || label == nullptr) {
+        return nullptr;
+    }
+
+    for (uint8_t i = 0; i < buttonsCount; ++i) {
+        if (buttons[i] != nullptr && STREQ(buttons[i]->getLabel(), label)) {
+            return buttons[i];
+        }
+    }
+
+    return nullptr;
+}
+
+/**
+ * Megkeresi a gombot a label alapján
+ * @param label A keresett gomb label-je
+ * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
+ */
+TftButton *DisplayBase::findButtonByLabel(const char *label) {
+    // Először a horizontális gombok között keresünk
+    TftButton *button = findButtonInArray(horizontalScreenButtons, horizontalScreenButtonsCount, label);
+    if (button != nullptr) {
+        return button;
+    }
+
+    // Ha nem találtuk meg, akkor a vertikális gombok között keresünk
+    return findButtonInArray(verticalScreenButtons, verticalScreenButtonsCount, label);
+}
+
+/**
  * Destruktor
  */
 DisplayBase::~DisplayBase() {

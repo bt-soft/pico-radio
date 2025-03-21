@@ -15,10 +15,6 @@ extern bool mute;
 extern uint16_t freqDispX;
 extern uint16_t freqDispY;
 
-// AGC
-extern uint8_t currentAGCgain;
-extern uint8_t currentAGCgainStep;
-
 // BFO
 extern bool bfoOn;
 

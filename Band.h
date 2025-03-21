@@ -43,7 +43,6 @@ class Band {
     // SSB betöltve?
     bool ssbLoaded = false;
 
-    void checkAGC();
     void setBandWidth();
     void loadSSB();
     void useBand();

@@ -11,10 +11,6 @@ bool mute;
 uint16_t freqDispX = 0;
 uint16_t freqDispY = 0;
 
-// AGC
-uint8_t currentAGCgain = 1;
-uint8_t currentAGCgainStep = 1;
-
 // BFO
 bool bfoOn = false;
 

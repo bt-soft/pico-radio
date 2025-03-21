@@ -1,5 +1,7 @@
 #include "Config.h"
 
+#include "Si4735Utils.h"
+
 /**
  * Alapértelmezett readonly konfigurációs adatok
  */
@@ -34,7 +36,8 @@ const Config_t DEFAULT_CONFIG = {
     .currVolume = 50,
 
     // AGC
-    .AGCgain = 1,
+    .agcGain = 1,
+    .currentAGCgain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic),  // 1
 
     //--- TFT
     .tftCalibrateData = {0, 0, 0, 0, 0},  // TFT touch kalibrációs adatok

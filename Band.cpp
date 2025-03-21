@@ -194,28 +194,6 @@ void Band::setBandWidth() {
 }
 
 /**
- * AGC beállítása
- */
-void Band::checkAGC() {
-
-    si4735.getAutomaticGainControl();
-
-    if (si4735.isAgcEnabled()) {
-
-        if (config.data.AGCgain == 2) {
-            si4735.setAutomaticGainControl(1, rtv::currentAGCgain);
-
-        } else if (config.data.AGCgain == 0) {
-            si4735.setAutomaticGainControl(1, 0);  // disabled
-        }
-
-    } else if (config.data.AGCgain == 1) {
-
-        si4735.setAutomaticGainControl(0, 0);  // enabled
-    }
-}
-
-/**
  * Band inicializálása
  */
 void Band::BandInit() {
@@ -251,7 +229,6 @@ void Band::BandSet() {
 
     useBand();
     setBandWidth();
-    checkAGC();
 
     currentMode = bandTable[config.data.bandIdx].prefmod;
 }

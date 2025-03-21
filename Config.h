@@ -35,7 +35,8 @@ struct Config_t {
     uint8_t currVolume;
 
     // AGC
-    uint8_t AGCgain;
+    uint8_t agcGain;
+    uint8_t currentAGCgain;
 
     //--- TFT
     uint16_t tftCalibrateData[5];  // TFT touch kalibrációs adatok

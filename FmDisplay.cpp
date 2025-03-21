@@ -26,8 +26,11 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
 
     // Vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData verticalButtonsData[] = {
-        {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
-        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},  //
+        {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},                                                       //
+        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},                                                    //
+        {"AGC", TftButton::ButtonType::Pushable, si4735.isAgcEnabled() ? TftButton::ButtonState::On : TftButton::ButtonState::Off},  //
+        {"Att", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},                                                       //
+        {"AntCap", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},                                                    //
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
@@ -204,7 +207,8 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     if (STREQ("Vol", event.label)) {
         // Hangerő állítása
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"),    //
+                                                     &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,  //
                                                      [this](uint8_t newValue) { si4735.setVolume(newValue); });
 
     } else if (STREQ("Mute", event.label)) {
@@ -213,11 +217,51 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         si4735.setAudioMute(rtv::mute);
         // DEBUG("Mute: %s\n", rtv::mute ? "ON" : "OFF");
 
+    } else if (STREQ("AntCap", event.label)) {
+
+        // If zero, the tuning capacitor value is selected automatically.
+        // AM - the tuning capacitance is manually set as 95 fF x ANTCAP + 7 pF.  ANTCAP manual range is 1–6143;
+        // FM - the valid range is 0 to 191.
+
+        // Antenna kapacitás állítása
+        int maxValue = band.currentMode == FM ? 191 : 6143;
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"),  //
+                                                     &antCapValue, (int)0, (int)maxValue,                                                     //
+                                                     (int)1, [this](int newValue) { si4735.setTuneFrequencyAntennaCapacitor(newValue); });
+
+    } else if (STREQ("AGC", event.label)) {  // Automatikus AGC
+
+        bool stateOn = event.state == TftButton::ButtonState::On;
+        config.data.agcGain = stateOn ? static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic) : static_cast<uint8_t>(Si4735Utils::AgcGainMode::Off);
+
+        Si4735Utils::checkAGC();
+
+    } else if (STREQ("Att", event.label)) {  // Kézi AGC
+
+        // Kikapcsoljuk az automatikus AGC gombot
+        TftButton *agcButton = DisplayBase::findButtonByLabel("AGC");
+        if (agcButton != nullptr) {
+            agcButton->setState(TftButton::ButtonState::Off);
+        }
+
+        // AGCDIS This param selects whether the AGC is enabled or disabled (0 = AGC enabled; 1 = AGC disabled);
+        // AGCIDX AGC Index (0 = Minimum attenuation (max gain); 1 – 36 = Intermediate attenuation);
+        //  if >greater than 36 - Maximum attenuation (min gain) ).
+
+#define MX_FM_AGC_GAIN 26
+#define MX_AM_AGC_GAIN 37
+        uint8_t maxValue = si4735.isCurrentTuneFM() ? MX_FM_AGC_GAIN : MX_AM_AGC_GAIN;
+        config.data.agcGain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Manual);  // 2
+
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("RF Attennuator"), F("Value:"),      //
+                                                     &config.data.currentAGCgain, (uint8_t)1, (uint8_t)maxValue, (uint8_t)1,  //
+                                                     [this](uint8_t currentAGCgain) { si4735.setAutomaticGainControl(1, currentAGCgain); });
+
     } else if (STREQ("AM", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        ::newDisplay = DisplayBase::DisplayType::am;
 
     } else if (STREQ("Scan", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::freqScan;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        ::newDisplay = DisplayBase::DisplayType::freqScan;
 
     } else if (STREQ("Popup", event.label)) {
         // Popup

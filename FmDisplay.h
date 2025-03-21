@@ -14,6 +14,7 @@ class FmDisplay : public DisplayBase {
     bool ledState = false;
     int volume = 5;
     float temperature = 22.5;
+    int antCapValue = 0;
     //
     Rds *pRds;
     SMeter *pSMeter;
