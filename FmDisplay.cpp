@@ -26,28 +26,28 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
 
     // Vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData verticalButtonsData[] = {
-        {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},                                                       //
-        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},                                                    //
-        {"AGC", TftButton::ButtonType::Pushable, si4735.isAgcEnabled() ? TftButton::ButtonState::On : TftButton::ButtonState::Off},  //
-        {"Att", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},                                                       //
-        {"AntCap", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},                                                    //
+        {"Vol", TftButton::ButtonType::Pushable},                                                                                      //
+        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},                                                      //
+        {"AGC", TftButton::ButtonType::Toggleable, si4735.isAgcEnabled() ? TftButton::ButtonState::On : TftButton::ButtonState::Off},  //
+        {"Att", TftButton::ButtonType::Pushable},                                                                                      //
+        {"AntCap", TftButton::ButtonType::Pushable},                                                                                   //
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
-        {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
-        {"Scan", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},   //
-        {"Popup", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
-        {"Multi", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
+        {"AM", TftButton::ButtonType::Pushable},     //
+        {"Scan", TftButton::ButtonType::Pushable},   //
+        {"Popup", TftButton::ButtonType::Pushable},  //
+        {"Multi", TftButton::ButtonType::Pushable},  //
 
-        {"b-Val", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
-        {"i-Val", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
-        {"f-Val", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
+        {"b-Val", TftButton::ButtonType::Pushable},  //
+        {"i-Val", TftButton::ButtonType::Pushable},  //
+        {"f-Val", TftButton::ButtonType::Pushable},  //
 
-        {"Pause", TftButton::ButtonType::Toggleable, TftButton::ButtonState::On},     //
-        {"Reset", TftButton::ButtonType::Pushable, TftButton::ButtonState::Disabled}  //
+        {"Pause", TftButton::ButtonType::Toggleable, TftButton::ButtonState::On},  //
+        {"Reset", TftButton::ButtonType::Pushable},
     };
 
     // Horizontális képernyőgombok legyártása

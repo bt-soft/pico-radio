@@ -116,14 +116,30 @@ class TftButton {
      * Konstruktor
      */
     TftButton(uint8_t id, TFT_eSPI &tft, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *label, ButtonType type, ButtonState state = ButtonState::Off)
-        : id(id), pTft(&tft), x(x), y(y), w(w), h(h), label(label), type(type), buttonPressed(false), state(state), oldState(state) {}
+        : id(id), pTft(&tft), x(x), y(y), w(w), h(h), label(label), type(type), buttonPressed(false) {
+
+        if (state != ButtonState::Off and type != ButtonType::Toggleable) {
+            DEBUG("TftButton::TftButton -> Hiba!! Nem toggleable a gomb, nem lehet a state állapotot beállítani!\n");
+        } else {
+            this->state = state;
+            this->oldState = state;
+        }
+    }
 
     /**
      * Konstruktor X/Y pozíció nélkül
      * Automatikus elrendezéshez csak a szélesség és a magasság van megadva
      */
     TftButton(uint8_t id, TFT_eSPI &tft, uint16_t w, uint16_t h, const char *label, ButtonType type, ButtonState state = ButtonState::Off)
-        : id(id), pTft(&tft), x(0), y(0), w(w), h(h), label(label), type(type), buttonPressed(false), state(state), oldState(state) {}
+        : id(id), pTft(&tft), x(0), y(0), w(w), h(h), label(label), type(type), buttonPressed(false) {
+
+        if (state != ButtonState::Off and type != ButtonType::Toggleable) {
+            DEBUG("TftButton::TftButton -> Hiba!! Nem toggleable a gomb, nem lehet a state állapotot beállítani!\n");
+        } else {
+            this->state = state;
+            this->oldState = state;
+        }
+    }
 
     /**
      * Destruktor
@@ -212,6 +228,7 @@ class TftButton {
         // Ha van touch, de még nincs lenyomva a gomb, és erre a gombra jött a touch
         if (touched and !buttonPressed and contains(tx, ty)) {
             pressed();
+
         } else if (!touched and buttonPressed) {
             // Ha nincs ugyan touch, de ezt a gombot nyomva tartották eddig, akkor esemény van!!
             released();
@@ -231,11 +248,14 @@ class TftButton {
      * @param newState új állapot
      */
     inline void setState(ButtonState newState) {
-        if (state != newState) {
-            state = newState;
-            oldState = state;
-            draw();
+        if (type != ButtonType::Toggleable) {
+            DEBUG("TftButton::setState -> Hiba!! Nem toggleable a gomb!!\n");
+            return;
         }
+
+        state = newState;
+        oldState = newState;
+        draw();
     }
 
     /**
