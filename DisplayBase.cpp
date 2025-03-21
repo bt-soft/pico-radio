@@ -25,9 +25,11 @@ uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8
         }
     } else {  // Vertical
         if (isX) {
-            return tft.width() - SCRN_BTN_W;
+            return tft.width() - SCRN_BTN_W;  // X koordináta, a képernyő jobb széléhez illeszkedik
         } else {
-            return (SCRN_BTN_H + SCREEN_BTNS_GAP) * (index % SCREEN_BUTTONS_PER_COLUMN);
+            // Új Y koordináta számítás
+            uint16_t firstButtonY = 0;  // Az első gomb a képernyő tetején kezdődik
+            return firstButtonY + index * (SCRN_BTN_H + SCREEN_BTNS_GAP);
         }
     }
 }
