@@ -87,9 +87,8 @@ void ScreenSaverDisplay::displayLoop() {
         saverY = random(190) + 5;
         // }
 
-        // Freqkvensia kijelzése
-        pSevenSegmentFreq->setPositions(saverX - 50, saverY - 20);
-        // pSevenSegmentFreq->setPositions(saverX, saverY-20);
+        // Frekvensia kijelzése
+        pSevenSegmentFreq->setPositions(saverX - 35, saverY - 20);
         pSevenSegmentFreq->freqDraw(currFreq, 0);
 
         // if (batShow) {

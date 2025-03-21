@@ -8,12 +8,9 @@
 #define TFT_BUTTON_INVALID_ID 0xFF
 
 class TftButton {
-public:
+   public:
     // A gomb típusa
-    enum ButtonType {
-        Toggleable,
-        Pushable
-    };
+    enum ButtonType { Toggleable, Pushable };
 
     // Gomb állapotai
     enum ButtonState {
@@ -21,10 +18,10 @@ public:
         On,
         Disabled,
         //---- technikai állapotok
-        Pushed, // Csak az esemény jelzésére a calbback függvénynek, nincs színhez kötve az állapota
+        Pushed,  // Csak az esemény jelzésére a calbback függvénynek, nincs színhez kötve az állapota
         //---
-        HOLD,   // Nyomva tartják
-        UNKNOWN // ismeretlen
+        HOLD,    // Nyomva tartják
+        UNKNOWN  // ismeretlen
     };
 
     struct ButtonTouchEvent {
@@ -40,29 +37,27 @@ public:
     friend bool operator==(const ButtonTouchEvent &lhs, const ButtonTouchEvent &rhs);
     friend bool operator!=(const ButtonTouchEvent &lhs, const ButtonTouchEvent &rhs);
 
-private:
+   private:
     // A gomb állapotainak megfelelő háttérszín
     const uint16_t TFT_BUTTON_STATE_BG_COLORS[3] = {
-        TFT_COLOR(65, 65, 114), // normal
-        TFT_COLOR(65, 65, 114), // pushed
-        TFT_COLOR(65, 65, 65)   // disabled
+        TFT_COLOR(65, 65, 114),  // normal
+        TFT_COLOR(65, 65, 114),  // pushed
+        TFT_COLOR(65, 65, 65)    // disabled
     };
 
-    TFT_eSPI *pTft;       // Itt pointert használunk a dinamikus tömbök miatt (nem lehet null referenciát használni)
-    uint16_t x, y, w, h;  // A gomb pozíciója
-    uint8_t id;           // A gomb ID-je
-    const char *label;    // A gomb felirata
-    ButtonState state;    // Állapota
-    ButtonState oldState; // Előző állapota
-    ButtonType type;      // Típusa
-    bool buttonPressed;   // Flag a gomb nyomva tartásának követésére
+    TFT_eSPI *pTft;        // Itt pointert használunk a dinamikus tömbök miatt (nem lehet null referenciát használni)
+    uint16_t x, y, w, h;   // A gomb pozíciója
+    uint8_t id;            // A gomb ID-je
+    const char *label;     // A gomb felirata
+    ButtonState state;     // Állapota
+    ButtonState oldState;  // Előző állapota
+    ButtonType type;       // Típusa
+    bool buttonPressed;    // Flag a gomb nyomva tartásának követésére
 
     /**
      * Ezt nyomták meg?
      */
-    inline bool contains(uint16_t tx, uint16_t ty) {
-        return (tx >= x && tx <= x + w && ty >= y && ty <= y + h);
-    }
+    inline bool contains(uint16_t tx, uint16_t ty) { return (tx >= x && tx <= x + w && ty >= y && ty <= y + h); }
 
     /**
      * Lenyomták a gombot
@@ -110,7 +105,7 @@ private:
         return (r << 11) | (g << 5) | b;
     }
 
-public:
+   public:
     /**
      * Default konstruktor
      * (pl.: a dinamikus tömb deklarációhoz)
@@ -133,15 +128,12 @@ public:
     /**
      * Destruktor
      */
-    virtual ~TftButton() {
-    }
+    virtual ~TftButton() {}
 
     /**
      * Button szélességének lekérése
      */
-    inline uint8_t getWidth() {
-        return w;
-    }
+    inline uint8_t getWidth() { return w; }
 
     /**
      * Button x/y pozíciójának beállítása
@@ -162,7 +154,7 @@ public:
             uint8_t stepWidth = w / TFT_BUTTON_DARKEN_COLORS_STEPS;
             uint8_t stepHeight = h / TFT_BUTTON_DARKEN_COLORS_STEPS;
             for (uint8_t i = 0; i < TFT_BUTTON_DARKEN_COLORS_STEPS; i++) {
-                uint16_t fadedColor = darkenColor(TFT_BUTTON_STATE_BG_COLORS[oldState], i * 30); // Erősebb sötétítés
+                uint16_t fadedColor = darkenColor(TFT_BUTTON_STATE_BG_COLORS[oldState], i * 30);  // Erősebb sötétítés
                 pTft->fillRoundRect(x + i * stepWidth / 2, y + i * stepHeight / 2, w - i * stepWidth, h - i * stepHeight, 5, fadedColor);
             }
         } else {
@@ -170,14 +162,10 @@ public:
         }
 
         // Ha tiltott, akkor sötétszürke a keret, ha aktív, akkor zöld, narancs ha nyomják
-        pTft->drawRoundRect(x, y, w, h, 5, state == ButtonState::Disabled ? TFT_DARKGREY : state == ButtonState::On ? TFT_GREEN
-                                                                                       : buttonPressed              ? TFT_ORANGE
-                                                                                                                    : TFT_WHITE);
+        pTft->drawRoundRect(x, y, w, h, 5, state == ButtonState::Disabled ? TFT_DARKGREY : state == ButtonState::On ? TFT_GREEN : buttonPressed ? TFT_ORANGE : TFT_WHITE);
 
         // zöld a szöveg, ha aktív, narancs ha nyomják
-        pTft->setTextColor(state == ButtonState::Disabled ? TFT_DARKGREY : state == ButtonState::On ? TFT_GREEN
-                                                                       : buttonPressed              ? TFT_ORANGE
-                                                                                                    : TFT_WHITE);
+        pTft->setTextColor(state == ButtonState::Disabled ? TFT_DARKGREY : state == ButtonState::On ? TFT_GREEN : buttonPressed ? TFT_ORANGE : TFT_WHITE);
 
         // Az (x, y) koordináta a szöveg középpontja
         pTft->setTextDatum(MC_DATUM);
@@ -186,7 +174,7 @@ public:
         pTft->setFreeFont(&FreeSansBold9pt7b);
         pTft->setTextSize(1);
         pTft->setTextPadding(0);
-        constexpr uint8_t BUTTON_LABEL_MARGIN_TOP = 3; // A felirat a gomb felső részéhez képest
+        constexpr uint8_t BUTTON_LABEL_MARGIN_TOP = 3;  // A felirat a gomb felső részéhez képest
         pTft->drawString(label, x + w / 2, y - BUTTON_LABEL_MARGIN_TOP + h / 2);
 
         // LED csík kirajzolása ha a gomb aktív vagy push, és nyomják
@@ -199,7 +187,7 @@ public:
             ledColor = TFT_ORANGE;
         } else if (type == ButtonType::Toggleable && state == ButtonState::Off) {
             // Ha Toggleable típusú és Off állapotú, akkor a LED sötétzöld
-            ledColor = TFT_COLOR(5, 59, 19); // Sötétzöld
+            ledColor = TFT_COLOR(5, 59, 19);  // Sötétzöld
         }
         // Ha kell állítani a LED színt
         if (ledColor) {
@@ -236,9 +224,7 @@ public:
     /**
      * ButtonTouchEvent legyártása
      */
-    inline ButtonTouchEvent buildButtonTouchEvent() {
-        return {id, label, type == ButtonType::Pushable ? ButtonState::Pushed : state};
-    }
+    inline ButtonTouchEvent buildButtonTouchEvent() { return {id, label, type == ButtonType::Pushable ? ButtonState::Pushed : state}; }
 
     /**
      * Button állapotának beállítása
@@ -247,6 +233,7 @@ public:
     inline void setState(ButtonState newState) {
         if (state != newState) {
             state = newState;
+            oldState = state;
             draw();
         }
     }
@@ -255,23 +242,17 @@ public:
      * Button állapotának lekérése
      * @return állapot
      */
-    inline ButtonState getState() const {
-        return state;
-    }
+    inline ButtonState getState() const { return state; }
 
     /**
      *
      */
-    inline uint8_t getId() const {
-        return id;
-    }
+    inline uint8_t getId() const { return id; }
 
     /**
      *
      */
-    inline const char *getLabel() const {
-        return label;
-    }
+    inline const char *getLabel() const { return label; }
 
     /**
      * Button állapot
@@ -279,19 +260,19 @@ public:
     static const char *decodeState(ButtonState state) {
 
         switch (state) {
-        case ButtonState::Off:
-            return "Off";
-        case ButtonState::On:
-            return "On";
-        case ButtonState::Disabled:
-            return "Disabled";
-        case ButtonState::HOLD:
-            return "HOLD";
-        case ButtonState::Pushed:
-            return "Pushed";
-        case ButtonState::UNKNOWN:
-        default:
-            return "UNKNOWN";
+            case ButtonState::Off:
+                return "Off";
+            case ButtonState::On:
+                return "On";
+            case ButtonState::Disabled:
+                return "Disabled";
+            case ButtonState::HOLD:
+                return "HOLD";
+            case ButtonState::Pushed:
+                return "Pushed";
+            case ButtonState::UNKNOWN:
+            default:
+                return "UNKNOWN";
         }
     }
 };
@@ -303,7 +284,7 @@ inline bool operator==(const TftButton::ButtonTouchEvent &lhs, const TftButton::
 
 // != operátor túlterhelése (nem-tagfüggvény)
 inline bool operator!=(const TftButton::ButtonTouchEvent &lhs, const TftButton::ButtonTouchEvent &rhs) {
-    return !(lhs == rhs); // Ha nem egyenlő, akkor a == operátor segítségével negáljuk az eredményt
+    return !(lhs == rhs);  // Ha nem egyenlő, akkor a == operátor segítségével negáljuk az eredményt
 }
 
-#endif //__TFTBUTTON_H
+#endif  //__TFTBUTTON_H

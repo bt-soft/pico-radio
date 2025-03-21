@@ -111,6 +111,7 @@ bool DisplayBase::handleButtonTouch(TftButton **buttons, uint8_t buttonsCount, b
 
 /**
  * Megkeresi a gombot a label alapján a megadott tömbben
+ *
  * @param buttons A gombok tömbje
  * @param buttonsCount A gombok száma
  * @param label A keresett gomb label-je
@@ -133,6 +134,7 @@ TftButton *DisplayBase::findButtonInArray(TftButton **buttons, uint8_t buttonsCo
 
 /**
  * Megkeresi a gombot a label alapján
+ *
  * @param label A keresett gomb label-je
  * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
  */
@@ -167,6 +169,8 @@ DisplayBase::~DisplayBase() {
 
 /**
  * Arduino loop hívás (a leszármazott nem írhatja felül)
+ *
+ * @param encoderState enkóder állapot
  * @return true -> ha volt valalami touch vagy rotary esemény kezelés, a screensavert resetelni kell ilyenkor
  */
 bool DisplayBase::loop(RotaryEncoder::EncoderState encoderState) {

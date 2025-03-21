@@ -25,7 +25,7 @@ class Si4735Utils {
     /**
      * AGC beállítása
      */
-    inline void checkAGC() {
+    void checkAGC() {
 
         // Először lekérdezzük az SI4735 chip aktuális AGC állapotát.
         //  Ez a hívás frissíti az SI4735 objektum belső állapotát az AGC-vel kapcsolatban (pl. hogy engedélyezve van-e vagy sem).
@@ -36,17 +36,21 @@ class Si4735Utils {
 
             if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Off)) {
 
+                DEBUG("AGC Off\n");
                 // A felhasználó az AGC kikapcsolását kérte.
                 si4735.setAutomaticGainControl(1, 0);  // disabled
 
             } else if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Manual)) {
 
+                DEBUG("AGC Manual\n");
                 // A felhasználó manuális AGC beállítást kért
                 si4735.setAutomaticGainControl(1, config.data.currentAGCgain);
             }
 
         } else if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Automatic)) {
             // Ha az AGC nincs engedélyezve az AGC, de a felhasználó az AGC engedélyezését kérte
+
+            DEBUG("AGC Automatic\n");
 
             // Ez esetben az AGC-t engedélyezzük (0),
             //  és a csillapítást nullára állítjuk (0).

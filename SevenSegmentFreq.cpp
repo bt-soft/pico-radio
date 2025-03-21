@@ -77,8 +77,10 @@ void SevenSegmentFreq::freqDraw(float freq, int d) {
     const __FlashStringHelper* unit = F("MHz");
     float displayFreq = 0;
 
-    // ELőző érték törlése
-    tft.fillRect(freqDispX + 46 + d, freqDispY + 20, 194, 40, TFT_COLOR_BACKGROUND);
+    // ELőző érték törlése, screesaver esetén nem
+    if (!screenSaverActive) {
+        tft.fillRect(freqDispX + 46 + d, freqDispY + 20, 194, 40, TFT_COLOR_BACKGROUND);
+    }
 
     // FM?
     if (band.currentMode == FM) {
@@ -104,5 +106,7 @@ void SevenSegmentFreq::freqDraw(float freq, int d) {
     tft.setFreeFont();
     tft.setTextSize(2);
     tft.setTextColor(screenSaverActive ? COLOR_ACTIVE_SEGMENT_SCREENSAVER : COLOR_ACTIVE_SEGMENT, TFT_COLOR_BACKGROUND);
-    tft.drawString(unit, freqDispX + 215 + d, freqDispY + 60);
+
+    uint16_t xOffset = screenSaverActive ? 205 : 215;
+    tft.drawString(unit, freqDispX + xOffset + d, freqDispY + 60);
 }

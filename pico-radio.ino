@@ -262,7 +262,7 @@ void loop() {
 #endif
 
 //------------------- EEprom mentés figyelése
-#define EEPROM_SAVE_CHECK_INTERVAL 5 * 60 * 1000  // 5 perc
+#define EEPROM_SAVE_CHECK_INTERVAL 1000 * 60 * 5  // 5 perc
     static uint32_t lastEepromSaveCheck = 0;
     if (millis() - lastEepromSaveCheck >= EEPROM_SAVE_CHECK_INTERVAL) {
         config.checkSave();
@@ -311,7 +311,7 @@ void loop() {
 
     } else {
 
-        // Ha nincs interakció, megnézzük, hogy lejárt-e a timeout
+        // Ha nincs user interakció, megnézzük, hogy lejárt-e a timeout
         if (millis() - lastScreenSaver >= SCREEN_SAVER_TIME) {
 
             // Ha letelt a timeout és nem a képernyővédőn vagyunk, elindítjuk a képernyővédőt
