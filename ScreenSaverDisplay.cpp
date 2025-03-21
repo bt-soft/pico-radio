@@ -73,6 +73,7 @@ void ScreenSaverDisplay::displayLoop() {
         }
     }
 
+    static uint32_t elapsedSaver = 0;
     if ((elapsedSaver + SAVER_NEW_POS_INTERVAL_MSEC) < millis()) {  // 15 másodpercenként
         elapsedSaver = millis();
 
@@ -88,6 +89,7 @@ void ScreenSaverDisplay::displayLoop() {
 
         // Freqkvensia kijelzése
         pSevenSegmentFreq->setPositions(saverX - 50, saverY - 20);
+        // pSevenSegmentFreq->setPositions(saverX, saverY-20);
         pSevenSegmentFreq->freqDraw(currFreq, 0);
 
         // if (batShow) {
