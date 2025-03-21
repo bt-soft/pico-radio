@@ -26,7 +26,9 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
 
     // Képernyőgombok definiálása
     DisplayBase::BuildButtonData buttonsData[] = {
-        {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},    //
+        {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
+        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},  //
+        //
         {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
         {"Scan", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},   //
         {"Popup", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
@@ -196,9 +198,15 @@ void FmDisplay::displayLoop() {
 void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
     if (STREQ("Vol", event.label)) {
-
+        // Hangerő állítása
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,
-                                                     [this](uint8_t newValue) { this->volumeChanged(newValue); });
+                                                     [this](uint8_t newValue) { si4735.setVolume(newValue); });
+
+    } else if (STREQ("Mute", event.label)) {
+        // Némítás
+        rtv::mute = event.state == TftButton::ButtonState::On;
+        si4735.setAudioMute(rtv::mute);
+        // DEBUG("Mute: %s\n", rtv::mute ? "ON" : "OFF");
 
     } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!

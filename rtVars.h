@@ -8,6 +8,9 @@
  */
 namespace rtv {
 
+// Némítás
+extern bool mute;
+
 // Frekvencia kijelzés pozíciója
 extern uint16_t freqDispX;
 extern uint16_t freqDispY;
