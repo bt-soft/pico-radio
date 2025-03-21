@@ -91,14 +91,14 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
      * Képernyő menügombok legyártása
      */
     inline void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
-        horizontalScreenButtons = buildScreenButtons(Horizontal, buttonsData, buttonsDataLength, startId, horizontalScreenButtonsCount);
+        horizontalScreenButtons = buildScreenButtons(ButtonOrientation::Horizontal, buttonsData, buttonsDataLength, startId, horizontalScreenButtonsCount);
     }
 
     /**
      * Képernyő menügombok legyártása (vertikális)
      */
     inline void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
-        verticalScreenButtons = buildScreenButtons(Vertical, buttonsData, buttonsDataLength, startId, verticalScreenButtonsCount);
+        verticalScreenButtons = buildScreenButtons(ButtonOrientation::Vertical, buttonsData, buttonsDataLength, startId, verticalScreenButtonsCount);
     }
 
     /**

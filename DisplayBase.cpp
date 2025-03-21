@@ -5,10 +5,11 @@
  */
 uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8_t index, bool isX) {
 
-    if (orientation == Horizontal) {
+    if (orientation == ButtonOrientation::Horizontal) {
         if (isX) {
             uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
             return SCREEN_HBTNS_X_START + ((SCRN_BTN_W + SCREEN_BTNS_GAP) * (index % buttonsPerRow));
+
         } else {
             uint8_t row = index / SCREEN_BUTTONS_PER_ROW;  // Hányadik sorban van a gomb
 
