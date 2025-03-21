@@ -7,14 +7,14 @@
  */
 FreqScanDisplay::FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
 
-    // Képernyőgombok definiálása
+    // Horizontális képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
         {"FM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
         {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
     };
 
-    // Képernyőgombok legyártása
-    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_MENU_BTN_ID_START);
+    // Horizontális képernyőgombok legyártása
+    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_HBTNS_ID_START);
 }
 
 /**

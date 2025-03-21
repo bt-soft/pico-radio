@@ -12,20 +12,26 @@
 #include "TftButton.h"
 #include "utils.h"
 
-// A képernyő menübuttonok kezdő ID-je
-#define SCRN_MENU_BTN_ID_START 50
+// Képernyőgombok mérete
+#define SCRN_BTN_H 30       // Gombok magassága
+#define SCRN_BTN_W 70       // Gombok szélessége
+#define SCREEN_BTNS_GAP 10  // Gombok közötti gap
 
-// Képernyő gomb méret és pozíció definíciók
-#define SCREEN_BTNS_X_START 5     // Gombok kezdő X koordinátája
-#define SCREEN_BTNS_Y_START 250   // Gombok kezdő Y koordinátája
-#define SCRN_BTN_H 30             // Gombok magassága
-#define SCRN_BTN_W 70             // Gombok szélessége
-#define SCREEN_BTNS_GAP 10        // Gombok közötti gap
+// Vizszintes gombok definíciói
+#define SCRN_HBTNS_ID_START 25    // A horizontális képernyő menübuttonok kezdő ID-je
+#define SCREEN_HBTNS_X_START 5    // Gombok kezdő X koordinátája
 #define SCREEN_BUTTONS_PER_ROW 6  // Egy sorban hány gomb van
 #define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
 
+// Vertical gombok definíciói
+#define SCRN_VBTNS_ID_START 50        // A vertikális képernyő menübuttonok kezdő ID-je
+#define SCREEN_VBTNS_X_START 250      // Gombok kezdő X koordinátája (jobb oldal)
+#define SCREEN_VBTNS_Y_START 5        // Gombok kezdő Y koordinátája
+#define SCREEN_BUTTONS_PER_COLUMN 4   // Egy oszlopban hány gomb van
+#define SCREEN_VBTN_COLUMN_SPACING 5  // Gombok oszlopai közötti távolság
+
 // A screen button x koordinátájának kiszámítása az 'n' sorszáma alapján
-#define SCREEN_BTNS_X(n) (SCREEN_BTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)
+#define SCREEN_BTNS_X(n) (SCREEN_HBTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)
 
 // A képernyő változó adatok frissítési ciklusideje
 #define SCREEN_COMPS_REFRESH_TIME_MSEC 500
@@ -40,10 +46,14 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     enum DisplayType { none, fm, am, freqScan, screenSaver };
 
    private:
-    // A dinamikusan létrehozott gombok tömbjére mutató pointer
-    TftButton **horizontalScreenButtons = nullptr;
-    // A dinamikusan létrehozott gombok száma
-    uint8_t horizontalScreenButtonsCount = 0;
+    // Vízszintes gombsor
+    TftButton **horizontalScreenButtons = nullptr;  // A dinamikusan létrehozott gombok tömbjére mutató pointer
+    uint8_t horizontalScreenButtonsCount = 0;       // A dinamikusan létrehozott gombok száma
+
+    // Függőleges gombsor
+    TftButton **verticalScreenButtons = nullptr;  // Új: Vertikális gombok tömbje
+    uint8_t verticalScreenButtonsCount = 0;       // Új: Vertikális gombok száma
+
     // A lenyomott képernyő menügomb adatai
     TftButton::ButtonTouchEvent screenButtonTouchEvent = TftButton::noTouchEvent;
 
@@ -73,7 +83,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
      */
     inline uint16_t getAutoX(uint8_t index) {
         uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
-        return SCREEN_BTNS_X_START + ((SCRN_BTN_W + SCREEN_BTNS_GAP) * (index % buttonsPerRow));
+        return SCREEN_HBTNS_X_START + ((SCRN_BTN_W + SCREEN_BTNS_GAP) * (index % buttonsPerRow));
     }
 
     /**
@@ -95,9 +105,24 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 
     /**
+     * Vertical Screen gombok automatikus X koordinátájának kiszámítása
+     * A gombok a képernyő jobb széléhez igazodnak
+     */
+    inline uint16_t getAutoVerticalX(uint8_t index) { return tft.width() - SCRN_BTN_W; }
+
+    /**
+     * Vertical Screen gombok automatikus Y koordinátájának kiszámítása
+     * A gombok több oszlopban is elhelyezkedhetnek, az alsó oszlop a képernyő aljához igazodik
+     */
+    inline uint16_t getAutoVerticalY(uint8_t index) {
+        uint8_t col = index / SCREEN_BUTTONS_PER_COLUMN;  // Hányadik oszlopban van a gomb
+        return SCREEN_VBTNS_Y_START + ((SCRN_BTN_H + SCREEN_BTNS_GAP) * (index % SCREEN_BUTTONS_PER_COLUMN));
+    }
+
+    /**
      * Képernyő menügombok legyártása
      */
-    inline void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
+    void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
         // Dinamikusan létrehozzuk a gombokat
         horizontalScreenButtonsCount = buttonsDataLength;
 
@@ -125,14 +150,51 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     }
 
     /**
+     * Képernyő menügombok legyártása (vertikális)
+     */
+    void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
+        // Dinamikusan létrehozzuk a gombokat
+        verticalScreenButtonsCount = buttonsDataLength;
+
+        // Ha nincsenek képernyő gombok, akkor nem megyünk tovább
+        if (verticalScreenButtonsCount == 0) {
+            return;
+        }
+
+        // Lefoglaljuk a gombok tömbjét
+        verticalScreenButtons = new TftButton *[verticalScreenButtonsCount];
+
+        // Létrehozzuk a gombokat
+        for (uint8_t i = 0; i < verticalScreenButtonsCount; i++) {
+            verticalScreenButtons[i] = new TftButton(startId++,             // A gomb ID-je
+                                                     tft,                   // TFT objektum
+                                                     getAutoVerticalX(i),   // Gomb X koordinátájának kiszámítása
+                                                     getAutoVerticalY(i),   // Gomb Y koordinátájának kiszámítása
+                                                     SCRN_BTN_W,            // Gomb szélessége
+                                                     SCRN_BTN_H,            // Gomb magassága
+                                                     buttonsData[i].label,  // Gomb szövege (label)
+                                                     buttonsData[i].type,   // Gomb típusa
+                                                     buttonsData[i].state   // Gomb állapota
+            );
+        }
+    }
+
+    /**
      * Képernyő menügombok kirajzolása
      */
     inline void drawScreenButtons() {
 
-        // Megjelenítjük a képernyő gombokat, ha vannak
+        // Megjelenítjük a vízszintes képernyő gombokat, ha vannak
         if (horizontalScreenButtons) {
             for (uint8_t i = 0; i < horizontalScreenButtonsCount; i++) {
                 horizontalScreenButtons[i]->draw();
+            }
+        }
+
+        // Megjelenítjük a függőleges képernyő gombokat, ha vannak
+        if (verticalScreenButtons) {
+            for (uint8_t i = 0; i < verticalScreenButtonsCount; i++) {
+                verticalScreenButtons[i]->draw();
             }
         }
     }
@@ -148,7 +210,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
      */
     virtual ~DisplayBase() {
 
-        // Képernyőgombok törlése
+        // Képernyőgombok törlése (horizontális)
         if (horizontalScreenButtons) {
             // A TftButton objektumok törlése
             for (int i = 0; i < horizontalScreenButtonsCount; i++) {
@@ -157,6 +219,17 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
             // A pointerek tömbjének törlése
             delete[] horizontalScreenButtons;
             horizontalScreenButtons = nullptr;
+        }
+
+        // Képernyőgombok törlése (vertikális)
+        if (verticalScreenButtons) {
+            // A TftButton objektumok törlése
+            for (int i = 0; i < verticalScreenButtonsCount; i++) {
+                delete verticalScreenButtons[i];
+            }
+            // A pointerek tömbjének törlése
+            delete[] verticalScreenButtons;
+            verticalScreenButtons = nullptr;
         }
 
         // Dialóg törlése
@@ -257,16 +330,30 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
                 // Ha ide értünk, akkor be van állítva a dialogButtonResponse
                 return true;
 
-            } else if (pDialog == nullptr and screenButtonTouchEvent == TftButton::noTouchEvent and horizontalScreenButtons) {
-                // Ha nincs dialóg, de vannak képernyő menügombok és még nincs scrrenButton esemény, akkor azok kapják meg a touch adatokat
+            } else if (pDialog == nullptr and screenButtonTouchEvent == TftButton::noTouchEvent) {
+                // Ha nincs dialóg, de vannak képernyő gombok és még nincs scrrenButton esemény, akkor azok kapják meg a touch adatokat
 
-                // Elküldjük a touch adatokat a képernyő gomboknak
-                for (uint8_t i = 0; i < horizontalScreenButtonsCount; i++) {
+                // Elküldjük a touch adatokat a függőleges gomboknak
+                if (verticalScreenButtons) {
+                    for (uint8_t i = 0; i < verticalScreenButtonsCount; i++) {
 
-                    // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
-                    if (horizontalScreenButtons[i]->handleTouch(touched, tx, ty)) {
-                        screenButtonTouchEvent = horizontalScreenButtons[i]->buildButtonTouchEvent();
-                        break;
+                        // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
+                        if (verticalScreenButtons[i]->handleTouch(touched, tx, ty)) {
+                            screenButtonTouchEvent = verticalScreenButtons[i]->buildButtonTouchEvent();
+                            break;
+                        }
+                    }
+                }
+
+                // Elküldjük a touch adatokat a vízszintes gomboknak ha még nics a függőleges gomboktól esemény
+                if (horizontalScreenButtons and screenButtonTouchEvent == TftButton::noTouchEvent) {
+                    for (uint8_t i = 0; i < horizontalScreenButtonsCount; i++) {
+
+                        // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
+                        if (horizontalScreenButtons[i]->handleTouch(touched, tx, ty)) {
+                            screenButtonTouchEvent = horizontalScreenButtons[i]->buildButtonTouchEvent();
+                            break;
+                        }
                     }
                 }
             }

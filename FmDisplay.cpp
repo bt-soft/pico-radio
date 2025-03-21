@@ -24,11 +24,16 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     // Frekvencia kijelzés pédányosítása
     pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY);
 
-    // Képernyőgombok definiálása
-    DisplayBase::BuildButtonData horizontalButtonsData[] = {
+    // Vertikális Képernyőgombok definiálása
+    DisplayBase::BuildButtonData verticalButtonsData[] = {
         {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
         {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},  //
-        //
+    };
+    // Vertikális képernyőgombok legyártása
+    DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
+
+    // Horizontális Képernyőgombok definiálása
+    DisplayBase::BuildButtonData horizontalButtonsData[] = {
         {"AM", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
         {"Scan", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},   //
         {"Popup", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
@@ -42,8 +47,8 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"Reset", TftButton::ButtonType::Pushable, TftButton::ButtonState::Disabled}  //
     };
 
-    // Képernyőgombok legyártása
-    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_MENU_BTN_ID_START);
+    // Horizontális képernyőgombok legyártása
+    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_HBTNS_ID_START);
 }
 
 /**
