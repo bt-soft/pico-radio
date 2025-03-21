@@ -13,9 +13,9 @@
 #include "utils.h"
 
 // Képernyőgombok mérete
-#define SCRN_BTN_H 30       // Gombok magassága
-#define SCRN_BTN_W 70       // Gombok szélessége
-#define SCREEN_BTNS_GAP 10  // Gombok közötti gap
+#define SCRN_BTN_H 35      // Gombok magassága
+#define SCRN_BTN_W 75      // Gombok szélessége
+#define SCREEN_BTNS_GAP 8  // Gombok közötti gap
 
 // Vizszintes gombok definíciói
 #define SCRN_HBTNS_ID_START 25    // A horizontális képernyő menübuttonok kezdő ID-je

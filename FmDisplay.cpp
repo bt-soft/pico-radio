@@ -31,7 +31,6 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"AGC", TftButton::ButtonType::Toggleable, si4735.isAgcEnabled() ? TftButton::ButtonState::On : TftButton::ButtonState::Off},  //
         {"Att", TftButton::ButtonType::Pushable},                                                                                      //
         {"AntCap", TftButton::ButtonType::Pushable},
-        {"Test", TftButton::ButtonType::Pushable}  // Added a sixth button to test the issue                                                                       //
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
