@@ -41,9 +41,9 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
 
    private:
     // A dinamikusan létrehozott gombok tömbjére mutató pointer
-    TftButton **screenButtons = nullptr;
+    TftButton **horizontalScreenButtons = nullptr;
     // A dinamikusan létrehozott gombok száma
-    uint8_t screenButtonsCount = 0;
+    uint8_t horizontalScreenButtonsCount = 0;
     // A lenyomott képernyő menügomb adatai
     TftButton::ButtonTouchEvent screenButtonTouchEvent = TftButton::noTouchEvent;
 
@@ -84,7 +84,7 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
         uint8_t row = index / SCREEN_BUTTONS_PER_ROW;  // Hányadik sorban van a gomb
 
         // Teljes gombterület kiszámítása
-        uint8_t totalRows = (screenButtonsCount + SCREEN_BUTTONS_PER_ROW - 1) / SCREEN_BUTTONS_PER_ROW;
+        uint8_t totalRows = (horizontalScreenButtonsCount + SCREEN_BUTTONS_PER_ROW - 1) / SCREEN_BUTTONS_PER_ROW;
         uint16_t totalHeight = totalRows * SCRN_BTN_H + (totalRows - 1) * SCREEN_BTN_ROW_SPACING;
 
         // Első sor pozíciója, hogy az utolsó sor alja a kijelző aljára essen
@@ -97,29 +97,29 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     /**
      * Képernyő menügombok legyártása
      */
-    inline void buildScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
+    inline void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
         // Dinamikusan létrehozzuk a gombokat
-        screenButtonsCount = buttonsDataLength;
+        horizontalScreenButtonsCount = buttonsDataLength;
 
         // Ha nincsenek képernyő gombok, akkor nem megyünk tovább
-        if (screenButtonsCount == 0) {
+        if (horizontalScreenButtonsCount == 0) {
             return;
         }
 
         // Lefoglaljuk a gombok tömbjét
-        screenButtons = new TftButton *[screenButtonsCount];
+        horizontalScreenButtons = new TftButton *[horizontalScreenButtonsCount];
 
         // Létrehozzuk a gombokat
-        for (uint8_t i = 0; i < screenButtonsCount; i++) {
-            screenButtons[i] = new TftButton(startId++,             // A gomb ID-je
-                                             tft,                   // TFT objektum
-                                             getAutoX(i),           // Gomb X koordinátájának kiszámítása
-                                             getAutoY(i),           // Gomb Y koordinátájának kiszámítása
-                                             SCRN_BTN_W,            // Gomb szélessége
-                                             SCRN_BTN_H,            // Gomb magassága
-                                             buttonsData[i].label,  // Gomb szövege (label)
-                                             buttonsData[i].type,   // Gomb típusa
-                                             buttonsData[i].state   // Gomb állapota
+        for (uint8_t i = 0; i < horizontalScreenButtonsCount; i++) {
+            horizontalScreenButtons[i] = new TftButton(startId++,             // A gomb ID-je
+                                                       tft,                   // TFT objektum
+                                                       getAutoX(i),           // Gomb X koordinátájának kiszámítása
+                                                       getAutoY(i),           // Gomb Y koordinátájának kiszámítása
+                                                       SCRN_BTN_W,            // Gomb szélessége
+                                                       SCRN_BTN_H,            // Gomb magassága
+                                                       buttonsData[i].label,  // Gomb szövege (label)
+                                                       buttonsData[i].type,   // Gomb típusa
+                                                       buttonsData[i].state   // Gomb állapota
             );
         }
     }
@@ -130,9 +130,9 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     inline void drawScreenButtons() {
 
         // Megjelenítjük a képernyő gombokat, ha vannak
-        if (screenButtons) {
-            for (uint8_t i = 0; i < screenButtonsCount; i++) {
-                screenButtons[i]->draw();
+        if (horizontalScreenButtons) {
+            for (uint8_t i = 0; i < horizontalScreenButtonsCount; i++) {
+                horizontalScreenButtons[i]->draw();
             }
         }
     }
@@ -149,14 +149,14 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
     virtual ~DisplayBase() {
 
         // Képernyőgombok törlése
-        if (screenButtons) {
+        if (horizontalScreenButtons) {
             // A TftButton objektumok törlése
-            for (int i = 0; i < screenButtonsCount; i++) {
-                delete screenButtons[i];
+            for (int i = 0; i < horizontalScreenButtonsCount; i++) {
+                delete horizontalScreenButtons[i];
             }
             // A pointerek tömbjének törlése
-            delete[] screenButtons;
-            screenButtons = nullptr;
+            delete[] horizontalScreenButtons;
+            horizontalScreenButtons = nullptr;
         }
 
         // Dialóg törlése
@@ -257,15 +257,15 @@ class DisplayBase : public IGuiEvents, public IDialogParent {
                 // Ha ide értünk, akkor be van állítva a dialogButtonResponse
                 return true;
 
-            } else if (pDialog == nullptr and screenButtonTouchEvent == TftButton::noTouchEvent and screenButtons) {
+            } else if (pDialog == nullptr and screenButtonTouchEvent == TftButton::noTouchEvent and horizontalScreenButtons) {
                 // Ha nincs dialóg, de vannak képernyő menügombok és még nincs scrrenButton esemény, akkor azok kapják meg a touch adatokat
 
                 // Elküldjük a touch adatokat a képernyő gomboknak
-                for (uint8_t i = 0; i < screenButtonsCount; i++) {
+                for (uint8_t i = 0; i < horizontalScreenButtonsCount; i++) {
 
                     // Ha valamelyik viszajelez hogy felengedték, akkor rámozdulunk arra és nem megyünk tovább a többi gombbal
-                    if (screenButtons[i]->handleTouch(touched, tx, ty)) {
-                        screenButtonTouchEvent = screenButtons[i]->buildButtonTouchEvent();
+                    if (horizontalScreenButtons[i]->handleTouch(touched, tx, ty)) {
+                        screenButtonTouchEvent = horizontalScreenButtons[i]->buildButtonTouchEvent();
                         break;
                     }
                 }

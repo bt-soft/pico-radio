@@ -25,7 +25,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY);
 
     // Képernyőgombok definiálása
-    DisplayBase::BuildButtonData buttonsData[] = {
+    DisplayBase::BuildButtonData horizontalButtonsData[] = {
         {"Vol", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},     //
         {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},  //
         //
@@ -43,7 +43,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     };
 
     // Képernyőgombok legyártása
-    DisplayBase::buildScreenButtons(buttonsData, ARRAY_ITEM_COUNT(buttonsData), SCRN_MENU_BTN_ID_START);
+    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_MENU_BTN_ID_START);
 }
 
 /**
