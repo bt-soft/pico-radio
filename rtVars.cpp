@@ -4,9 +4,6 @@
 
 namespace rtv {
 
-// Némítás
-bool mute;
-
 // Frekvencia kijelzés pozíciója
 uint16_t freqDispX = 0;
 uint16_t freqDispY = 0;
@@ -15,8 +12,6 @@ uint16_t freqDispY = 0;
 bool bfoOn = false;
 
 // Mute
-#define AUDIO_MUTE_ON true
-#define AUDIO_MUTE_OFF false
 bool muteStat = false;
 
 // Squelch

@@ -4,6 +4,7 @@
 #include <SI4735.h>
 
 #include "Config.h"
+#include "rtVars.h"
 
 /**
  * si4735 utilities
@@ -21,6 +22,36 @@ class Si4735Utils {
    protected:
     // SI4735
     SI4735 &si4735;
+
+    /**
+     * Manage Squelch
+     */
+    void manageSuelch() {
+
+        // squelchIndicator(pCfg->vars.currentSquelch);
+        if (!rtv::muteStat) {
+
+            si4735.getCurrentReceivedSignalQuality();
+            uint8_t rssi = si4735.getCurrentRSSI();
+            uint8_t snr = si4735.getCurrentSNR();
+
+            uint8_t signalQuality = config.data.squelchUsesRSSI ? rssi : snr;
+            if (signalQuality >= config.data.currentSquelch) {
+
+                if (rtv::SCANpause == true) {
+
+                    si4735.setAudioMute(false);
+                    rtv::squelchDecay = millis();
+                    DEBUG("Si4735Utils::manageSuelch ->  si4735.setAudioMute(false)\n");
+                }
+            } else {
+                if (millis() > (rtv::squelchDecay + SQUELCH_DECAY_TIME)) {
+                    si4735.setAudioMute(true);
+                    DEBUG("Si4735Utils::manageSuelch -> si4735.setAudioMute(true)\n");
+                }
+            }
+        }
+    }
 
     /**
      * AGC beállítása
@@ -58,6 +89,11 @@ class Si4735Utils {
             si4735.setAutomaticGainControl(0, 0);  // enabled
         }
     }
+
+    /**
+     * Arduino loop
+     */
+    inline void loop() { manageSuelch(); }
 
    public:
     /**

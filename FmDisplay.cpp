@@ -213,9 +213,8 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
     } else if (STREQ("Mute", event.label)) {
         // Némítás
-        rtv::mute = event.state == TftButton::ButtonState::On;
-        si4735.setAudioMute(rtv::mute);
-        // DEBUG("Mute: %s\n", rtv::mute ? "ON" : "OFF");
+        rtv::muteStat = event.state == TftButton::ButtonState::On;
+        si4735.setAudioMute(rtv::muteStat);
 
     } else if (STREQ("AntCap", event.label)) {
 

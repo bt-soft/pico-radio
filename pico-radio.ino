@@ -231,27 +231,6 @@ void loop() {
         changeDisplay();
     }
 
-    // ======================= Manage Squelch =========================
-    // squelchIndicator(pCfg->vars.currentSquelch);
-    if (!rtv::muteStat) {
-        si4735.getCurrentReceivedSignalQuality();
-        uint8_t rssi = si4735.getCurrentRSSI();
-        uint8_t snr = si4735.getCurrentSNR();
-
-        uint8_t signalQuality = config.data.squelchUsesRSSI ? rssi : snr;
-        if (signalQuality >= config.data.currentSquelch) {
-            if (rtv::SCANpause == true) {
-                si4735.setAudioMute(AUDIO_MUTE_OFF);
-                rtv::squelchDecay = millis();
-            }
-        } else {
-            if (millis() > (rtv::squelchDecay + SQUELCH_DECAY_TIME)) {
-                si4735.setAudioMute(AUDIO_MUTE_ON);
-            }
-        }
-    }
-    // ================================================================
-
 #if !defined(__USE_ROTARY_ENCODER_IN_HW_TIMER)
     //------------------- Rotary Encoder Service
     static uint32_t lastRotaryEncoderService = 0;

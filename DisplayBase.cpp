@@ -175,6 +175,9 @@ DisplayBase::~DisplayBase() {
  */
 bool DisplayBase::loop(RotaryEncoder::EncoderState encoderState) {
 
+    // Az ős loop hívása a squelch kezelésére
+    Si4735Utils::loop();
+
     // Touch adatok változói
     uint16_t tx, ty;
     bool touched = false;
