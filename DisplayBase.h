@@ -17,9 +17,10 @@
 #define SCRN_BTN_W 75      // Gombok szélessége
 #define SCREEN_BTNS_GAP 8  // Gombok közötti gap
 
-// Vizszintes gombok definíciói
+// Vízszintes gombok definíciói
 #define SCRN_HBTNS_ID_START 25    // A horizontális képernyő menübuttonok kezdő ID-je
-#define SCREEN_HBTNS_X_START 5    // Gombok kezdő X koordinátája
+#define SCREEN_HBTNS_X_START 5    // Horizontális gombok kezdő X koordinátája
+#define SCREEN_HBTNS_Y_MARGIN 5   // Horizontális gombok alsó margója
 #define SCREEN_BUTTONS_PER_ROW 6  // Egy sorban hány gomb van
 #define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
 

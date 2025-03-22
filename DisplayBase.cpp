@@ -9,19 +9,13 @@ uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8
         if (isX) {
             uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
             return SCREEN_HBTNS_X_START + ((SCRN_BTN_W + SCREEN_BTNS_GAP) * (index % buttonsPerRow));
-
         } else {
-            uint8_t row = index / SCREEN_BUTTONS_PER_ROW;  // Hányadik sorban van a gomb
-
-            // Teljes gombterület kiszámítása
-            uint8_t totalRows = (horizontalScreenButtonsCount + SCREEN_BUTTONS_PER_ROW - 1) / SCREEN_BUTTONS_PER_ROW;
-            uint16_t totalHeight = totalRows * SCRN_BTN_H + (totalRows - 1) * SCREEN_BTN_ROW_SPACING;
-
-            // Első sor pozíciója, hogy az utolsó sor alja a kijelző aljára essen
-            uint16_t firstRowY = tft.height() - totalHeight;
-
-            // Az adott sor Y koordinátája
-            return firstRowY + row * (SCRN_BTN_H + SCREEN_BTN_ROW_SPACING);
+            uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
+            uint8_t row = index / buttonsPerRow;                                                               // Hányadik sorban van a gomb
+            uint8_t rowCount = (horizontalScreenButtonsCount + buttonsPerRow - 1) / buttonsPerRow;             // Összes sor száma
+            uint16_t totalHeight = rowCount * (SCRN_BTN_H + SCREEN_BTN_ROW_SPACING) - SCREEN_BTN_ROW_SPACING;  // Az összes sor magassága
+            uint16_t startY = tft.height() - totalHeight - SCREEN_HBTNS_Y_MARGIN;                              // A legalsó sor kezdő Y koordinátája
+            return startY + row * (SCRN_BTN_H + SCREEN_BTN_ROW_SPACING);                                       // Az adott sor Y koordinátája
         }
     } else {  // Vertical
         if (isX) {
