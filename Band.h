@@ -65,8 +65,26 @@ class Band {
 
     /**
      * A Band egy rekordjának elkérése az index alapján
+     * @param bandIdx a band indexe
+     * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
      */
     BandTable &getBandByIdx(uint8_t bandIdx);
+
+    /**
+     * A Band indexének elkérése a bandName alapján
+     *
+     * @param bandName A keresett sáv neve
+     * @return A BandTable rekord indexe, vagy -1, ha nem található
+     */
+    int8_t getBandIdxByBandName(const char *bandName);
+
+    // /**
+    //  * A Band egy rekordjának elkérése a bandName alapján
+    //  *
+    //  * @param bandName A keresett sáv neve
+    //  * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
+    //  */
+    // BandTable &getBandByBandName(const char *bandName);
 
     /**
      *

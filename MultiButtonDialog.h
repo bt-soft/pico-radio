@@ -1,13 +1,16 @@
 #ifndef __MULTIBUTTONDIALOG_H
 #define __MULTIBUTTONDIALOG_H
 
+#include <functional>
+
 #define MULTI_BTN_W 80  // Gombok szélessége
 #define MULTI_BTN_H 30  // Gombok magassága
 
 class MultiButtonDialog : public DialogBase {
    private:
-    TftButton **buttonsArray;  // A gombok mutatóinak tömbje
-    uint8_t buttonCount;       // Gombok száma
+    TftButton **buttonsArray;                           // A gombok mutatóinak tömbje
+    uint8_t buttonCount;                                // Gombok száma
+    std::function<void(const char *)> onButtonClicked;  // Callback függvény
 
     /**
      * Gombok elhelyezése a dialógusban
@@ -77,8 +80,8 @@ class MultiButtonDialog : public DialogBase {
      * @param buttonCount A gombok száma
      */
     MultiButtonDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const char *buttonLabels[] = nullptr,
-                      uint8_t buttonCount = 0)
-        : DialogBase(pParent, tft, w, h, title), buttonCount(buttonCount) {
+                      uint8_t buttonCount = 0, std::function<void(const char *)> onButtonClicked = nullptr)
+        : DialogBase(pParent, tft, w, h, title), buttonCount(buttonCount), onButtonClicked(onButtonClicked) {
 
         // Legyártjuk a gombok töbmjét
         buildButtonArray(buttonLabels);
@@ -132,6 +135,11 @@ class MultiButtonDialog : public DialogBase {
 
             // Ha valamelyik reagált a touch eseményre, akkor beállítjuk a visszatérési értéket és kilépünk a ciklusból
             if (buttonsArray[i]->handleTouch(touched, tx, ty)) {
+                // Ha van callback, akkor meghívjuk
+                if (onButtonClicked) {
+                    onButtonClicked(buttonsArray[i]->getLabel());
+                }
+                // Dialog bezárása
                 DialogBase::pParent->setDialogResponse(buttonsArray[i]->buildButtonTouchEvent());
                 return true;
             }

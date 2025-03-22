@@ -4,11 +4,14 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
+#include "Band.h"
+#include "Config.h"
 #include "DialogBase.h"
 #include "IDialogParent.h"
 #include "IGuiEvents.h"
 #include "Si4735Utils.h"
 #include "TftButton.h"
+#include "rtVars.h"
 #include "utils.h"
 
 // A képernyő változó adatok frissítési ciklusideje msec-ben
@@ -200,6 +203,8 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
 
     /**
      * Dialóg Button touch esemény feldolgozása
+     * - alapesetben csak becsukjuk a dialógot
+     * - újrarajzoljuk a képernyőt
      * (Ha kell a leszármazottnak akkor majd felülírja)
      */
     virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {

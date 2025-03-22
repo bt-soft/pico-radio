@@ -124,10 +124,17 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         const char **hamBands = band.getBandNames(hamBandCount, true);
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount);
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount,  //
+                                                     [this](const char *buttonLabel) {
+                                                         // Átállítjuk a használni kívánt BAND indexet
+                                                         config.data.bandIdx = band.getBandIdxByBandName(buttonLabel);
+
+                                                         // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
+                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
+                                                         ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                     });
 
     } else if (STREQ("RDS", event.label)) {
-
         // Radio Data System
         config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
 
@@ -138,7 +145,6 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         }
 
     } else if (STREQ("AntCap", event.label)) {
-
         // If zero, the tuning capacitor value is selected automatically.
         // AM - the tuning capacitance is manually set as 95 fF x ANTCAP + 7 pF.  ANTCAP manual range is 1–6143;
         // FM - the valid range is 0 to 191.

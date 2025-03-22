@@ -38,6 +38,9 @@ BandTable bandTable[] = {
     {"SW", SW_BAND_TYPE, AM, 100, 30000, 15500, 5, 0, 0, false}      // Whole SW    29
 };
 
+// Ha nem található a keresett band, akkor ezzel térünk vissza
+static BandTable EMPTY_BAND = {"", 0, 0, 0, 0, 0, 0, 0, 0, false};
+
 /**
  * Konstruktor
  */
@@ -45,8 +48,54 @@ Band::Band(SI4735& si4735) : si4735(si4735) {}
 
 /**
  * A Band egy rekordjának elkérése az index alapján
+ *
+ * @param bandIdx A keresett sáv indexe
+ * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
  */
-BandTable& Band::getBandByIdx(uint8_t bandIdx) { return bandTable[bandIdx]; }
+BandTable& Band::getBandByIdx(uint8_t bandIdx) {
+
+    // Ha túlcímzés van
+    if (bandIdx >= ARRAY_ITEM_COUNT(bandTable)) {
+        return EMPTY_BAND;
+    }
+
+    return bandTable[bandIdx];
+}
+
+/**
+ * A Band indexének elkérése a bandName alapján
+ *
+ * @param bandName A keresett sáv neve
+ * @return A BandTable rekord indexe, vagy -1, ha nem található
+ */
+int8_t Band::getBandIdxByBandName(const char* bandName) {
+
+    for (int i = 0; i < ARRAY_ITEM_COUNT(bandTable); i++) {
+        if (strcmp(bandTable[i].bandName, bandName) == 0) {
+            return i;
+        }
+    }
+    // Ha nem találtuk meg, akkor -1
+    return -1;
+}
+
+// /**
+//  * A Band egy rekordjának elkérése a bandName alapján
+//  *
+//  * @param bandName A keresett sáv neve
+//  * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
+//  */
+// BandTable& Band::getBandByBandName(const char* bandName) {
+
+//     for (int i = 0; i < ARRAY_ITEM_COUNT(bandTable); i++) {
+//         if (strcmp(bandTable[i].bandName, bandName) == 0) {
+//             return bandTable[i];
+//         }
+//     }
+//     // Ha nem találtuk meg, akkor egy üres rekordot adunk vissza
+//     // (Ez nem ideális, de elkerüljük a null pointert)
+//     return EMPTY_BAND;
+// }
 
 /**
  * Sávok neveinek visszaadása tömbként
@@ -311,7 +360,7 @@ void Band::BandSet() {
 
     if ((currentMode == LSB) or (currentMode == USB)) {
         if (ssbLoaded == false) {
-            loadSSB();
+            this->loadSSB();
         }
     }
 

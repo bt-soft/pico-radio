@@ -213,10 +213,6 @@ void setup() {
     tft.println(si4735Addr, HEX);
     delay(1500);
 
-    // Band init
-    band.BandInit();
-    band.BandSet();
-
     // Si4735 init
     si4735.setVolume(config.data.currVolume);   // Hangerő
     si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
