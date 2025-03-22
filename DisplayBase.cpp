@@ -178,11 +178,13 @@ DisplayBase::~DisplayBase() {
 
     deleteButtons(horizontalScreenButtons, horizontalScreenButtonsCount);
     horizontalScreenButtons = nullptr;
+    horizontalScreenButtonsCount = 0;
 
     deleteButtons(verticalScreenButtons, verticalScreenButtonsCount);
     verticalScreenButtons = nullptr;
+    verticalScreenButtonsCount = 0;
 
-    // Dialóg törlése
+    // Dialóg törlése, ha van
     if (pDialog) {
         delete pDialog;
         pDialog = nullptr;
