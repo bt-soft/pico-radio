@@ -6,7 +6,7 @@
 #define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
 
 // Vertical gombok definíciói
-#define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
+#define SCREEN_VBTNS_X_MARGIN 0  // A vertikális gombok jobb oldali margója
 
 /**
  *  BFO Status kirajzolása
@@ -113,13 +113,19 @@ void DisplayBase::dawStatusLine() {
 
 /**
  * Gombok automatikus pozicionálása
+ *
+ * @param orientation orientáció (Horizontal/Vertical)
+ * @param index hányadik gomb?
+ * @param isXpos az X pozíciót számoljuk ki?
  */
-uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8_t index, bool isX) {
+uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8_t index, bool isXpos) {
 
     if (orientation == ButtonOrientation::Horizontal) {
-        if (isX) {
+
+        if (isXpos) {
             uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
             return SCREEN_HBTNS_X_START + ((SCRN_BTN_W + SCREEN_BTNS_GAP) * (index % buttonsPerRow));
+
         } else {
             uint8_t buttonsPerRow = tft.width() / (SCRN_BTN_W + SCREEN_BTNS_GAP);
             uint8_t row = index / buttonsPerRow;                                                               // Hányadik sorban van a gomb
@@ -128,8 +134,11 @@ uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8
             uint16_t startY = tft.height() - totalHeight - SCREEN_HBTNS_Y_MARGIN;                              // A legalsó sor kezdő Y koordinátája
             return startY + row * (SCRN_BTN_H + SCREEN_BTN_ROW_SPACING);                                       // Az adott sor Y koordinátája
         }
-    } else {  // Vertical
-        if (isX) {
+
+    } else {
+
+        // Vertical
+        if (isXpos) {
             // Új X koordináta számítás
             uint8_t buttonsPerColumn = tft.height() / (SCRN_BTN_H + SCREEN_BTNS_GAP);
             uint8_t requiredColumns = (verticalScreenButtonsCount + buttonsPerColumn - 1) / buttonsPerColumn;
