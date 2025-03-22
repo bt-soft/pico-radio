@@ -23,4 +23,7 @@ bool SCANpause = true;  // LWH - SCANpause must be initialized to a value else t
 // Seek
 bool SEEK = false;
 
+// CW shift
+bool CWShift = false;
+
 }  // namespace rtv

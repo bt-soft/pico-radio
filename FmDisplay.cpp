@@ -86,6 +86,8 @@ void FmDisplay::drawScreen() {
     tft.setFreeFont();
     tft.fillScreen(TFT_COLOR_BACKGROUND);
 
+    DisplayBase::dawStatusLine();
+
     // RSSI skála kirajzoltatása
     pSMeter->drawSmeterScale();
 

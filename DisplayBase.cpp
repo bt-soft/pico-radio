@@ -9,6 +9,30 @@
 #define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
 
 /**
+ * Státusz a képernyő tetején
+ */
+void DisplayBase::dawStatusLine() {
+    tft.setTextSize(1);
+    tft.setTextDatum(BC_DATUM);
+
+// BAND
+#define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
+    tft.setTextColor(TFT_COLOR_STATUSLINE_BAND, TFT_BLACK);
+    tft.drawString(band.getBandByIdx(config.data.bandIdx).bandName, 180, 15);
+    tft.drawRect(160, 2, 39, 16, TFT_COLOR_STATUSLINE_BAND);
+
+// MODE
+#define TFT_COLOR_STATUSLINE_MODE TFT_YELLOW
+    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    String modtext = band.getCurrentBandModeDesc();
+    if ((modtext == "USB") and (rtv::CWShift == true)) {
+        modtext = "CW";
+    }
+    tft.drawString(modtext, 95, 15);
+    tft.drawRect(80, 2, 29, 16, TFT_COLOR_STATUSLINE_MODE);
+}
+
+/**
  * Gombok automatikus pozicionálása
  */
 uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8_t index, bool isX) {

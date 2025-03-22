@@ -35,6 +35,9 @@ extern bool SCANpause;
 // Seek
 extern bool SEEK;
 
+// CW shift
+extern bool CWShift;
+
 }  // namespace rtv
 
 #endif  //__RTVARS_H

@@ -47,6 +47,8 @@ class Band {
     void loadSSB();
     void useBand();
 
+    const char *bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
+
    public:
     uint8_t currentMode;  // aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
 
@@ -61,6 +63,11 @@ class Band {
      * A Band egy rekordjának elkérése az index alapján
      */
     BandTable &getBandByIdx(uint8_t bandIdx);
+
+    /**
+     *
+     */
+    inline const char *getCurrentBandModeDesc() { return bandModeDesc[currentMode]; }
 };
 
 // A főprogramban definiálva

@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 
-#include "Band.h"
 #include "DialogBase.h"
 #include "IDialogParent.h"
 #include "IGuiEvents.h"
@@ -49,6 +48,16 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
 
     // A dialógban megnyomott gomb adatai
     TftButton::ButtonTouchEvent dialogButtonResponse = TftButton::noTouchEvent;
+
+    /**
+     * Megkeresi a gombot a label alapján a megadott tömbben
+     *
+     * @param buttons A gombok tömbje
+     * @param buttonsCount A gombok száma
+     * @param label A keresett gomb label-je
+     * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
+     */
+    TftButton *findButtonInArray(TftButton **buttons, uint8_t buttonsCount, const char *label);
 
    protected:
     // Képernyőgombok legyártását segítő rekord
@@ -99,6 +108,11 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     void drawScreenButtons();
 
     /**
+     *
+     */
+    void dawStatusLine();
+
+    /**
      * Gombok törlése
      */
     void deleteButtons(TftButton **buttons, uint8_t buttonsCount);
@@ -110,20 +124,11 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
 
     /**
      * Megkeresi a gombot a label alapján
+     *
      * @param label A keresett gomb label-je
      * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
      */
     TftButton *findButtonByLabel(const char *label);
-
-   private:
-    /**
-     * Megkeresi a gombot a label alapján a megadott tömbben
-     * @param buttons A gombok tömbje
-     * @param buttonsCount A gombok száma
-     * @param label A keresett gomb label-je
-     * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
-     */
-    TftButton *findButtonInArray(TftButton **buttons, uint8_t buttonsCount, const char *label);
 
    public:
     /**
