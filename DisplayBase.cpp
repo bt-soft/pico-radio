@@ -12,8 +12,25 @@
  * Státusz a képernyő tetején
  */
 void DisplayBase::dawStatusLine() {
+    tft.fillRect(0, 0, 240, 86, TFT_BLACK);
+
     tft.setTextSize(1);
     tft.setTextDatum(BC_DATUM);
+
+    // BFO Step
+    uint16_t bfoStepColor = TFT_SILVER;
+    if ((band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) and config.data.currentBFOmanu) {
+        bfoStepColor = TFT_ORANGE;
+    }
+    tft.setTextColor(bfoStepColor, TFT_BLACK);
+    if (rtv::bfoOn) {
+#ifdef IhaveCrystal
+        tft.drawString(String(config.data.currentBFOStep) + " Hz", 20, 15);
+#endif
+    } else {
+        tft.drawString(" BFO ", 20, 15);
+    }
+    tft.drawRect(0, 2, 39, 16, bfoStepColor);
 
 // BAND
 #define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
@@ -30,6 +47,25 @@ void DisplayBase::dawStatusLine() {
     }
     tft.drawString(modtext, 95, 15);
     tft.drawRect(80, 2, 29, 16, TFT_COLOR_STATUSLINE_MODE);
+
+// BANDW
+#define TFT_COLOR_STATUSLINE_BANDW TFT_COLOR(255, 127, 255)  // magenta?
+    tft.setTextColor(TFT_COLOR_STATUSLINE_BANDW, TFT_BLACK);
+
+    String bwText = band.getCurrentBandWithPstr();
+    if (bwText == "AUTO") {
+        tft.drawString("F AUTO", 135, 15);
+    } else {
+        tft.drawString("F" + bwText + "KHz", 135, 15);
+    }
+    tft.drawRect(110, 2, 49, 16, TFT_COLOR_STATUSLINE_BANDW);
+
+// STEP
+#define TFT_COLOR_STATUSLINE_STEP TFT_SKYBLUE
+    tft.setTextColor(TFT_COLOR_STATUSLINE_STEP, TFT_BLACK);
+    uint8_t currentStep = band.getBandByIdx(config.data.bandIdx).currentStep;
+    tft.drawString(String(currentStep * (band.currentMode == FM ? 10 : 1)) + "kHz", 220, 15);
+    tft.drawRect(200, 2, 39, 16, TFT_COLOR_STATUSLINE_STEP);
 }
 
 /**

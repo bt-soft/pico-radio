@@ -48,6 +48,9 @@ class Band {
     void useBand();
 
     const char *bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
+    const char *bandwidthSSB[6] = {"1.2", "2.2", "3.0", "4.0", "0.5", "1.0"};
+    const char *bandwidthAM[7] = {"6.0", "4.0", "3.0", "2.0", "1.0", "1.8", "2.5"};
+    const char *bandwidthFM[5] = {"AUTO", "110", "84", "60", "40"};
 
    public:
     uint8_t currentMode;  // aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
@@ -68,6 +71,18 @@ class Band {
      *
      */
     inline const char *getCurrentBandModeDesc() { return bandModeDesc[currentMode]; }
+
+    /**
+     *
+     */
+    inline const char *getCurrentBandWithPstr() {
+        const char *p;
+        if (currentMode == AM) p = bandwidthAM[config.data.bwIdxAM];
+        if (currentMode == LSB or currentMode == USB or currentMode == CW) p = bandwidthSSB[config.data.bwIdxSSB];
+        if (currentMode == FM) p = bandwidthFM[config.data.bwIdxFM];
+
+        return p;
+    }
 };
 
 // A főprogramban definiálva
