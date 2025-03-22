@@ -29,9 +29,22 @@ uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8
         if (isX) {
             // Új X koordináta számítás
             uint8_t buttonsPerColumn = tft.height() / (SCRN_BTN_H + SCREEN_BTNS_GAP);
-            uint8_t column = index / buttonsPerColumn;                                                                       // Hányadik oszlopban van a gomb
-            uint16_t startX = tft.width() - SCREEN_VBTNS_X_MARGIN - SCRN_BTN_W - (column * (SCRN_BTN_W + SCREEN_BTNS_GAP));  // A jobb oldali oszlop kezdő X koordinátája
-            return startX;
+            uint8_t requiredColumns = (verticalScreenButtonsCount + buttonsPerColumn - 1) / buttonsPerColumn;
+            uint8_t column = index / buttonsPerColumn;
+
+            // Ha több oszlop van, akkor az oszlopokat jobbra igazítjuk
+            if (requiredColumns > 1) {
+                // Ha az utolsó oszlopban vagyunk, akkor a képernyő jobb oldalához igazítjuk
+                if (column == requiredColumns - 1) {
+                    return tft.width() - SCREEN_VBTNS_X_MARGIN - SCRN_BTN_W;
+                } else {
+                    // Ha nem az utolsó oszlopban vagyunk, akkor a következő oszlop bal oldalához igazítjuk, gap-el
+                    return tft.width() - SCREEN_VBTNS_X_MARGIN - SCRN_BTN_W - ((requiredColumns - column - 1) * (SCRN_BTN_W + SCREEN_BTNS_GAP));
+                }
+            } else {
+                // Ha csak egy oszlop van, akkor a jobb oldalra igazítjuk
+                return tft.width() - SCREEN_VBTNS_X_MARGIN - SCRN_BTN_W;
+            }
         } else {
             // Új Y koordináta számítás
             uint8_t buttonsPerColumn = tft.height() / (SCRN_BTN_H + SCREEN_BTNS_GAP);
