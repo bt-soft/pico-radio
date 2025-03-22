@@ -15,7 +15,7 @@
  */
 void SevenSegmentFreq::segment(String freq, String mask, int d) {
 
-    if (!config.data.digitLigth) {
+    if (!config.data.tftDigitLigth) {
         mask = "";
     }
 

@@ -3,6 +3,10 @@
 
 #include "StoreBase.h"
 
+// TFT háttérvilágítás max érték
+#define TFT_BACKGROUND_LED_MAX_BRIGHTNESS 255
+#define TFT_BACKGROUND_LED_MIN_BRIGHTNESS 5
+
 // --------------------------------
 // Konfig struktúra típusdefiníció
 struct Config_t {
@@ -39,8 +43,9 @@ struct Config_t {
     uint8_t currentAGCgain;
 
     //--- TFT
-    uint16_t tftCalibrateData[5];  // TFT touch kalibrációs adatok
-    bool digitLigth;               // Inaktív szegmens látszódjon?
+    uint16_t tftCalibrateData[5];     // TFT touch kalibrációs adatok
+    uint8_t tftBackgroundBrightness;  // TFT Háttérvilágítás
+    bool tftDigitLigth;               // Inaktív szegmens látszódjon?
 };
 
 // Alapértelmezett konfigurációs adatok (readonly, const)

@@ -140,8 +140,8 @@ void setup() {
     digitalWrite(PIN_BEEPER, LOW);
 
     // TFT LED háttérvilágítás kimenet
-    pinMode(PIN_DISPLAY_LED, OUTPUT);
-    digitalWrite(PIN_DISPLAY_LED, 0);
+    pinMode(PIN_TFT_BACKGROUND_LED, OUTPUT);
+    analogWrite(PIN_TFT_BACKGROUND_LED, TFT_BACKGROUND_LED_MAX_BRIGHTNESS);
 
     // Rotary Encoder beállítása
     rotaryEncoder.setDoubleClickEnabled(true);

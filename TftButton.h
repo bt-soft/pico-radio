@@ -7,6 +7,10 @@
 #define TFT_BUTTON_DARKEN_COLORS_STEPS 6
 #define TFT_BUTTON_INVALID_ID 0xFF
 
+#define TFT_BUTTON_LED_ON TFT_GREEN
+#define TFT_BUTTON_LED_PUSHED TFT_ORANGE
+#define TFT_BUTTON_LED_OFF TFT_COLOR(10, 128, 30)
+
 class TftButton {
    public:
     // A gomb típusa
@@ -197,13 +201,13 @@ class TftButton {
         uint16_t ledColor = 0;
         if (state == ButtonState::On) {
             // Ha On állapotú, akkor zöld a LED csík
-            ledColor = TFT_GREEN;
+            ledColor = TFT_BUTTON_LED_ON;
         } else if (type == ButtonType::Pushable && buttonPressed) {
             // Ha Pushable típusú és épp nyomva tartják, akkor a LED narancs
-            ledColor = TFT_ORANGE;
+            ledColor = TFT_BUTTON_LED_PUSHED;
         } else if (type == ButtonType::Toggleable && state == ButtonState::Off) {
             // Ha Toggleable típusú és Off állapotú, akkor a LED sötétzöld
-            ledColor = TFT_COLOR(5, 59, 19);  // Sötétzöld
+            ledColor = TFT_BUTTON_LED_OFF;  // Sötétzöld
         }
         // Ha kell állítani a LED színt
         if (ledColor) {

@@ -167,25 +167,57 @@ class ValueChangeDialog : public MessageDialog {
         // Az érték változtatása a Rotary irányának megfelelően
         if (valueType == ValueType::Uint8) {
             uint8_t &val = std::get<uint8_t>(value);
-            val = (encoderState.direction == RotaryEncoder::Direction::Up) ? std::min(static_cast<uint8_t>(val + step), static_cast<uint8_t>(maxVal))
-                                                                           : std::max(static_cast<uint8_t>(val - step), static_cast<uint8_t>(minVal));
+            int tempVal = val;  // nagyobb típusra
+
+            if (encoderState.direction == RotaryEncoder::Direction::Up) {
+                tempVal += static_cast<int>(step);
+            } else {
+                tempVal -= static_cast<int>(step);
+            }
+
+            // Érvényes tartomány rögzítése
+            tempVal = std::max(static_cast<int>(minVal), std::min(tempVal, static_cast<int>(maxVal)));
+            val = static_cast<uint8_t>(tempVal);  // uint8_t-re vissza cast
+
         } else if (valueType == ValueType::Integer) {
             int &val = std::get<int>(value);
-            val = (encoderState.direction == RotaryEncoder::Direction::Up) ? std::min(static_cast<int>(val + step), static_cast<int>(maxVal))
-                                                                           : std::max(static_cast<int>(val - step), static_cast<int>(minVal));
+            long long tempVal = val;  // nagyobb típusra
+
+            if (encoderState.direction == RotaryEncoder::Direction::Up) {
+                tempVal += static_cast<long long>(step);
+            } else {
+                tempVal -= static_cast<long long>(step);
+            }
+
+            // Érvényes tartomány rögzítése
+            tempVal = std::max(static_cast<long long>(minVal), std::min(tempVal, static_cast<long long>(maxVal)));
+            val = static_cast<int>(tempVal);  // int-re vissza cast
+
         } else if (valueType == ValueType::Float) {
             float &val = std::get<float>(value);
-            val = (encoderState.direction == RotaryEncoder::Direction::Up) ? std::min(static_cast<float>(val + step), static_cast<float>(maxVal))
-                                                                           : std::max(static_cast<float>(val - step), static_cast<float>(minVal));
+            double tempVal = val;  // nagyobb típusra
+
+            if (encoderState.direction == RotaryEncoder::Direction::Up) {
+                tempVal += static_cast<double>(step);
+            } else {
+                tempVal -= static_cast<double>(step);
+            }
+
+            // Érvényes tartomány rögzítése
+            tempVal = std::max(static_cast<double>(minVal), std::min(tempVal, static_cast<double>(maxVal)));
+            val = static_cast<float>(tempVal);  // float-ra vissza cast
+
         } else if (valueType == ValueType::Boolean) {
             bool &val = std::get<bool>(value);
-            val = (encoderState.direction == RotaryEncoder::Direction::Up);
+            if (encoderState.direction != RotaryEncoder::Direction::None) {
+                val = encoderState.direction == RotaryEncoder::Direction::Up;
+            }
         }
 
         // Kiírjuk az új értéket
         drawValue();
 
-        // beállítjuk az új értéket (pointer + callback)
+        // beállítjuk az új értéket referencia pointer oldalon és callback visszatérési értékben is ezzel hívunk vissza
         setValue();
 
         return true;

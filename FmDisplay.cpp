@@ -31,6 +31,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"AGC", TftButton::ButtonType::Toggleable, si4735.isAgcEnabled() ? TftButton::ButtonState::On : TftButton::ButtonState::Off},  //
         {"Att", TftButton::ButtonType::Pushable},                                                                                      //
         {"AntCap", TftButton::ButtonType::Pushable},
+        {"Bright", TftButton::ButtonType::Pushable},
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
@@ -255,6 +256,12 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("RF Attennuator"), F("Value:"),      //
                                                      &config.data.currentAGCgain, (uint8_t)1, (uint8_t)maxValue, (uint8_t)1,  //
                                                      [this](uint8_t currentAGCgain) { si4735.setAutomaticGainControl(1, currentAGCgain); });
+
+    } else if (STREQ("Bright", event.label)) {
+        DisplayBase::pDialog =
+            new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("TFT Brightness"), F("Value:"),                                                                         //
+                                  &config.data.tftBackgroundBrightness, (uint8_t)TFT_BACKGROUND_LED_MIN_BRIGHTNESS, (uint8_t)TFT_BACKGROUND_LED_MAX_BRIGHTNESS, (uint8_t)10,  //
+                                  [this](uint8_t newBrightness) { analogWrite(PIN_TFT_BACKGROUND_LED, newBrightness); });
 
     } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;
