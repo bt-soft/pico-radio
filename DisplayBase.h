@@ -108,7 +108,17 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     void drawScreenButtons();
 
     /**
-     *
+     *  BFO Status kirajzolása
+     */
+    void drawBfoStatus(bool initFont = false);
+
+    /**
+     * AGC / ATT Status kirajzolása
+     */
+    void drawAgcAttStatus(bool initFont = false);
+
+    /**
+     * Státusz kirajzolása
      */
     void dawStatusLine();
 
@@ -134,7 +144,7 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     /**
      * Konstruktor (üres)
      */
-    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) {}
+    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) { DEBUG("DisplayBase::DisplayBase\n"); }
 
     /**
      * Destruktor

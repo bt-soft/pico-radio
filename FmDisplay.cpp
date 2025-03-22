@@ -11,6 +11,8 @@
  */
 FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), pSMeter(nullptr), pRds(nullptr), pSevenSegmentFreq(nullptr) {
 
+    DEBUG("FmDisplay::FmDisplay\n");
+
     // SMeter példányosítása
     pSMeter = new SMeter(tft, 0, 80);
 
@@ -246,7 +248,9 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         int maxValue = band.currentMode == FM ? 191 : 6143;
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"),  //
                                                      &antCapValue, (int)0, (int)maxValue,                                                     //
-                                                     (int)1, [this](int newValue) { si4735.setTuneFrequencyAntennaCapacitor(newValue); });
+                                                     (int)1, [this](int newValue) {
+                                                         si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
+                                                     });
 
     } else if (STREQ("AGC", event.label)) {  // Automatikus AGC
 
@@ -254,6 +258,9 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         config.data.agcGain = stateOn ? static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic) : static_cast<uint8_t>(Si4735Utils::AgcGainMode::Off);
 
         Si4735Utils::checkAGC();
+
+        // Kijelzés frissítése
+        DisplayBase::drawAgcAttStatus(true);
 
     } else if (STREQ("Att", event.label)) {  // Kézi AGC
 
@@ -274,7 +281,10 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("RF Attennuator"), F("Value:"),      //
                                                      &config.data.currentAGCgain, (uint8_t)1, (uint8_t)maxValue, (uint8_t)1,  //
-                                                     [this](uint8_t currentAGCgain) { si4735.setAutomaticGainControl(1, currentAGCgain); });
+                                                     [this](uint8_t currentAGCgain) {
+                                                         si4735.setAutomaticGainControl(1, currentAGCgain);
+                                                         DisplayBase::drawAgcAttStatus(true);
+                                                     });
 
     } else if (STREQ("Bright", event.label)) {
         DisplayBase::pDialog =

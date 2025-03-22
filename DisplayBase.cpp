@@ -9,13 +9,16 @@
 #define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
 
 /**
- * Státusz a képernyő tetején
+ *  BFO Status kirajzolása
  */
-void DisplayBase::dawStatusLine() {
-    tft.fillRect(0, 0, 240, 86, TFT_BLACK);
+void DisplayBase::drawBfoStatus(bool initFont) {
 
-    tft.setTextSize(1);
-    tft.setTextDatum(BC_DATUM);
+    // Fontot kell váltani?
+    if (initFont) {
+        tft.setFreeFont();
+        tft.setTextSize(1);
+        tft.setTextDatum(BC_DATUM);
+    }
 
     // BFO Step
     uint16_t bfoStepColor = TFT_SILVER;
@@ -28,9 +31,49 @@ void DisplayBase::dawStatusLine() {
         tft.drawString(String(config.data.currentBFOStep) + " Hz", 20, 15);
 #endif
     } else {
-        tft.drawString(" BFO ", 20, 15);
+        tft.drawString(F(" BFO "), 20, 15);
     }
     tft.drawRect(0, 2, 39, 16, bfoStepColor);
+}
+
+/**
+ * AGC / ATT Status kirajzolása
+ */
+void DisplayBase::drawAgcAttStatus(bool initFont) {
+
+    // Fontot kell váltani?
+    if (initFont) {
+        tft.setFreeFont();
+        tft.setTextSize(1);
+        tft.setTextDatum(BC_DATUM);
+    }
+
+    // AGC / ATT
+    uint16_t agcColor = config.data.agcGain == 0 ? TFT_SILVER : TFT_COLOR(255, 130, 0);
+    tft.setTextColor(agcColor, TFT_BLACK);
+    if (config.data.agcGain > 1) {
+        tft.drawString("ATT" + String(config.data.currentAGCgain < 9 ? " " : "") + String(config.data.currentAGCgain), 60, 15);
+    } else {
+        tft.drawString(F(" AGC "), 60, 15);
+    }
+    tft.drawRect(40, 2, 39, 16, agcColor);
+}
+
+/**
+ * Státusz a képernyő tetején
+ */
+void DisplayBase::dawStatusLine() {
+    tft.fillRect(0, 0, 240, 16, TFT_COLOR_BACKGROUND);  // Teljes statusline törlése
+
+    tft.setFreeFont();
+    tft.setTextSize(1);
+    tft.setTextDatum(BC_DATUM);
+
+    // BFO Step
+    drawBfoStatus();
+
+    // AGC Status
+    drawAgcAttStatus();
 
 // BAND
 #define TFT_COLOR_STATUSLINE_BAND TFT_CYAN

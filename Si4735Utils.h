@@ -103,6 +103,9 @@ class Si4735Utils {
      * Konstruktor
      */
     Si4735Utils(SI4735 &si4735) : si4735(si4735) {
+
+        DEBUG("Si4735Utils::Si4735Utils\n");
+
         // Rögtön be is állítjuk az AGC-t
         checkAGC();
     }
