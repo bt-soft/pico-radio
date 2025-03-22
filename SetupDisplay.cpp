@@ -1,5 +1,8 @@
 #include "SetupDisplay.h"
 
+#include "MultiButtonDialog.h"
+#include "ValueChangeDialog.h"
+
 /**
  * Konstruktor
  */
@@ -7,7 +10,8 @@ SetupDisplay::SetupDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4
 
     // Horizontális képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
-        {"Return", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
+        {"Bright", TftButton::ButtonType::Pushable},                             //
+        {"Exit", TftButton::ButtonType::Pushable, TftButton::ButtonState::Off},  //
     };
 
     // Horizontális képernyőgombok legyártása
@@ -38,6 +42,23 @@ void SetupDisplay::drawScreen() {
 }
 
 /**
+ * Képernyő menügomb esemény feldolgozása
+ */
+void SetupDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
+
+    DEBUG("SetupDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
+
+    if (STREQ("Exit", event.label)) {
+        ::newDisplay = prevDisplay;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+    } else if (STREQ("Bright", event.label)) {
+        DisplayBase::pDialog =
+            new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("TFT Brightness"), F("Value:"),                                                                         //
+                                  &config.data.tftBackgroundBrightness, (uint8_t)TFT_BACKGROUND_LED_MIN_BRIGHTNESS, (uint8_t)TFT_BACKGROUND_LED_MAX_BRIGHTNESS, (uint8_t)10,  //
+                                  [this](uint8_t newBrightness) { analogWrite(PIN_TFT_BACKGROUND_LED, newBrightness); });
+    }
+}
+
+/**
  * Esemény nélküli display loop - ScreenSaver futtatása
  * Nem kell figyelni a touch eseményt, azt már a főprogram figyeli és leállítja/törli a ScreenSaver-t
  */
@@ -53,15 +74,3 @@ bool SetupDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) { retu
  * A további gui elemek vezérléséhez
  */
 bool SetupDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) { return false; }
-
-/**
- * Képernyő menügomb esemény feldolgozása
- */
-void SetupDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
-
-    DEBUG("SetupDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
-
-    if (STREQ("Return", event.label)) {
-        ::newDisplay = prevDisplay;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
-    }
-}

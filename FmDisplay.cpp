@@ -35,7 +35,6 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"Scan", TftButton::ButtonType::Pushable},                                                    //
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
         {"AntCap", TftButton::ButtonType::Pushable},                                                  //
-        {"Bright", TftButton::ButtonType::Pushable},                                                  //
 
         // //----
         // {"Popup", TftButton::ButtonType::Pushable},  //
@@ -141,13 +140,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
                                                          Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
                                                      });
 
-    } else if (STREQ("Bright", event.label)) {
-        DisplayBase::pDialog =
-            new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("TFT Brightness"), F("Value:"),                                                                         //
-                                  &config.data.tftBackgroundBrightness, (uint8_t)TFT_BACKGROUND_LED_MIN_BRIGHTNESS, (uint8_t)TFT_BACKGROUND_LED_MAX_BRIGHTNESS, (uint8_t)10,  //
-                                  [this](uint8_t newBrightness) { analogWrite(PIN_TFT_BACKGROUND_LED, newBrightness); });
-
-    } else if (STREQ("AM", event.label)) {
+       } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;
 
     } else if (STREQ("Scan", event.label)) {
