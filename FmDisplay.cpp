@@ -31,10 +31,11 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
-        {"AM", TftButton::ButtonType::Pushable},                                                      //
-        {"Scan", TftButton::ButtonType::Pushable},                                                    //
+        {"Ham", TftButton::ButtonType::Pushable},                                                     //
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
         {"AntCap", TftButton::ButtonType::Pushable},                                                  //
+        {"Scan", TftButton::ButtonType::Pushable},                                                    //
+        {"AM", TftButton::ButtonType::Pushable},                                                      //
 
         // //----
         // {"Popup", TftButton::ButtonType::Pushable},  //
@@ -115,7 +116,17 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         return;
     }
 
-    if (STREQ("RDS", event.label)) {
+    // Vízszintes gombok vizsgálata
+    if (STREQ("Ham", event.label)) {
+
+        // Kigyűjtjük a HAM sávok neveit
+        int hamBandCount;
+        const char **hamBands = band.getBandNames(hamBandCount, true);
+
+        // Multi button Dialog
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount);
+
+    } else if (STREQ("RDS", event.label)) {
 
         // Radio Data System
         config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
@@ -140,11 +151,11 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
                                                          Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
                                                      });
 
-       } else if (STREQ("AM", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::am;
-
     } else if (STREQ("Scan", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::freqScan;
+
+    } else if (STREQ("AM", event.label)) {
+        ::newDisplay = DisplayBase::DisplayType::am;
 
     } else if (STREQ("Popup", event.label)) {
         // Popup

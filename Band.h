@@ -30,6 +30,7 @@ struct BandTable {
     uint8_t currentStep;   // Default step (increment and decrement)
     int lastBFO;           // Last BFO per band
     int lastmanuBFO;       // Last Manual BFO per band using X-Tal
+    bool isHam;            // HAM band?
 };
 
 /**
@@ -55,7 +56,7 @@ class Band {
    public:
     uint8_t currentMode;  // aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
 
-    Band(SI4735 &si4735) : si4735(si4735) {}
+    Band(SI4735 &si4735);
 
     virtual ~Band() = default;
 
@@ -83,6 +84,8 @@ class Band {
 
         return p;
     }
+
+    const char **getBandNames(int &count, bool isHamFilter);
 };
 
 // A főprogramban definiálva
