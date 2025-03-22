@@ -15,9 +15,9 @@
 #define SCREEN_COMPS_REFRESH_TIME_MSEC 500
 
 // Képernyőgombok mérete
-#define SCRN_BTN_H 35      // Gombok magassága
-#define SCRN_BTN_W 75      // Gombok szélessége
-#define SCREEN_BTNS_GAP 8  // Gombok közötti gap
+#define SCRN_BTN_H 40      // Gombok magassága
+#define SCRN_BTN_W 80      // Gombok szélessége
+#define SCREEN_BTNS_GAP 5  // Gombok közötti gap
 
 #define SCRN_HBTNS_ID_START 25  // A horizontális képernyő menübuttonok kezdő ID-je
 #define SCRN_VBTNS_ID_START 50  // A vertikális képernyő menübuttonok kezdő ID-je
@@ -144,7 +144,9 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     /**
      * Konstruktor (üres)
      */
-    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) { DEBUG("DisplayBase::DisplayBase\n"); }
+    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) {
+        DEBUG("DisplayBase::DisplayBase\n");  //
+    }
 
     /**
      * Destruktor

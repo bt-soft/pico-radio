@@ -75,13 +75,7 @@ void DisplayBase::dawStatusLine() {
     // AGC Status
     drawAgcAttStatus();
 
-// BAND
-#define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
-    tft.setTextColor(TFT_COLOR_STATUSLINE_BAND, TFT_BLACK);
-    tft.drawString(band.getBandByIdx(config.data.bandIdx).bandName, 180, 15);
-    tft.drawRect(160, 2, 39, 16, TFT_COLOR_STATUSLINE_BAND);
-
-// MODE
+// Band MODE
 #define TFT_COLOR_STATUSLINE_MODE TFT_YELLOW
     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
     String modtext = band.getCurrentBandModeDesc();
@@ -91,7 +85,7 @@ void DisplayBase::dawStatusLine() {
     tft.drawString(modtext, 95, 15);
     tft.drawRect(80, 2, 29, 16, TFT_COLOR_STATUSLINE_MODE);
 
-// BANDW
+// BANDWIDTH
 #define TFT_COLOR_STATUSLINE_BANDW TFT_COLOR(255, 127, 255)  // magenta?
     tft.setTextColor(TFT_COLOR_STATUSLINE_BANDW, TFT_BLACK);
 
@@ -102,6 +96,12 @@ void DisplayBase::dawStatusLine() {
         tft.drawString("F" + bwText + "KHz", 135, 15);
     }
     tft.drawRect(110, 2, 49, 16, TFT_COLOR_STATUSLINE_BANDW);
+
+// BAND NAME
+#define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
+    tft.setTextColor(TFT_COLOR_STATUSLINE_BAND, TFT_BLACK);
+    tft.drawString(band.getBandByIdx(config.data.bandIdx).bandName, 180, 15);
+    tft.drawRect(160, 2, 39, 16, TFT_COLOR_STATUSLINE_BAND);
 
 // STEP
 #define TFT_COLOR_STATUSLINE_STEP TFT_SKYBLUE

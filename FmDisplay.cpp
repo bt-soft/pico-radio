@@ -30,14 +30,14 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     DisplayBase::BuildButtonData verticalButtonsData[] = {
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
         {"Vol", TftButton::ButtonType::Pushable},                                                     //
-        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},                     //
+        {"Mute", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(rtv::muteStat)},          //
         {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},   //
         {"Att", TftButton::ButtonType::Pushable},                                                     //
         {"AntCap", TftButton::ButtonType::Pushable},                                                  //
         {"Bright", TftButton::ButtonType::Pushable},                                                  //
-        {"Test-1", TftButton::ButtonType::Pushable},                                                  //
-        {"Test-2", TftButton::ButtonType::Pushable},                                                  //
-        {"Test-3", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData));
@@ -49,9 +49,9 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"Popup", TftButton::ButtonType::Pushable},  //
         {"Multi", TftButton::ButtonType::Pushable},  //
 
-        {"b-Val", TftButton::ButtonType::Pushable},  //
-        {"i-Val", TftButton::ButtonType::Pushable},  //
-        {"f-Val", TftButton::ButtonType::Pushable},  //
+        // {"b-Val", TftButton::ButtonType::Pushable},  //
+        // {"i-Val", TftButton::ButtonType::Pushable},  //
+        // {"f-Val", TftButton::ButtonType::Pushable},  //
 
     };
 
