@@ -19,11 +19,16 @@ uint16_t DisplayBase::getAutoButtonPosition(ButtonOrientation orientation, uint8
         }
     } else {  // Vertical
         if (isX) {
-            return tft.width() - SCRN_BTN_W;  // X koordináta, a képernyő jobb széléhez illeszkedik
+            // Új X koordináta számítás
+            uint8_t buttonsPerColumn = tft.height() / (SCRN_BTN_H + SCREEN_BTNS_GAP);
+            uint8_t column = index / buttonsPerColumn;                                                                       // Hányadik oszlopban van a gomb
+            uint16_t startX = tft.width() - SCREEN_VBTNS_X_MARGIN - SCRN_BTN_W - (column * (SCRN_BTN_W + SCREEN_BTNS_GAP));  // A jobb oldali oszlop kezdő X koordinátája
+            return startX;
         } else {
             // Új Y koordináta számítás
-            uint16_t firstButtonY = 0;  // Az első gomb a képernyő tetején kezdődik
-            return firstButtonY + index * (SCRN_BTN_H + SCREEN_BTNS_GAP);
+            uint8_t buttonsPerColumn = tft.height() / (SCRN_BTN_H + SCREEN_BTNS_GAP);
+            uint8_t row = index % buttonsPerColumn;
+            return row * (SCRN_BTN_H + SCREEN_BTNS_GAP);
         }
     }
 }

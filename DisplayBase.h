@@ -25,8 +25,8 @@
 #define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
 
 // Vertical gombok definíciói
-#define SCRN_VBTNS_ID_START 50       // A vertikális képernyő menübuttonok kezdő ID-je
-#define SCREEN_BUTTONS_PER_COLUMN 4  // Egy oszlopban hány gomb van
+#define SCRN_VBTNS_ID_START 50   // A vertikális képernyő menübuttonok kezdő ID-je
+#define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
 
 // A screen button x koordinátájának kiszámítása az 'n' sorszáma alapján
 #define SCREEN_BTNS_X(n) (SCREEN_HBTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)

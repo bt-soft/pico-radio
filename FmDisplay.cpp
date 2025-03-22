@@ -35,6 +35,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"Bright", TftButton::ButtonType::Pushable},                                                  //
         {"Test-1", TftButton::ButtonType::Pushable},                                                  //
         {"Test-2", TftButton::ButtonType::Pushable},                                                  //
+        {"Test-3", TftButton::ButtonType::Pushable},                                                  //
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
