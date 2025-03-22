@@ -29,7 +29,7 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
 
    public:
     // Lehetséges képernyő típusok
-    enum DisplayType { none, fm, am, freqScan, screenSaver };
+    enum DisplayType { none, fm, am, freqScan, screenSaver, setup };
 
    private:
     // Gombok orientációja
@@ -140,13 +140,21 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
      */
     TftButton *findButtonByLabel(const char *label);
 
+    /**
+     * Minden képernyőn megtalálható gombok
+     */
+    void buildMandatoryButtons();
+
+    /**
+     * Közös gombok touch handlere
+     */
+    bool processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &event);
+
    public:
     /**
-     * Konstruktor (üres)
+     * Konstruktor
      */
-    DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) {
-        DEBUG("DisplayBase::DisplayBase\n");  //
-    }
+    DisplayBase(TFT_eSPI &tft, SI4735 &si4735);
 
     /**
      * Destruktor
@@ -192,8 +200,19 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
 
     /**
      * Dialóg Button touch esemény feldolgozása
+     * (Ha kell a leszármazottnak akkor majd felülírja)
      */
-    virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {};
+    virtual void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {
+
+        DEBUG("DisplayBase::processDialogButtonResponse() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
+
+        // Töröljük a dialógot
+        delete this->pDialog;
+        this->pDialog = nullptr;
+
+        // Újrarajzoljuk a leszármazott képernyőjét
+        this->drawScreen();
+    };
 
     /**
      * Esemény nélküli display loop -> Adatok periódikus megjelenítése, implemnetálnia kell a leszármazottnak
@@ -205,9 +224,15 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
      * @return true -> ha volt valalami touch vagy rotary esemény kezelés, a screensavert resetelni kell ilyenkor
      */
     virtual bool loop(RotaryEncoder::EncoderState encoderState) final;
+
+    /**
+     * Az előző képernyőtípus beállítása
+     * A SetupDisplay esetén használjuk, itt adjuk át, hogy hova kell visszatérnie a képrnyő bezárása után
+     */
+    virtual void setPrevDisplayType(DisplayBase::DisplayType prevDisplay) {};
 };
 
-// Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban implementálva)
+// Globális változó az aktuális kijelző váltásának jelzésére (a főprogramban deklarálva)
 extern DisplayBase::DisplayType newDisplay;
 
 #endif  //__DISPLAY_BASE_H

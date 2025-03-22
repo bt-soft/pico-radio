@@ -41,6 +41,7 @@ Band band(si4735);
 #include "FmDisplay.h"
 #include "FreqScanDisplay.h"
 #include "ScreenSaverDisplay.h"
+#include "SetupDisplay.h"
 DisplayBase *pDisplay = nullptr;
 
 /**
@@ -97,6 +98,12 @@ void changeDisplay() {
 
             case DisplayBase::DisplayType::freqScan:
                 ::pDisplay = new FreqScanDisplay(tft, si4735);
+                break;
+
+            case DisplayBase::DisplayType::setup:
+                ::pDisplay = new SetupDisplay(tft, si4735);
+                // Elmentjük a beállítások képernyőnek, hogy hova térjen vissza
+                ::pDisplay->setPrevDisplayType(::currentDisplay);
                 break;
         }
     }

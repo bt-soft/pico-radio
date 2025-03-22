@@ -1,9 +1,12 @@
-#ifndef __AMDISPLAY_H
-#define __AMDISPLAY_H
+#ifndef __SETUPDISPLAY_H
+#define __SETUPDISPLAY_H
 
 #include "DisplayBase.h"
 
-class AmDisplay : public DisplayBase {
+class SetupDisplay : public DisplayBase {
+
+   private:
+    DisplayBase::DisplayType prevDisplay = DisplayBase::DisplayType::none;
 
    protected:
     /**
@@ -30,23 +33,28 @@ class AmDisplay : public DisplayBase {
     /**
      * Konstruktor
      */
-    AmDisplay(TFT_eSPI &tft, SI4735 &si4735);
+    SetupDisplay(TFT_eSPI &tft, SI4735 &si4735);
 
     /**
      * Destruktor
      */
-    ~AmDisplay();
+    ~SetupDisplay();
 
     /**
      * Képernyő kirajzolása
-     * (Az esetleges dialóg eltűnése után a teljes képernyőt újra rajzoljuk)
      */
     void drawScreen() override;
 
     /**
+     * Az előző képernyőtípus beállítása
+     * A SetupDisplay esetén használjuk, itt adjuk át, hogy hova kell visszatérnie a képrnyő bezárása után
+     */
+    void setPrevDisplayType(DisplayBase::DisplayType prevDisplay) override { this->prevDisplay = prevDisplay; };
+
+    /**
      * Aktuális képernyő típusának lekérdezése
      */
-    inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::am; };
+    inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::setup; };
 };
 
-#endif  //__AMDISPLAY_H
+#endif  //__SETUPDISPLAY_H

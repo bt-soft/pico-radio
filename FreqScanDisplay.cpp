@@ -70,8 +70,3 @@ void FreqScanDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent 
         ::newDisplay = DisplayBase::DisplayType::am;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
     }
 }
-
-/**
- * Dialóg Button touch esemény feldolgozása
- */
-void FreqScanDisplay::processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {}

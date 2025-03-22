@@ -42,11 +42,6 @@ class FmDisplay : public DisplayBase {
     void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override;
 
     /**
-     * Dialóg Button touch esemény feldolgozása
-     */
-    void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
-
-    /**
      * Esemény nélküli display loop
      */
     void displayLoop() override;

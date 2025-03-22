@@ -1,5 +1,7 @@
 #include "DisplayBase.h"
 
+#include "ValueChangeDialog.h"
+
 // Vízszintes gombok definíciói
 #define SCREEN_HBTNS_X_START 5    // Horizontális gombok kezdő X koordinátája
 #define SCREEN_HBTNS_Y_MARGIN 5   // Horizontális gombok alsó margója
@@ -281,6 +283,93 @@ TftButton *DisplayBase::findButtonByLabel(const char *label) {
 
     // Ha nem találtuk meg, akkor a vertikális gombok között keresünk
     return findButtonInArray(verticalScreenButtons, verticalScreenButtonsCount, label);
+}
+
+/**
+ * Minden képernyőn látható közös gombok
+ */
+void DisplayBase::buildMandatoryButtons() {
+    // Vertikális Képernyőgombok definiálása
+    DisplayBase::BuildButtonData verticalButtonsData[] = {
+        {"Mute", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(rtv::muteStat)},         //
+        {"Volume", TftButton::ButtonType::Pushable},                                                 //
+        {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},  //
+        {"Att", TftButton::ButtonType::Pushable},                                                    //
+        {"Setup", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
+    };
+    // Vertikális képernyőgombok legyártása
+    DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData));
+}
+
+/**
+ *  Minden képernyőn látható közös gombok eseményeinek kezelése
+ */
+bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
+
+    bool processed = false;
+
+    if (STREQ("Mute", event.label)) {
+        // Némítás
+        rtv::muteStat = event.state == TftButton::ButtonState::On;
+        Si4735Utils::si4735.setAudioMute(rtv::muteStat);
+        processed = true;
+    } else if (STREQ("Volume", event.label)) {
+        // Hangerő állítása
+        this->pDialog = new ValueChangeDialog(this, this->tft, 250, 150, F("Volume"), F("Value:"),           //
+                                              &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,  //
+                                              [this](uint8_t newValue) { si4735.setVolume(newValue); });
+        processed = true;
+    } else if (STREQ("AGC", event.label)) {  // Automatikus AGC
+
+        bool stateOn = event.state == TftButton::ButtonState::On;
+        config.data.agcGain = stateOn ? static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic) : static_cast<uint8_t>(Si4735Utils::AgcGainMode::Off);
+
+        Si4735Utils::checkAGC();
+
+        // Kijelzés frissítése
+        DisplayBase::drawAgcAttStatus(true);
+        processed = true;
+    } else if (STREQ("Att", event.label)) {  // Kézi AGC
+
+        // Kikapcsoljuk az automatikus AGC gombot
+        TftButton *agcButton = DisplayBase::findButtonByLabel("AGC");
+        if (agcButton != nullptr) {
+            agcButton->setState(TftButton::ButtonState::Off);
+        }
+
+        // AGCDIS This param selects whether the AGC is enabled or disabled (0 = AGC enabled; 1 = AGC disabled);
+        // AGCIDX AGC Index (0 = Minimum attenuation (max gain); 1 – 36 = Intermediate attenuation);
+        //  if >greater than 36 - Maximum attenuation (min gain) ).
+
+#define MX_FM_AGC_GAIN 26
+#define MX_AM_AGC_GAIN 37
+        uint8_t maxValue = si4735.isCurrentTuneFM() ? MX_FM_AGC_GAIN : MX_AM_AGC_GAIN;
+        config.data.agcGain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Manual);  // 2
+
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("RF Attennuator"), F("Value:"),      //
+                                                     &config.data.currentAGCgain, (uint8_t)1, (uint8_t)maxValue, (uint8_t)1,  //
+                                                     [this](uint8_t currentAGCgain) {
+                                                         si4735.setAutomaticGainControl(1, currentAGCgain);
+                                                         DisplayBase::drawAgcAttStatus(true);
+                                                     });
+        processed = true;
+
+    } else if (STREQ("Setup", event.label)) {            // Beállítások
+        ::newDisplay = DisplayBase::DisplayType::setup;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        processed = true;
+    }
+
+    return processed;
+}
+
+/**
+ * Konstruktor
+ */
+DisplayBase::DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) {
+    DEBUG("DisplayBase::DisplayBase\n");  //
 }
 
 /**

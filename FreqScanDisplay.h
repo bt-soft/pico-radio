@@ -26,11 +26,6 @@ class FreqScanDisplay : public DisplayBase {
      */
     void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override;
 
-    /**
-     * Dialóg Button touch esemény feldolgozása
-     */
-    void processDialogButtonResponse(TftButton::ButtonTouchEvent &event) override;
-
    public:
     FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735);
     ~FreqScanDisplay();

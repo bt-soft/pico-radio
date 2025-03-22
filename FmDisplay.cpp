@@ -26,33 +26,24 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     // Frekvencia kijelzés pédányosítása
     pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY);
 
-    // Vertikális Képernyőgombok definiálása
-    DisplayBase::BuildButtonData verticalButtonsData[] = {
-        {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
-        {"Vol", TftButton::ButtonType::Pushable},                                                     //
-        {"Mute", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(rtv::muteStat)},          //
-        {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},   //
-        {"Att", TftButton::ButtonType::Pushable},                                                     //
-        //{"AntCap", TftButton::ButtonType::Pushable},                                                  //
-        //{"Bright", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
-    };
-    // Vertikális képernyőgombok legyártása
-    DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData));
+    // Minden képernyőn megtalálható gombok generálása
+    DisplayBase::buildMandatoryButtons();
 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
-        {"AM", TftButton::ButtonType::Pushable},     //
-        {"Scan", TftButton::ButtonType::Pushable},   //
-        {"Popup", TftButton::ButtonType::Pushable},  //
-        {"Multi", TftButton::ButtonType::Pushable},  //
+        {"AM", TftButton::ButtonType::Pushable},                                                      //
+        {"Scan", TftButton::ButtonType::Pushable},                                                    //
+        {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
+        {"AntCap", TftButton::ButtonType::Pushable},                                                  //
+        {"Bright", TftButton::ButtonType::Pushable},                                                  //
 
-        {"b-Val", TftButton::ButtonType::Pushable},  //
-        {"i-Val", TftButton::ButtonType::Pushable},  //
-        {"f-Val", TftButton::ButtonType::Pushable},  //
-
+        // //----
+        // {"Popup", TftButton::ButtonType::Pushable},  //
+        // {"Multi", TftButton::ButtonType::Pushable},
+        // //
+        // {"b-Val", TftButton::ButtonType::Pushable},  //
+        // {"i-Val", TftButton::ButtonType::Pushable},  //
+        // {"f-Val", TftButton::ButtonType::Pushable},  //
     };
 
     // Horizontális képernyőgombok legyártása
@@ -113,6 +104,79 @@ void FmDisplay::drawScreen() {
 
     // Gombok kirajzolása
     DisplayBase::drawScreenButtons();
+}
+
+/**
+ * Képernyő menügomb esemény feldolgozása
+ */
+void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
+
+    // Ha a közös gomb volt és azt már lekezeltük, akkor nem megyünk tovább
+    if (DisplayBase::processMandatoryButtonTouchEvent(event)) {
+        return;
+    }
+
+    if (STREQ("RDS", event.label)) {
+
+        // Radio Data System
+        config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
+
+        if (config.data.rdsEnabled) {
+            pRds->displayRds(true);
+        } else {
+            pRds->clearRds();
+        }
+
+    } else if (STREQ("AntCap", event.label)) {
+
+        // If zero, the tuning capacitor value is selected automatically.
+        // AM - the tuning capacitance is manually set as 95 fF x ANTCAP + 7 pF.  ANTCAP manual range is 1–6143;
+        // FM - the valid range is 0 to 191.
+
+        // Antenna kapacitás állítása
+        int maxValue = band.currentMode == FM ? 191 : 6143;
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"),  //
+                                                     &antCapValue, (int)0, (int)maxValue,                                                     //
+                                                     (int)1, [this](int newValue) {
+                                                         Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
+                                                     });
+
+    } else if (STREQ("Bright", event.label)) {
+        DisplayBase::pDialog =
+            new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("TFT Brightness"), F("Value:"),                                                                         //
+                                  &config.data.tftBackgroundBrightness, (uint8_t)TFT_BACKGROUND_LED_MIN_BRIGHTNESS, (uint8_t)TFT_BACKGROUND_LED_MAX_BRIGHTNESS, (uint8_t)10,  //
+                                  [this](uint8_t newBrightness) { analogWrite(PIN_TFT_BACKGROUND_LED, newBrightness); });
+
+    } else if (STREQ("AM", event.label)) {
+        ::newDisplay = DisplayBase::DisplayType::am;
+
+    } else if (STREQ("Scan", event.label)) {
+        ::newDisplay = DisplayBase::DisplayType::freqScan;
+
+    } else if (STREQ("Popup", event.label)) {
+        // Popup
+        DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 280, 130, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
+
+    } else if (STREQ("Multi", event.label)) {
+        // Multi button Dialog
+        const char *buttonLabels[] = {"Opt-1", "Opt-2", "Opt-3", "Opt-4", "Opt-5", "Opt-6", "Opt-7", "Opt-8", "Opt-9", "Opt-10", "Opt-11", "Opt-12"};
+        int buttonsCount = ARRAY_ITEM_COUNT(buttonLabels);
+
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("Valasszon opciot!"), buttonLabels, buttonsCount);
+
+    } else if (STREQ("b-Val", event.label)) {
+        // b-ValueChange
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState, false, true, false,
+                                                     [this](double newValue) { this->ledStateChanged(newValue); });
+
+    } else if (STREQ("i-Val", event.label)) {
+        // i-ValueChange
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, (int)0, (int)63, (int)1);
+
+    } else if (STREQ("f-Val", event.label)) {
+        // f-ValueChange
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, (float)-15.0, (float)+30.0, (float)0.05);
+    }
 }
 
 /**
@@ -210,131 +274,3 @@ void FmDisplay::displayLoop() {
         lastFreq = currFreq;
     }
 }
-
-/**
- * Képernyő menügomb esemény feldolgozása
- */
-void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
-
-    if (STREQ("RDS", event.label)) {
-
-        // Radio Data System
-        config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
-
-        if (config.data.rdsEnabled) {
-            pRds->displayRds(true);
-        } else {
-            pRds->clearRds();
-        }
-
-    } else if (STREQ("Vol", event.label)) {
-        // Hangerő állítása
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"),    //
-                                                     &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,  //
-                                                     [this](uint8_t newValue) { si4735.setVolume(newValue); });
-
-    } else if (STREQ("Mute", event.label)) {
-        // Némítás
-        rtv::muteStat = event.state == TftButton::ButtonState::On;
-        si4735.setAudioMute(rtv::muteStat);
-
-    } else if (STREQ("AntCap", event.label)) {
-
-        // If zero, the tuning capacitor value is selected automatically.
-        // AM - the tuning capacitance is manually set as 95 fF x ANTCAP + 7 pF.  ANTCAP manual range is 1–6143;
-        // FM - the valid range is 0 to 191.
-
-        // Antenna kapacitás állítása
-        int maxValue = band.currentMode == FM ? 191 : 6143;
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"),  //
-                                                     &antCapValue, (int)0, (int)maxValue,                                                     //
-                                                     (int)1, [this](int newValue) {
-                                                         si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
-                                                     });
-
-    } else if (STREQ("AGC", event.label)) {  // Automatikus AGC
-
-        bool stateOn = event.state == TftButton::ButtonState::On;
-        config.data.agcGain = stateOn ? static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic) : static_cast<uint8_t>(Si4735Utils::AgcGainMode::Off);
-
-        Si4735Utils::checkAGC();
-
-        // Kijelzés frissítése
-        DisplayBase::drawAgcAttStatus(true);
-
-    } else if (STREQ("Att", event.label)) {  // Kézi AGC
-
-        // Kikapcsoljuk az automatikus AGC gombot
-        TftButton *agcButton = DisplayBase::findButtonByLabel("AGC");
-        if (agcButton != nullptr) {
-            agcButton->setState(TftButton::ButtonState::Off);
-        }
-
-        // AGCDIS This param selects whether the AGC is enabled or disabled (0 = AGC enabled; 1 = AGC disabled);
-        // AGCIDX AGC Index (0 = Minimum attenuation (max gain); 1 – 36 = Intermediate attenuation);
-        //  if >greater than 36 - Maximum attenuation (min gain) ).
-
-#define MX_FM_AGC_GAIN 26
-#define MX_AM_AGC_GAIN 37
-        uint8_t maxValue = si4735.isCurrentTuneFM() ? MX_FM_AGC_GAIN : MX_AM_AGC_GAIN;
-        config.data.agcGain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Manual);  // 2
-
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("RF Attennuator"), F("Value:"),      //
-                                                     &config.data.currentAGCgain, (uint8_t)1, (uint8_t)maxValue, (uint8_t)1,  //
-                                                     [this](uint8_t currentAGCgain) {
-                                                         si4735.setAutomaticGainControl(1, currentAGCgain);
-                                                         DisplayBase::drawAgcAttStatus(true);
-                                                     });
-
-    } else if (STREQ("Bright", event.label)) {
-        DisplayBase::pDialog =
-            new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("TFT Brightness"), F("Value:"),                                                                         //
-                                  &config.data.tftBackgroundBrightness, (uint8_t)TFT_BACKGROUND_LED_MIN_BRIGHTNESS, (uint8_t)TFT_BACKGROUND_LED_MAX_BRIGHTNESS, (uint8_t)10,  //
-                                  [this](uint8_t newBrightness) { analogWrite(PIN_TFT_BACKGROUND_LED, newBrightness); });
-
-    } else if (STREQ("AM", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::am;
-
-    } else if (STREQ("Scan", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::freqScan;
-
-    } else if (STREQ("Popup", event.label)) {
-        // Popup
-        DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 280, 130, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
-
-    } else if (STREQ("Multi", event.label)) {
-        // Multi button Dialog
-        const char *buttonLabels[] = {"Opt-1", "Opt-2", "Opt-3", "Opt-4", "Opt-5", "Opt-6", "Opt-7", "Opt-8", "Opt-9", "Opt-10", "Opt-11", "Opt-12"};
-        int buttonsCount = ARRAY_ITEM_COUNT(buttonLabels);
-
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("Valasszon opciot!"), buttonLabels, buttonsCount);
-
-    } else if (STREQ("b-Val", event.label)) {
-        // b-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState, false, true, false,
-                                                     [this](double newValue) { this->ledStateChanged(newValue); });
-
-    } else if (STREQ("i-Val", event.label)) {
-        // i-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, (int)0, (int)63, (int)1);
-
-    } else if (STREQ("f-Val", event.label)) {
-        // f-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, (float)-15.0, (float)+30.0, (float)0.05);
-    }
-}
-
-/**
- * Dialóg Button touch esemény feldolgozása
- */
-void FmDisplay::processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {
-
-    DEBUG("FmDisplay::processDialogButtonResponse() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
-
-    // Töröljük a dialógot
-    delete DisplayBase::pDialog;
-    DisplayBase::pDialog = nullptr;
-
-    // Újrarajzoljuk a képernyőt
-    drawScreen();
-};
