@@ -8,9 +8,6 @@
 // Vertical gombok definíciói
 #define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
 
-// A screen button x koordinátájának kiszámítása az 'n' sorszáma alapján
-#define SCREEN_BTNS_X(n) (SCREEN_HBTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)
-
 /**
  * Gombok automatikus pozicionálása
  */
