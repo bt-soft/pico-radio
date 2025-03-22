@@ -14,7 +14,7 @@ FreqScanDisplay::FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tf
     };
 
     // Horizontális képernyőgombok legyártása
-    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_HBTNS_ID_START);
+    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData));
 }
 
 /**

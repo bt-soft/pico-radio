@@ -1,5 +1,16 @@
 #include "DisplayBase.h"
 
+// Vízszintes gombok definíciói
+#define SCREEN_HBTNS_X_START 5    // Horizontális gombok kezdő X koordinátája
+#define SCREEN_HBTNS_Y_MARGIN 5   // Horizontális gombok alsó margója
+#define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
+
+// Vertical gombok definíciói
+#define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
+
+// A screen button x koordinátájának kiszámítása az 'n' sorszáma alapján
+#define SCREEN_BTNS_X(n) (SCREEN_HBTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)
+
 /**
  * Gombok automatikus pozicionálása
  */

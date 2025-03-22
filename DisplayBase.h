@@ -12,27 +12,16 @@
 #include "TftButton.h"
 #include "utils.h"
 
+// A képernyő változó adatok frissítési ciklusideje msec-ben
+#define SCREEN_COMPS_REFRESH_TIME_MSEC 500
+
 // Képernyőgombok mérete
 #define SCRN_BTN_H 35      // Gombok magassága
 #define SCRN_BTN_W 75      // Gombok szélessége
 #define SCREEN_BTNS_GAP 8  // Gombok közötti gap
 
-// Vízszintes gombok definíciói
-#define SCRN_HBTNS_ID_START 25    // A horizontális képernyő menübuttonok kezdő ID-je
-#define SCREEN_HBTNS_X_START 5    // Horizontális gombok kezdő X koordinátája
-#define SCREEN_HBTNS_Y_MARGIN 5   // Horizontális gombok alsó margója
-#define SCREEN_BUTTONS_PER_ROW 6  // Egy sorban hány gomb van
-#define SCREEN_BTN_ROW_SPACING 5  // Gombok sorai közötti távolság
-
-// Vertical gombok definíciói
-#define SCRN_VBTNS_ID_START 50   // A vertikális képernyő menübuttonok kezdő ID-je
-#define SCREEN_VBTNS_X_MARGIN 5  // A vertikális gombok jobb oldali margója
-
-// A screen button x koordinátájának kiszámítása az 'n' sorszáma alapján
-#define SCREEN_BTNS_X(n) (SCREEN_HBTNS_X_START + (SCRN_BTN_W + SCREEN_BTNS_GAP) * n)
-
-// A képernyő változó adatok frissítési ciklusideje
-#define SCREEN_COMPS_REFRESH_TIME_MSEC 500
+#define SCRN_HBTNS_ID_START 25  // A horizontális képernyő menübuttonok kezdő ID-je
+#define SCRN_VBTNS_ID_START 50  // A vertikális képernyő menübuttonok kezdő ID-je
 
 /**
  * DisplayBase base osztály
@@ -88,15 +77,15 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     /**
      * Képernyő menügombok legyártása
      */
-    inline void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
-        horizontalScreenButtons = buildScreenButtons(ButtonOrientation::Horizontal, buttonsData, buttonsDataLength, startId, horizontalScreenButtonsCount);
+    inline void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength) {
+        horizontalScreenButtons = buildScreenButtons(ButtonOrientation::Horizontal, buttonsData, buttonsDataLength, SCRN_HBTNS_ID_START, horizontalScreenButtonsCount);
     }
 
     /**
      * Képernyő menügombok legyártása (vertikális)
      */
-    inline void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId) {
-        verticalScreenButtons = buildScreenButtons(ButtonOrientation::Vertical, buttonsData, buttonsDataLength, startId, verticalScreenButtonsCount);
+    inline void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength) {
+        verticalScreenButtons = buildScreenButtons(ButtonOrientation::Vertical, buttonsData, buttonsDataLength, SCRN_VBTNS_ID_START, verticalScreenButtonsCount);
     }
 
     /**

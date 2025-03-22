@@ -38,7 +38,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"Test-3", TftButton::ButtonType::Pushable},                                                  //
     };
     // Vertikális képernyőgombok legyártása
-    DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
+    DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData));
 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
@@ -54,7 +54,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     };
 
     // Horizontális képernyőgombok legyártása
-    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_HBTNS_ID_START);
+    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData));
 }
 
 /**

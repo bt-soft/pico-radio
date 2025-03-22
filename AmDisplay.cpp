@@ -14,7 +14,7 @@ AmDisplay::AmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
     };
 
     // Horizontális képernyőgombok legyártása
-    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), SCRN_HBTNS_ID_START);
+    DisplayBase::buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData));
 }
 
 /**
