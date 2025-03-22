@@ -26,12 +26,11 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
 
     // Vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData verticalButtonsData[] = {
-        {"Vol", TftButton::ButtonType::Pushable},                                                                                      //
-        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},                                                      //
-        {"AGC", TftButton::ButtonType::Toggleable, si4735.isAgcEnabled() ? TftButton::ButtonState::On : TftButton::ButtonState::Off},  //
-        {"Att", TftButton::ButtonType::Pushable},                                                                                      //
-        {"AntCap", TftButton::ButtonType::Pushable},
-        {"Bright", TftButton::ButtonType::Pushable},
+        {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
+        {"Vol", TftButton::ButtonType::Pushable},                                                     //
+        {"Mute", TftButton::ButtonType::Toggleable, TftButton::ButtonState::Off},                     //
+        {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},   //
+        {"Att", TftButton::ButtonType::Pushable},                                                     //
     };
     // Vertikális képernyőgombok legyártása
     DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData), SCRN_VBTNS_ID_START);
@@ -47,8 +46,6 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
         {"i-Val", TftButton::ButtonType::Pushable},  //
         {"f-Val", TftButton::ButtonType::Pushable},  //
 
-        {"Pause", TftButton::ButtonType::Toggleable, TftButton::ButtonState::On},  //
-        {"Reset", TftButton::ButtonType::Pushable},
     };
 
     // Horizontális képernyőgombok legyártása
@@ -94,7 +91,9 @@ void FmDisplay::drawScreen() {
     pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
 
     // RDS (erőből a 'valamilyen' adatok megjelenítése)
-    pRds->displayRds(true);
+    if (config.data.rdsEnabled) {
+        pRds->displayRds(true);
+    }
 
     // Mono/Stereo aktuális érték
     this->showMonoStereo(si4735.getCurrentPilot());
@@ -177,7 +176,9 @@ void FmDisplay::displayLoop() {
         pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
 
         // RDS
-        pRds->showRDS(snr);
+        if (config.data.rdsEnabled) {
+            pRds->showRDS(snr);
+        }
 
         // Mono/Stereo
         static bool prevStereo = false;
@@ -206,7 +207,18 @@ void FmDisplay::displayLoop() {
  */
 void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
-    if (STREQ("Vol", event.label)) {
+    if (STREQ("RDS", event.label)) {
+
+        // Radio Data System
+        config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
+
+        if (config.data.rdsEnabled) {
+            pRds->displayRds(true);
+        } else {
+            pRds->clearRds();
+        }
+
+    } else if (STREQ("Vol", event.label)) {
         // Hangerő állítása
         DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"),    //
                                                      &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,  //

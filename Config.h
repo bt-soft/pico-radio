@@ -35,6 +35,9 @@ struct Config_t {
     uint8_t currentSquelch;
     bool squelchUsesRSSI;  // A squlech RSSI alapú legyen?
 
+    // FM RDS
+    bool rdsEnabled;
+
     // Hangerő
     uint8_t currVolume;
 

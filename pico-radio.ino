@@ -247,15 +247,15 @@ void loop() {
         config.checkSave();
         lastEepromSaveCheck = millis();
     }
-//------------------- Memória információk megjelenítése
-#ifdef __DEBUG
-#define MEMORY_INFO_INTERVAL 20 * 1000  // 20mp
-    static uint32_t lasDebugMemoryInfo = 0;
-    if (millis() - lasDebugMemoryInfo >= MEMORY_INFO_INTERVAL) {
-        debugMemoryInfo();
-        lasDebugMemoryInfo = millis();
-    }
-#endif
+    //------------------- Memória információk megjelenítése
+    // #ifdef __DEBUG
+    // #define MEMORY_INFO_INTERVAL 20 * 1000  // 20mp
+    //     static uint32_t lasDebugMemoryInfo = 0;
+    //     if (millis() - lasDebugMemoryInfo >= MEMORY_INFO_INTERVAL) {
+    //         debugMemoryInfo();
+    //         lasDebugMemoryInfo = millis();
+    //     }
+    // #endif
 
     // Rotary Encoder olvasása
     RotaryEncoder::EncoderState encoderState = rotaryEncoder.read();

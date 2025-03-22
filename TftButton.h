@@ -3,6 +3,9 @@
 
 #include "utils.h"
 
+// Egy toggleable button állapotának megállapítása egy logikai kifejezés alapján
+#define TFT_TOGGLE_BUTTON_STATE(boolValue) (boolValue ? TftButton::ButtonState::On : TftButton::ButtonState::Off)
+
 // Benyomott gomb háttérszín gradienshez, több iterációs lépés -> erősebb hatás
 #define TFT_BUTTON_DARKEN_COLORS_STEPS 6
 #define TFT_BUTTON_INVALID_ID 0xFF

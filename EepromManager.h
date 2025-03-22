@@ -3,12 +3,13 @@
 
 // inspiration from https://github.com/bimac/EEPstore/blob/main/src/EEPstore.h
 
-#include "utils.h"
 #include <CRC.h>
 #include <EEPROM.h>
 
+#include "utils.h"
+
 #ifndef EEPROM_SIZE
-#define EEPROM_SIZE 2048 // Alapértelmezett 2K érték, de lehet 512-4096 között módosítani
+#define EEPROM_SIZE 2048  // Alapértelmezett 2K érték, de lehet 512-4096 között módosítani
 #endif
 
 /**
@@ -18,11 +19,11 @@
 template <class T>
 class EepromManager {
 
-private:
-    T data;       // Betöltött/Mentendő adatok
-    uint16_t crc; // Az adatok CRC ellenőrző összege
+   private:
+    T data;        // Betöltött/Mentendő adatok
+    uint16_t crc;  // Az adatok CRC ellenőrző összege
 
-public:
+   public:
     /**
      * Konstruktor
      *
@@ -31,19 +32,18 @@ public:
      * @note A konstruktorban kiszámoljuk a CRC-t is
      *
      */
-    EepromManager(const T &dataRef) : data(dataRef), crc(calcCRC16((uint8_t *)&data, sizeof(T))) {
-        EEPROM.begin(EEPROM_SIZE);
-    }
+    EepromManager(const T &dataRef) : data(dataRef), crc(calcCRC16((uint8_t *)&data, sizeof(T))) { EEPROM.begin(EEPROM_SIZE); }
 
     /**
      * Ha az adatok érvényesek, azokat beolvassa az EEPROM-ból
      *
      * @tparam T az adatok típusa
      * @param dataRef az adatok referenciája
+     * @param valid valid a beolvasott adat?
      * @param address az EEPROM címe
      * @return adatok CRC16 ellenőrző összege
      */
-    inline static uint16_t getIfValid(T &dataRef, const uint16_t address = 0) {
+    inline static uint16_t getIfValid(T &dataRef, bool &valid, const uint16_t address = 0) {
 
         // Lokális példány létrehozása, közben a crc is számítódik
         EepromManager<T> storage(dataRef);
@@ -51,15 +51,15 @@ public:
         // Kiolvassuk az EEPROM-ból a lokális példányba, közben crc is számítódik
         EEPROM.get(address, storage);
 
-        // Azonosa a crc?
-        bool valid = storage.crc == calcCRC16((uint8_t *)&storage.data, sizeof(T));
+        // Azonos a crc?
+        valid = storage.crc == calcCRC16((uint8_t *)&storage.data, sizeof(T));
 
         // Ha valid, akkor beállítjuk a dataRef-et
         if (valid) {
             dataRef = storage.data;
         }
 
-        return valid ? storage.crc : 0;
+        return storage.crc;
     }
 
     /**
@@ -74,11 +74,16 @@ public:
     inline static uint16_t load(T &dataRef, const uint16_t address = 0) {
 
         // Kiolvassuk az adatokat az EEPROM-ból
-        uint16_t crc32 = getIfValid(dataRef, address);
+        bool valid = false;
+        uint16_t crc32 = getIfValid(dataRef, valid, address);
 
-        // Ha NEM valid (crc32 == 0), akkor lementjük az EEPROM-ba a dataRef (mint default) értékeit
-        if (crc32 == 0) {
-            DEBUG("EEPROM data invalid, save defaults!\n");
+        // Ha NEM valid, akkor lementjük az EEPROM-ba a dataRef (mint default) értékeit
+        if (!valid) {
+            Utils::beepError();
+            Utils::beepError();
+            DEBUG("EEPROM NOT invalid, save defaults!\n");
+            Utils::beepError();
+            Utils::beepError();
             save(dataRef, address);
         } else {
             DEBUG("EEPROM load OK\n");
@@ -108,4 +113,4 @@ public:
     }
 };
 
-#endif // __EEPROMMANAGER_H
+#endif  // __EEPROMMANAGER_H
