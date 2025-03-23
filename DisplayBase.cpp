@@ -293,7 +293,7 @@ void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[
     // Kötelező vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData mandatoryVButtons[] = {
         {"Mute", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(rtv::muteStat)},         //
-        {"Volume", TftButton::ButtonType::Pushable},                                                 //
+        {"Vol", TftButton::ButtonType::Pushable},                                                    //
         {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},  //
         {"Att", TftButton::ButtonType::Pushable},                                                    //
         {"Setup", TftButton::ButtonType::Pushable},                                                  //
@@ -324,6 +324,10 @@ void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsDat
     DisplayBase::BuildButtonData mandatoryHButtons[] = {
         {"Ham", TftButton::ButtonType::Pushable},   //
         {"Band", TftButton::ButtonType::Pushable},  //
+
+        // FM mód esetén nem működik a BW állítás
+        {"BndW", TftButton::ButtonType::Pushable, band.currentMode == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
+
         {"Scan", TftButton::ButtonType::Pushable},  //
         //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
         //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
@@ -372,7 +376,9 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
 
         // Kijelzés frissítése
         DisplayBase::drawAgcAttStatus(true);
+
         processed = true;
+
     } else if (STREQ("Att", event.label)) {  // Kézi AGC
 
         // Kikapcsoljuk az automatikus AGC gombot
@@ -408,14 +414,14 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
     else if (STREQ("Ham", event.label)) {
 
         // Kigyűjtjük a HAM sávok neveit
-        int hamBandCount;
+        uint8_t hamBandCount;
         const char **hamBands = band.getBandNames(hamBandCount, true);
 
         // Multi button Dialog
         DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount,  //
-                                                     [this](const char *buttonLabel) {
+                                                     [this](TftButton::ButtonTouchEvent event) {
                                                          // Átállítjuk a használni kívánt BAND indexet
-                                                         config.data.bandIdx = band.getBandIdxByBandName(buttonLabel);
+                                                         config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
                                                          // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
                                                          BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
@@ -425,18 +431,56 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
     } else if (STREQ("Band", event.label)) {
 
         // Kigyűjtjük az összes NEM HAM sáv nevét
-        int hamBandCount;
-        const char **hamBands = band.getBandNames(hamBandCount, false);
+        uint8_t bandCount;
+        const char **bandNames = band.getBandNames(bandCount, false);
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 250, F("All Radio Bands"), hamBands, hamBandCount,  //
-                                                     [this](const char *buttonLabel) {
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 250, F("All Radio Bands"), bandNames, bandCount,  //
+                                                     [this](TftButton::ButtonTouchEvent event) {
                                                          // Átállítjuk a használni kívánt BAND indexet
-                                                         config.data.bandIdx = band.getBandIdxByBandName(buttonLabel);
+                                                         config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
                                                          // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
                                                          BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
                                                          ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                     });
+        processed = true;
+
+    } else if (STREQ("BndW", event.label)) {
+        // Megállapítjuk a lehetséges sávszélességek tömbjét
+        const __FlashStringHelper *title;
+        int bwValuesCount;
+        const char **bwValues;
+
+        if (band.currentMode == AM) {
+            title = F("AM Filter in kHz");
+            bwValues = Band::bandwidthAM;
+            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandwidthAM);
+        } else if (band.currentMode == FM) {
+            title = F("FM Filter in kHz");
+            bwValues = Band::bandwidthFM;
+            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandwidthFM);
+        } else {
+            title = F("SSB Filter in kHz");
+            bwValues = Band::bandwidthSSB;
+            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandwidthSSB);
+        }
+
+        // Multi button Dialog
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 250, 170, title, bwValues, bwValuesCount,  //
+                                                     [this](TftButton::ButtonTouchEvent event) {
+                                                         //
+
+                                                         uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
+
+                                                         if (band.currentMode == AM) {
+                                                             config.data.bwIdxAM = bwIdx;
+                                                         } else if (band.currentMode == FM) {
+                                                             config.data.bwIdxFM = bwIdx;
+                                                         } else {
+                                                             config.data.bwIdxSSB = bwIdx;
+                                                         }
+                                                         band.BandSet();
                                                      });
         processed = true;
 

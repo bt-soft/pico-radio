@@ -41,6 +41,11 @@ BandTable bandTable[] = {
 // Ha nem található a keresett band, akkor ezzel térünk vissza
 static BandTable EMPTY_BAND = {"", 0, 0, 0, 0, 0, 0, 0, 0, false};
 
+const char* Band::bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
+const char* Band::bandwidthFM[5] = {"AUTO", "110", "84", "60", "40"};
+const char* Band::bandwidthAM[7] = {"6.0", "4.0", "3.0", "2.0", "1.0", "1.8", "2.5"};
+const char* Band::bandwidthSSB[6] = {"1.2", "2.2", "3.0", "4.0", "0.5", "1.0"};
+
 /**
  * Konstruktor
  */
@@ -102,7 +107,7 @@ int8_t Band::getBandIdxByBandName(const char* bandName) {
  * @param count talált elemek száma
  * @param isHamFilter HAM szűrő
  */
-const char** Band::getBandNames(int& count, bool isHamFilter) {
+const char** Band::getBandNames(uint8_t& count, bool isHamFilter) {
 
     const uint8_t bandTableSize = ARRAY_ITEM_COUNT(bandTable);
 
@@ -110,7 +115,7 @@ const char** Band::getBandNames(int& count, bool isHamFilter) {
     static const char* bandNames[bandTableSize];
 
     count = 0;
-    for (int i = 0; i < sizeof(bandTable) / sizeof(BandTable); i++) {
+    for (uint8_t i = 0; i < sizeof(bandTable) / sizeof(BandTable); i++) {
         if (bandTable[i].isHam == isHamFilter) {  // Szűrés HAM vagy nem HAM szerint
             if (count < bandTableSize) {
                 bandNames[count] = bandTable[i].bandName;

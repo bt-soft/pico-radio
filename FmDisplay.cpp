@@ -28,7 +28,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
-        {"AntCap", TftButton::ButtonType::Pushable},                                                  //
+        {"AntC", TftButton::ButtonType::Pushable},                                                    //
         {"AM", TftButton::ButtonType::Pushable},                                                      //
 
         // //----
@@ -115,7 +115,7 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
             pRds->clearRds();
         }
 
-    } else if (STREQ("AntCap", event.label)) {
+    } else if (STREQ("AntC", event.label)) {
         // If zero, the tuning capacitor value is selected automatically.
         // AM - the tuning capacitance is manually set as 95 fF x ANTCAP + 7 pF.  ANTCAP manual range is 1–6143;
         // FM - the valid range is 0 to 191.

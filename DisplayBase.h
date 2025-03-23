@@ -21,8 +21,8 @@
 #define SCREEN_COMPS_REFRESH_TIME_MSEC 500
 
 // Képernyőgombok mérete
-#define SCRN_BTN_H 40      // Gombok magassága
-#define SCRN_BTN_W 80      // Gombok szélessége
+#define SCRN_BTN_H 35      // Gombok magassága
+#define SCRN_BTN_W 63      // Gombok szélessége
 #define SCREEN_BTNS_GAP 5  // Gombok közötti gap
 
 #define SCRN_HBTNS_ID_START 25  // A horizontális képernyő menübuttonok kezdő ID-je

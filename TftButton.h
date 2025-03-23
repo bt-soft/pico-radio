@@ -123,15 +123,7 @@ class TftButton {
      * Konstruktor
      */
     TftButton(uint8_t id, TFT_eSPI &tft, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *label, ButtonType type, ButtonState state = ButtonState::Off)
-        : id(id), pTft(&tft), x(x), y(y), w(w), h(h), label(label), type(type), buttonPressed(false) {
-
-        if (state != ButtonState::Off and type != ButtonType::Toggleable) {
-            DEBUG("TftButton::TftButton -> Hiba!! Nem toggleable a gomb, nem lehet a state állapotot beállítani!\n");
-        } else {
-            this->state = state;
-            this->oldState = state;
-        }
-    }
+        : id(id), pTft(&tft), x(x), y(y), w(w), h(h), label(label), type(type), state(state), oldState(state), buttonPressed(false) {}
 
     /**
      * Konstruktor X/Y pozíció nélkül

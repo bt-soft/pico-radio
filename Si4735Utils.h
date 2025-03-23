@@ -25,7 +25,7 @@ class Si4735Utils {
     /**
      * Manage Squelch
      */
-    void manageSuelch();
+    void manageSquelch();
 
     /**
      * AGC beállítása

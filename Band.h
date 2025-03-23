@@ -48,19 +48,24 @@ class Band {
     void loadSSB();
     void useBand();
 
-    const char *bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
-    const char *bandwidthSSB[6] = {"1.2", "2.2", "3.0", "4.0", "0.5", "1.0"};
-    const char *bandwidthAM[7] = {"6.0", "4.0", "3.0", "2.0", "1.0", "1.8", "2.5"};
-    const char *bandwidthFM[5] = {"AUTO", "110", "84", "60", "40"};
-
    public:
+    static const char *bandModeDesc[5];
+    static const char *bandwidthFM[5];
+    static const char *bandwidthAM[7];
+    static const char *bandwidthSSB[6];
+
     uint8_t currentMode;  // aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
 
     Band(SI4735 &si4735);
-
     virtual ~Band() = default;
-
+    /**
+     *
+     */
     void BandInit();
+
+    /**
+     *
+     */
     void BandSet();
 
     /**
@@ -103,7 +108,7 @@ class Band {
         return p;
     }
 
-    const char **getBandNames(int &count, bool isHamFilter);
+    const char **getBandNames(uint8_t &count, bool isHamFilter);
 };
 
 // A főprogramban definiálva
