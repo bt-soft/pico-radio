@@ -221,6 +221,9 @@ void Band::useBand() {
 
     BandTable currentBand = bandTable[config.data.bandIdx];
 
+    // Frekvencia viszaállítása a konfigból
+    currentBand.currentFreq = config.data.currentFreq;
+
     if ((currentBand.bandType == MW_BAND_TYPE) || (currentBand.bandType == LW_BAND_TYPE)) {
         currentBand.currentStep = config.data.ssIdxMW;
     }

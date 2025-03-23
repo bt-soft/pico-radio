@@ -35,7 +35,7 @@ class Si4735Utils {
     /**
      * Arduino loop
      */
-    inline void loop() { manageSuelch(); }
+    void loop();
 
    public:
     /**

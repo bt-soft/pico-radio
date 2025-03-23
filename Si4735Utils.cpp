@@ -9,7 +9,7 @@ int8_t Si4735Utils::currentBandIdx = -1;  // Induláskor nincs kiválasztvba ban
 /**
  * Manage Squelch
  */
-void Si4735Utils::manageSuelch() {
+void Si4735Utils::manageSquelch() {
 
     // squelchIndicator(pCfg->vars.currentSquelch);
     if (!rtv::muteStat) {
@@ -74,6 +74,14 @@ void Si4735Utils::checkAGC() {
 }
 
 /**
+ * Loop függvény
+ */
+void Si4735Utils::loop() {
+    //
+    // manageSquelch();
+}
+
+/**
  * Konstruktor
  */
 Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735) {
@@ -82,6 +90,7 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735) {
 
     // Band init, ha változott az épp használt band
     if (currentBandIdx != config.data.bandIdx) {
+
         band.BandInit();
         band.BandSet();
 
