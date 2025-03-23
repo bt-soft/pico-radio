@@ -10,14 +10,6 @@ class Si4735Utils {
    private:
     static int8_t currentBandIdx;
 
-   public:
-    // AGC beállítási lehetőségek
-    enum class AgcGainMode : uint8_t {
-        Off = 0,        // AGC kikapcsolva (de technikailag aktív marad, csak a csillapítás 0)
-        Automatic = 1,  // AGC engedélyezve (teljesen automatikus működés)
-        Manual = 2      // AGC manuális beállítással (a config.data.currentAGCgain értékével)
-    };
-
    protected:
     // SI4735
     SI4735 &si4735;
@@ -38,10 +30,22 @@ class Si4735Utils {
     void loop();
 
    public:
+    // AGC beállítási lehetőségek
+    enum class AgcGainMode : uint8_t {
+        Off = 0,        // AGC kikapcsolva (de technikailag aktív marad, csak a csillapítás 0)
+        Automatic = 1,  // AGC engedélyezve (teljesen automatikus működés)
+        Manual = 2      // AGC manuális beállítással (a config.data.currentAGCgain értékével)
+    };
+
     /**
      * Konstruktor
      */
     Si4735Utils(SI4735 &si4735);
+
+    /**
+     * Frequency Step set
+     */
+    void setStep();
 };
 
 #endif  //__SI4735UTILS_H

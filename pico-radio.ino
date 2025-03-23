@@ -57,7 +57,7 @@ DisplayBase *pDisplayBeforeScreenSaver = nullptr;
 
 /**
  * Aktuális kijelző váltása
- * a loop()-ból hívjuk, ha van váltási igény
+ * A loop()-ból hívjuk, ha van képernyő váltási igény
  */
 void changeDisplay() {
 

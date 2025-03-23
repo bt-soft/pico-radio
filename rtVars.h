@@ -30,6 +30,7 @@ extern bool muteStat;
 extern long squelchDecay;
 
 // Scan
+extern bool SCANbut;
 extern bool SCANpause;
 
 // Seek

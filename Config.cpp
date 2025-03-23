@@ -10,18 +10,18 @@ const Config_t DEFAULT_CONFIG = {
     //-- Band
     .bandIdx = 0,         // Default band, FM
     .currentFreq = 9390,  // Petőfi 93.9MHz
-    .currentStep = 10,    // Default step, 10kHz
+    .currentStep = 100,   // Default step, 100kHz
 
     // BandWidht
-    .bwIdxAM = 1,   // BandWidth AM
-    .bwIdxFM = 0,   // BandWidth FM
-    .bwIdxMW = 9,   // BandWidth MW
-    .bwIdxSSB = 1,  // BandWidth SSB
+    .bwIdxAM = 0,   // BandWidth AM - Band::bandWidthAM index szerint -> "6.0" kHz
+    .bwIdxFM = 0,   // BandWidth FM - Band::bandWidthFM[] index szerint -> "AUTO"
+    .bwIdxMW = 0,   // BandWidth MW - Band::bandWidthAM index szerint -> "6.0" kHz
+    .bwIdxSSB = 0,  // BandWidth SSB - Band::bandWidthSSB[] index szerint -> "1.2" kHz  (the valid values are 0, 1, 2, 3, 4 or 5)
 
     // Step
-    .ssIdxMW = 9,
-    .ssIdxAM = 5,
-    .ssIdxFM = 10,
+    .ssIdxMW = 2,  // Band::stepSizeAM[] index szerint -> 9kHz
+    .ssIdxAM = 1,  // Band::stepSizeAM[] index szerint -> 5kHz
+    .ssIdxFM = 1,  // Band::stepSizeFM[] index szerint -> 100kHz
 
     // BFO
     .currentBFO = 0,

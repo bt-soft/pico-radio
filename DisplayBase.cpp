@@ -327,6 +327,7 @@ void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsDat
 
         // FM mód esetén nem működik a BW állítás
         {"BndW", TftButton::ButtonType::Pushable, band.currentMode == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
+        {"Step", TftButton::ButtonType::Pushable},  //
 
         {"Scan", TftButton::ButtonType::Pushable},  //
         //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
@@ -452,25 +453,24 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         int bwValuesCount;
         const char **bwValues;
 
-        if (band.currentMode == AM) {
-            title = F("AM Filter in kHz");
-            bwValues = Band::bandwidthAM;
-            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandwidthAM);
-        } else if (band.currentMode == FM) {
+        if (band.currentMode == FM) {
             title = F("FM Filter in kHz");
-            bwValues = Band::bandwidthFM;
-            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandwidthFM);
+            bwValues = Band::bandWidthFM;
+            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthFM);
+        } else if (band.currentMode == AM) {
+            title = F("AM Filter in kHz");
+            bwValues = Band::bandWidthAM;
+            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthAM);
         } else {
             title = F("SSB Filter in kHz");
-            bwValues = Band::bandwidthSSB;
-            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandwidthSSB);
+            bwValues = Band::bandWidthSSB;
+            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthSSB);
         }
 
         // Multi button Dialog
         DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 250, 170, title, bwValues, bwValuesCount,  //
                                                      [this](TftButton::ButtonTouchEvent event) {
-                                                         //
-
+                                                         // A megnyomott gomb indexe
                                                          uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
 
                                                          if (band.currentMode == AM) {
@@ -481,6 +481,47 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                              config.data.bwIdxSSB = bwIdx;
                                                          }
                                                          band.BandSet();
+                                                     });
+        processed = true;
+
+        } else if (STREQ("Step", event.label)) {
+        // Megállapítjuk a lehetséges lépések méretét
+        const __FlashStringHelper *title;
+        int stepCount;
+        const char **stepValues;
+        uint16_t w = 250;
+        uint16_t h = 140;
+
+        if (band.currentMode == FM) {
+            title = F("Step tune FM");
+            stepValues = Band::stepSizeFM;
+            stepCount = ARRAY_ITEM_COUNT(Band::stepSizeFM);
+            w = 310;
+            h = 100;
+
+        } else {
+            title = F("Step tune AM/SSB");
+            stepValues = Band::stepSizeAM;
+            stepCount = ARRAY_ITEM_COUNT(Band::stepSizeAM);
+        }
+
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, w, h, title, stepValues, stepCount,  //
+                                                     [this](TftButton::ButtonTouchEvent event) {
+                                                         // A megnyomott gomb indexe
+                                                         uint8_t btnIdx = event.id - DLG_MULTI_BTN_ID_START;
+
+                                                         // Kikeressük az aktuális Band rekordot
+                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
+
+                                                         // Beállítjuk a konfigban a stepSize-t
+                                                         if (bandRecord.bandType == MW_BAND_TYPE or bandRecord.bandType == LW_BAND_TYPE) {
+                                                             config.data.ssIdxMW = btnIdx;
+                                                         } else if (band.currentMode == FM) {
+                                                             config.data.ssIdxFM = btnIdx;
+                                                         } else {
+                                                             config.data.ssIdxAM = btnIdx;
+                                                         }
+                                                         Si4735Utils::setStep();
                                                      });
         processed = true;
 

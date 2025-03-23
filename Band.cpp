@@ -41,10 +41,17 @@ BandTable bandTable[] = {
 // Ha nem található a keresett band, akkor ezzel térünk vissza
 static BandTable EMPTY_BAND = {"", 0, 0, 0, 0, 0, 0, 0, 0, false};
 
+// BandMode description
 const char* Band::bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
-const char* Band::bandwidthFM[5] = {"AUTO", "110", "84", "60", "40"};
-const char* Band::bandwidthAM[7] = {"6.0", "4.0", "3.0", "2.0", "1.0", "1.8", "2.5"};
-const char* Band::bandwidthSSB[6] = {"1.2", "2.2", "3.0", "4.0", "0.5", "1.0"};
+
+// Band Width - ez indexre állítódik az si4735-ben!
+const char* Band::bandWidthFM[5] = {"AUTO", "110", "84", "60", "40"};
+const char* Band::bandWidthAM[7] = {"6.0", "4.0", "3.0", "2.0", "1.0", "1.8", "2.5"};
+const char* Band::bandWidthSSB[6] = {"1.2", "2.2", "3.0", "4.0", "0.5", "1.0"};
+
+// Frequency Step - Ez decimális értékre állítódik az si4735-ben!
+const char* Band::stepSizeAM[] = {"1kHz", "5kHz", "9kHz", "10kHz"};
+const char* Band::stepSizeFM[] = {"50Khz", "100KHz", "1MHz"};
 
 /**
  * Konstruktor
@@ -224,24 +231,67 @@ void Band::loadSSB() {
  */
 void Band::useBand() {
 
+    // Kikeressük az aktuális Band rekordot
     BandTable currentBand = bandTable[config.data.bandIdx];
 
-    // Frekvencia viszaállítása a konfigból
-    currentBand.currentFreq = config.data.currentFreq;
+    //---- CurrentStep beállítása a band rekordban
 
-    if ((currentBand.bandType == MW_BAND_TYPE) || (currentBand.bandType == LW_BAND_TYPE)) {
-        currentBand.currentStep = config.data.ssIdxMW;
+    // AM esetén 1...1000 között bátmi lehet - {"1kHz", "5kHz", "9kHz", "10kHz"};
+    //  For AM, 1 (1kHz) to 1000 (1MHz) are valid values.
+    if ((currentBand.bandType == MW_BAND_TYPE) or (currentBand.bandType == LW_BAND_TYPE)) {
+        // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxMW]));
+        switch (config.data.ssIdxMW) {
+            case 0:
+                currentBand.currentStep = 1;
+                break;
+            case 1:
+                currentBand.currentStep = 5;
+                break;
+            case 2:
+                currentBand.currentStep = 9;
+                break;
+            default:
+                currentBand.currentStep = 10;
+        }
+
+    } else if (currentBand.bandType == SW_BAND_TYPE) {
+        // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxAM]));
+        switch (config.data.ssIdxAM) {
+            case 0:
+                currentBand.currentStep = 1;
+                break;
+            case 1:
+                currentBand.currentStep = 5;
+                break;
+            case 2:
+                currentBand.currentStep = 9;
+                break;
+            default:
+                currentBand.currentStep = 10;
+        }
+
+    } else {
+        // FM esetén 3 érték lehet - {"50Khz", "100KHz", "1MHz"};
+        //  For FM 5 (50kHz), 10 (100kHz) and 100 (1MHz) are valid values.
+        switch (config.data.ssIdxFM) {
+            case 0:
+                currentBand.currentStep = 5;
+                break;
+            case 1:
+                currentBand.currentStep = 10;
+                break;
+            default:
+                currentBand.currentStep = 100;
+        }
+        // static_cast<uint8_t>(atoi(Band::stepSizeFM[config.data.ssIdxFM]));
     }
 
-    if (currentBand.bandType == SW_BAND_TYPE) {
-        currentBand.currentStep = config.data.ssIdxAM;
-    }
+    DEBUG("currentBand.bandName: %s currentBand.currentStep: %d\n", currentBand.bandName, currentBand.currentStep);
 
     if (currentBand.bandType == FM_BAND_TYPE) {
         rtv::bfoOn = false;
         si4735.setTuneFrequencyAntennaCapacitor(0);
         delay(100);
-        currentBand.currentStep = config.data.ssIdxFM;
         si4735.setFM(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep);
         si4735.setFMDeEmphasis(1);
         ssbLoaded = false;
@@ -250,7 +300,7 @@ void Band::useBand() {
 
     } else {
 
-        if (currentBand.bandType == MW_BAND_TYPE || currentBand.bandType == LW_BAND_TYPE) {
+        if (currentBand.bandType == MW_BAND_TYPE or currentBand.bandType == LW_BAND_TYPE) {
             si4735.setTuneFrequencyAntennaCapacitor(0);
         } else {
             si4735.setTuneFrequencyAntennaCapacitor(1);
@@ -265,6 +315,7 @@ void Band::useBand() {
             // si4735.setSsbSoftMuteMaxAttenuation(8); // Disable Soft Mute for SSB
             // si4735.setSBBSidebandCutoffFilter(0);
             // si4735.setSSBBfo(currentBFO);
+
             si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);
 
             // SSB ONLY 1KHz stepsize
@@ -287,14 +338,37 @@ void Band::useBand() {
  */
 void Band::setBandWidth() {
 
-    if (currentMode == LSB || currentMode == USB) {
+    if (currentMode == LSB or currentMode == USB) {
+        /**
+         * @ingroup group17 Patch and SSB support
+         *
+         * @brief SSB Audio Bandwidth for SSB mode
+         *
+         * @details 0 = 1.2 kHz low-pass filter  (default).
+         * @details 1 = 2.2 kHz low-pass filter.
+         * @details 2 = 3.0 kHz low-pass filter.
+         * @details 3 = 4.0 kHz low-pass filter.
+         * @details 4 = 500 Hz band-pass filter for receiving CW signal, i.e. [250 Hz, 750 Hz] with center
+         * frequency at 500 Hz when USB is selected or [-250 Hz, -750 1Hz] with center frequency at -500Hz
+         * when LSB is selected* .
+         * @details 5 = 1 kHz band-pass filter for receiving CW signal, i.e. [500 Hz, 1500 Hz] with center
+         * frequency at 1 kHz when USB is selected or [-500 Hz, -1500 1 Hz] with center frequency
+         *     at -1kHz when LSB is selected.
+         * @details Other values = reserved.
+         *
+         * @details If audio bandwidth selected is about 2 kHz or below, it is recommended to set SBCUTFLT[3:0] to 0
+         * to enable the band pass filter for better high- cut performance on the wanted side band. Otherwise, set it to 1.
+         *
+         * @see AN332 REV 0.8 UNIVERSAL PROGRAMMING GUIDE; page 24
+         *
+         * @param AUDIOBW the valid values are 0, 1, 2, 3, 4 or 5; see description above
+         */
         si4735.setSSBAudioBandwidth(config.data.bwIdxSSB);
 
         // If audio bandwidth selected is about 2 kHz or below, it is recommended to set Sideband Cutoff Filter to 0.
         if (config.data.bwIdxSSB == 0 or config.data.bwIdxSSB == 4 or config.data.bwIdxSSB == 5) {
             // Band pass filter to cutoff both the unwanted side band and high frequency components > 2.0 kHz of the wanted side band. (default)
             si4735.setSSBSidebandCutoffFilter(0);
-
         } else {
             // Low pass filter to cutoff the unwanted side band.
             si4735.setSSBSidebandCutoffFilter(1);
@@ -352,6 +426,9 @@ void Band::BandInit() {
         si4735.setup(PIN_SI4735_RESET, MW_BAND_TYPE);
         si4735.setAM();
     }
+
+    // Frekvencia beállítása a konfig mentéséből
+    bandTable[config.data.bandIdx].currentFreq = config.data.currentFreq;
 }
 
 /**

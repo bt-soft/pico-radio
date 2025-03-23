@@ -91,7 +91,7 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735) {
     // Band init, ha változott az épp használt band
     if (currentBandIdx != config.data.bandIdx) {
 
-        band.BandInit();
+        band.BandInit();  // Frekvencia visszaállítása a konfogból
         band.BandSet();
 
         // Hangerő beállítása
@@ -102,4 +102,25 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735) {
 
     // Rögtön be is állítjuk az AGC-t
     checkAGC();
+}
+
+/**
+ *
+ */
+void Si4735Utils::setStep() {
+
+    // This command should work only for SSB mode
+    if (rtv::bfoOn && (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW)) {
+        if (config.data.currentBFOStep == 1)
+            config.data.currentBFOStep = 10;
+        else if (config.data.currentBFOStep == 10)
+            config.data.currentBFOStep = 25;
+        else
+            config.data.currentBFOStep = 1;
+    }
+
+    if (!rtv::SCANbut) {
+        band.useBand();
+        checkAGC();
+    }
 }

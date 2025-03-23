@@ -46,13 +46,19 @@ class Band {
 
     void setBandWidth();
     void loadSSB();
-    void useBand();
 
    public:
+    // BandMode description
     static const char *bandModeDesc[5];
-    static const char *bandwidthFM[5];
-    static const char *bandwidthAM[7];
-    static const char *bandwidthSSB[6];
+
+    // Band Width
+    static const char *bandWidthFM[5];
+    static const char *bandWidthAM[7];
+    static const char *bandWidthSSB[6];
+
+    // Frequency Step
+    static const char *stepSizeAM[4];
+    static const char *stepSizeFM[3];
 
     uint8_t currentMode;  // aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
 
@@ -67,6 +73,11 @@ class Band {
      *
      */
     void BandSet();
+
+    /**
+     *
+     */
+    void useBand();
 
     /**
      * A Band egy rekordjának elkérése az index alapján
@@ -101,9 +112,9 @@ class Band {
      */
     inline const char *getCurrentBandWithPstr() {
         const char *p;
-        if (currentMode == AM) p = bandwidthAM[config.data.bwIdxAM];
-        if (currentMode == LSB or currentMode == USB or currentMode == CW) p = bandwidthSSB[config.data.bwIdxSSB];
-        if (currentMode == FM) p = bandwidthFM[config.data.bwIdxFM];
+        if (currentMode == AM) p = bandWidthAM[config.data.bwIdxAM];
+        if (currentMode == LSB or currentMode == USB or currentMode == CW) p = bandWidthSSB[config.data.bwIdxSSB];
+        if (currentMode == FM) p = bandWidthFM[config.data.bwIdxFM];
 
         return p;
     }

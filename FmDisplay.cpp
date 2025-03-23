@@ -28,9 +28,6 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
-        {"AntC", TftButton::ButtonType::Pushable},                                                    //
-        {"AM", TftButton::ButtonType::Pushable},                                                      //
-
         // //----
         // {"Popup", TftButton::ButtonType::Pushable},  //
         // {"Multi", TftButton::ButtonType::Pushable},
@@ -105,56 +102,44 @@ void FmDisplay::drawScreen() {
  */
 void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
+    DEBUG("FmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
+
     if (STREQ("RDS", event.label)) {
         // Radio Data System
         config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
-
         if (config.data.rdsEnabled) {
             pRds->displayRds(true);
         } else {
             pRds->clearRds();
         }
-
-    } else if (STREQ("AntC", event.label)) {
-        // If zero, the tuning capacitor value is selected automatically.
-        // AM - the tuning capacitance is manually set as 95 fF x ANTCAP + 7 pF.  ANTCAP manual range is 1–6143;
-        // FM - the valid range is 0 to 191.
-
-        // Antenna kapacitás állítása
-        int maxValue = band.currentMode == FM ? 191 : 6143;
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"),  //
-                                                     &antCapValue, (int)0, (int)maxValue,                                                     //
-                                                     (int)1, [this](int newValue) {
-                                                         Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
-                                                     });
-
-    } else if (STREQ("AM", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::am;
-
-    } else if (STREQ("Popup", event.label)) {
-        // Popup
-        DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 280, 130, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
-
-    } else if (STREQ("Multi", event.label)) {
-        // Multi button Dialog
-        const char *buttonLabels[] = {"Opt-1", "Opt-2", "Opt-3", "Opt-4", "Opt-5", "Opt-6", "Opt-7", "Opt-8", "Opt-9", "Opt-10", "Opt-11", "Opt-12"};
-        int buttonsCount = ARRAY_ITEM_COUNT(buttonLabels);
-
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("Valasszon opciot!"), buttonLabels, buttonsCount);
-
-    } else if (STREQ("b-Val", event.label)) {
-        // b-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState, false, true, false,
-                                                     [this](double newValue) { this->ledStateChanged(newValue); });
-
-    } else if (STREQ("i-Val", event.label)) {
-        // i-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, (int)0, (int)63, (int)1);
-
-    } else if (STREQ("f-Val", event.label)) {
-        // f-ValueChange
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, (float)-15.0, (float)+30.0, (float)0.05);
     }
+    //  else if (STREQ("AM", event.label)) {
+    //     ::newDisplay = DisplayBase::DisplayType::am;
+
+    // } else if (STREQ("Popup", event.label)) {
+    //     // Popup
+    //     DisplayBase::pDialog = new MessageDialog(this, DisplayBase::tft, 280, 130, F("Dialog title"), F("Folytassuk?"), "Aha", "Ne!!");
+
+    // } else if (STREQ("Multi", event.label)) {
+    //     // Multi button Dialog
+    //     const char *buttonLabels[] = {"Opt-1", "Opt-2", "Opt-3", "Opt-4", "Opt-5", "Opt-6", "Opt-7", "Opt-8", "Opt-9", "Opt-10", "Opt-11", "Opt-12"};
+    //     int buttonsCount = ARRAY_ITEM_COUNT(buttonLabels);
+
+    //     DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("Valasszon opciot!"), buttonLabels, buttonsCount);
+
+    // } else if (STREQ("b-Val", event.label)) {
+    //     // b-ValueChange
+    //     DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("LED state"), F("Value:"), &ledState, false, true, false,
+    //                                                  [this](double newValue) { this->ledStateChanged(newValue); });
+
+    // } else if (STREQ("i-Val", event.label)) {
+    //     // i-ValueChange
+    //     DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Volume"), F("Value:"), &volume, (int)0, (int)63, (int)1);
+
+    // } else if (STREQ("f-Val", event.label)) {
+    //     // f-ValueChange
+    //     DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, (float)-15.0, (float)+30.0, (float)0.05);
+    // }
 }
 
 /**

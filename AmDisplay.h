@@ -2,8 +2,17 @@
 #define __AMDISPLAY_H
 
 #include "DisplayBase.h"
+#include "SMeter.h"
+#include "SevenSegmentFreq.h"
 
+/**
+ *
+ */
 class AmDisplay : public DisplayBase {
+
+   private:
+    SMeter *pSMeter;
+    SevenSegmentFreq *pSevenSegmentFreq;
 
    protected:
     /**

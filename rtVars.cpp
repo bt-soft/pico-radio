@@ -21,6 +21,7 @@ bool muteStat = false;
 long squelchDecay = 0;
 
 // Scan
+bool SCANbut = false;   // Scan aktív?
 bool SCANpause = true;  // LWH - SCANpause must be initialized to a value else the squelch function will
 
 // Seek

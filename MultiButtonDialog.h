@@ -142,7 +142,8 @@ class MultiButtonDialog : public DialogBase {
                     // onButtonClicked(buttonsArray[i]->getLabel());
                     onButtonClicked(buttonsArray[i]->buildButtonTouchEvent());
                 }
-                // Dialog bezárása
+
+                // A dialog bezárásához beállítjuk az eseményt
                 DialogBase::pParent->setDialogResponse(buttonsArray[i]->buildButtonTouchEvent());
                 return true;
             }

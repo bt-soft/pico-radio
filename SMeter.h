@@ -60,6 +60,7 @@ class SMeter {
      * kirajzolja az aktuális RSSI értélek
      */
     void smeter(uint8_t rssi, bool isFMMode) {
+
         static uint8_t prev_spoint = -1;  // Tárolja az előző S-pont értéket
         uint8_t spoint = rssiConverter(rssi, isFMMode);
 
@@ -103,7 +104,9 @@ class SMeter {
      * S-meter skála kirajzolása
      */
     void drawSmeterScale() {
+
         String IStr;
+
         tft.setFreeFont();
         tft.setTextSize(1);
         tft.fillRect(smeterX + 2, smeterY + 6, 236, 46, TFT_BLACK);
@@ -140,6 +143,7 @@ class SMeter {
         }
 
         // RSSI + SNR szöveges megjelenítése ha nem FM módban vagyunk
+        tft.setFreeFont();
         tft.setTextSize(1);
         tft.setTextColor(TFT_GREEN, TFT_BLACK);
 
