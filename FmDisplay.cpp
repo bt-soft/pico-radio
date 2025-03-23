@@ -2,10 +2,6 @@
 
 #include <Arduino.h>
 
-#include "MessageDialog.h"
-#include "MultiButtonDialog.h"
-#include "ValueChangeDialog.h"
-
 /**
  * Konstruktor
  */
@@ -26,15 +22,13 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735), 
     // Frekvencia kijelzés pédányosítása
     pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY);
 
-    // Minden képernyőn megtalálható gombok generálása
-    DisplayBase::buildMandatoryButtons();
+    // Függőleges gombok legyártása, nincs saját függőleges gombsor
+    DisplayBase::buildVerticalScreenButtons(nullptr, 0);
 
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
-        {"Ham", TftButton::ButtonType::Pushable},                                                     //
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
         {"AntCap", TftButton::ButtonType::Pushable},                                                  //
-        {"Scan", TftButton::ButtonType::Pushable},                                                    //
         {"AM", TftButton::ButtonType::Pushable},                                                      //
 
         // //----
@@ -111,30 +105,7 @@ void FmDisplay::drawScreen() {
  */
 void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
-    // Ha a közös gomb volt és azt már lekezeltük, akkor nem megyünk tovább
-    if (DisplayBase::processMandatoryButtonTouchEvent(event)) {
-        return;
-    }
-
-    // Vízszintes gombok vizsgálata
-    if (STREQ("Ham", event.label)) {
-
-        // Kigyűjtjük a HAM sávok neveit
-        int hamBandCount;
-        const char **hamBands = band.getBandNames(hamBandCount, true);
-
-        // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount,  //
-                                                     [this](const char *buttonLabel) {
-                                                         // Átállítjuk a használni kívánt BAND indexet
-                                                         config.data.bandIdx = band.getBandIdxByBandName(buttonLabel);
-
-                                                         // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
-                                                         ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
-                                                     });
-
-    } else if (STREQ("RDS", event.label)) {
+    if (STREQ("RDS", event.label)) {
         // Radio Data System
         config.data.rdsEnabled = event.state == TftButton::ButtonState::On;
 
@@ -156,9 +127,6 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
                                                      (int)1, [this](int newValue) {
                                                          Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
                                                      });
-
-    } else if (STREQ("Scan", event.label)) {
-        ::newDisplay = DisplayBase::DisplayType::freqScan;
 
     } else if (STREQ("AM", event.label)) {
         ::newDisplay = DisplayBase::DisplayType::am;

@@ -89,6 +89,39 @@ void displayException(TFT_eSPI &tft, const char *msg);
 void beepTick();
 void beepError();
 
+//--- Arrays
+/**
+ * Két tömb összemásolása egy harmadikba
+ */
+template <typename T>
+void mergeArrays(const T *source1, uint8_t length1, const T *source2, uint8_t length2, T *destination, uint8_t &destinationLength) {
+    destinationLength = 0;  // Alapértelmezett méret
+
+    // Ha nincs egyik tömb sem, akkor nincs mit csinálni
+    if ((!source1 || length1 == 0) && (!source2 || length2 == 0)) {
+        return;
+    }
+
+    // Új méret beállítása
+    destinationLength = length1 + length2;
+
+    uint8_t index = 0;
+
+    // Másolás az első tömbből (ha van)
+    if (source1 && length1 > 0) {
+        for (uint8_t i = 0; i < length1; i++) {
+            destination[index++] = source1[i];
+        }
+    }
+
+    // Másolás a második tömbből (ha van)
+    if (source2 && length2 > 0) {
+        for (uint8_t i = 0; i < length2; i++) {
+            destination[index++] = source2[i];
+        }
+    }
+}
+
 }  // namespace Utils
 
 #endif  // __UTILS_H

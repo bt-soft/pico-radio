@@ -286,11 +286,12 @@ TftButton *DisplayBase::findButtonByLabel(const char *label) {
 }
 
 /**
- * Minden képernyőn látható közös gombok
+ * Képernyő menügombok legyártása (vertikális)
  */
-void DisplayBase::buildMandatoryButtons() {
-    // Vertikális Képernyőgombok definiálása
-    DisplayBase::BuildButtonData verticalButtonsData[] = {
+void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[], uint8_t screenVButtonsDataLength) {
+
+    // Kötelező vertikális Képernyőgombok definiálása
+    DisplayBase::BuildButtonData mandatoryVButtons[] = {
         {"Mute", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(rtv::muteStat)},         //
         {"Volume", TftButton::ButtonType::Pushable},                                                 //
         {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},  //
@@ -301,16 +302,56 @@ void DisplayBase::buildMandatoryButtons() {
         //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
     };
     // Vertikális képernyőgombok legyártása
-    DisplayBase::buildVerticalScreenButtons(verticalButtonsData, ARRAY_ITEM_COUNT(verticalButtonsData));
+    uint8_t mandatoryVButtonsLength = ARRAY_ITEM_COUNT(mandatoryVButtons);
+
+    // Eredmény tömb
+    BuildButtonData mergedButtons[mandatoryVButtonsLength + screenVButtonsDataLength];
+    uint8_t mergedLength = 0;
+
+    // Tömbök összefűzése
+    Utils::mergeArrays(mandatoryVButtons, mandatoryVButtonsLength, screenVButtonsData, screenVButtonsDataLength, mergedButtons, mergedLength);
+
+    // Összefűzött gombok legyártása
+    verticalScreenButtons = buildScreenButtons(ButtonOrientation::Vertical, mergedButtons, mergedLength, SCRN_VBTNS_ID_START, verticalScreenButtonsCount);
 }
 
 /**
- *  Minden képernyőn látható közös gombok eseményeinek kezelése
+ * Horizontális képernyő menügombok legyártása
+ */
+void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsData[], uint8_t screenHButtonsDataLength) {
+
+    // Kötelező vertikális Képernyőgombok definiálása
+    DisplayBase::BuildButtonData mandatoryHButtons[] = {
+        {"Ham", TftButton::ButtonType::Pushable},   //
+        {"Band", TftButton::ButtonType::Pushable},  //
+        {"Scan", TftButton::ButtonType::Pushable},  //
+        //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
+        //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
+    };
+    // Vertikális képernyőgombok legyártása
+    uint8_t mandatoryHButtonsLength = ARRAY_ITEM_COUNT(mandatoryHButtons);
+
+    // Eredmény tömb
+    BuildButtonData mergedButtons[mandatoryHButtonsLength + screenHButtonsDataLength];
+    uint8_t mergedLength = 0;
+
+    // Tömbök összefűzése
+    Utils::mergeArrays(mandatoryHButtons, mandatoryHButtonsLength, screenHButtonsData, screenHButtonsDataLength, mergedButtons, mergedLength);
+
+    horizontalScreenButtons = buildScreenButtons(ButtonOrientation::Horizontal, mergedButtons, mergedLength, SCRN_HBTNS_ID_START, horizontalScreenButtonsCount);
+}
+
+/**
+ *  Minden képernyőn látható közös ()kötelező) gombok eseményeinek kezelése
  */
 bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
     bool processed = false;
 
+    //
+    //-- Kötelező függőleges gombok vizsgálata
+    //
     if (STREQ("Mute", event.label)) {
         // Némítás
         rtv::muteStat = event.state == TftButton::ButtonState::On;
@@ -359,6 +400,49 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
 
     } else if (STREQ("Setup", event.label)) {            // Beállítások
         ::newDisplay = DisplayBase::DisplayType::setup;  // <<<--- ITT HÍVJUK MEG A changeDisplay-t!
+        processed = true;
+    }
+    //
+    //--- Kötelező vízszintes gombok vizsgálata
+    //
+    else if (STREQ("Ham", event.label)) {
+
+        // Kigyűjtjük a HAM sávok neveit
+        int hamBandCount;
+        const char **hamBands = band.getBandNames(hamBandCount, true);
+
+        // Multi button Dialog
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount,  //
+                                                     [this](const char *buttonLabel) {
+                                                         // Átállítjuk a használni kívánt BAND indexet
+                                                         config.data.bandIdx = band.getBandIdxByBandName(buttonLabel);
+
+                                                         // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
+                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
+                                                         ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                     });
+        processed = true;
+    } else if (STREQ("Band", event.label)) {
+
+        // Kigyűjtjük az összes NEM HAM sáv nevét
+        int hamBandCount;
+        const char **hamBands = band.getBandNames(hamBandCount, false);
+
+        // Multi button Dialog
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 250, F("All Radio Bands"), hamBands, hamBandCount,  //
+                                                     [this](const char *buttonLabel) {
+                                                         // Átállítjuk a használni kívánt BAND indexet
+                                                         config.data.bandIdx = band.getBandIdxByBandName(buttonLabel);
+
+                                                         // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
+                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
+                                                         ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                     });
+        processed = true;
+
+    } else if (STREQ("Scan", event.label)) {
+        // Képernyő váltás !!!
+        ::newDisplay = DisplayBase::DisplayType::freqScan;
         processed = true;
     }
 
@@ -456,7 +540,13 @@ bool DisplayBase::loop(RotaryEncoder::EncoderState encoderState) {
 
     // Ha volt screenButton touch event, akkor azt továbbítjuk a képernyőnek
     if (screenButtonTouchEvent != TftButton::noTouchEvent) {
-        this->processScreenButtonTouchEvent(screenButtonTouchEvent);
+
+        // Ha a kötelező gombok NEM kezelték le az eseményt, akkor ...
+        if (!this->processMandatoryButtonTouchEvent(screenButtonTouchEvent)) {
+
+            // Továbbítjuk a touch eseményt a képernyő gomboknak, hogy ők kezeljék le
+            this->processScreenButtonTouchEvent(screenButtonTouchEvent);
+        }
 
         // Töröljük a screenButton eseményt
         screenButtonTouchEvent = TftButton::noTouchEvent;

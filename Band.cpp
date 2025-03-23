@@ -9,32 +9,32 @@ BandTable bandTable[] = {
     {"FM", FM_BAND_TYPE, FM, 6400, 10800, 9390, 10, 0, 0, false},    //  FM          0   //93.9MHz Petőfi
     {"LW", LW_BAND_TYPE, AM, 100, 514, 198, 9, 0, 0, false},         //  LW          1
     {"MW", MW_BAND_TYPE, AM, 514, 1800, 540, 9, 0, 0, false},        //  MW          2   // 540kHz Kossuth
-    {"800M", LW_BAND_TYPE, AM, 280, 470, 284, 1, 0, 0, true},        // Ham  800M    3
-    {"630M", SW_BAND_TYPE, LSB, 470, 480, 475, 1, 0, 0, true},       // Ham  630M    4
-    {"160M", SW_BAND_TYPE, LSB, 1800, 2000, 1850, 1, 0, 0, true},    // Ham  160M    5
-    {"120M", SW_BAND_TYPE, AM, 2000, 3200, 2400, 5, 0, 0, false},    //      120M    6
-    {"90M", SW_BAND_TYPE, AM, 3200, 3500, 3300, 5, 0, 0, false},     //       90M    7
-    {"80M", SW_BAND_TYPE, LSB, 3500, 3900, 3630, 1, 0, 0, true},     // Ham   80M    8
-    {"75M", SW_BAND_TYPE, AM, 3900, 5300, 3950, 5, 0, 0, false},     //       75M    9
-    {"60M", SW_BAND_TYPE, USB, 5300, 5900, 5375, 1, 0, 0, true},     // Ham   60M   10
-    {"49M", SW_BAND_TYPE, AM, 5900, 7000, 6000, 5, 0, 0, false},     //       49M   11
-    {"40M", SW_BAND_TYPE, LSB, 7000, 7500, 7074, 1, 0, 0, true},     // Ham   40M   12
-    {"41M", SW_BAND_TYPE, AM, 7200, 9000, 7210, 5, 0, 0, false},     //       41M   13
-    {"31M", SW_BAND_TYPE, AM, 9000, 10000, 9600, 5, 0, 0, false},    //       31M   14
-    {"30M", SW_BAND_TYPE, USB, 10000, 10200, 10099, 1, 0, 0, true},  // Ham   30M   15
-    {"25M", SW_BAND_TYPE, AM, 10200, 13500, 11700, 5, 0, 0, false},  //       25M   16
-    {"22M", SW_BAND_TYPE, AM, 13500, 14000, 13700, 5, 0, 0, false},  //       22M   17
-    {"20M", SW_BAND_TYPE, USB, 14000, 14500, 14074, 1, 0, 0, true},  // Ham   20M   18
-    {"19M", SW_BAND_TYPE, AM, 14500, 17500, 15700, 5, 0, 0, false},  //       19M   19
-    {"17M", SW_BAND_TYPE, AM, 17500, 18000, 17600, 5, 0, 0, false},  //       17M   20
-    {"16M", SW_BAND_TYPE, USB, 18000, 18500, 18100, 1, 0, 0, true},  // Ham   16M   21
-    {"15M", SW_BAND_TYPE, AM, 18500, 21000, 18950, 5, 0, 0, false},  //       15M   22
-    {"14M", SW_BAND_TYPE, USB, 21000, 21500, 21074, 1, 0, 0, true},  // Ham   14M   23
-    {"13M", SW_BAND_TYPE, AM, 21500, 24000, 21500, 5, 0, 0, false},  //       13M   24
-    {"12M", SW_BAND_TYPE, USB, 24000, 25500, 24940, 1, 0, 0, true},  // Ham   12M   25
-    {"11M", SW_BAND_TYPE, AM, 25500, 26100, 25800, 5, 0, 0, false},  //       11M   26
+    {"800m", LW_BAND_TYPE, AM, 280, 470, 284, 1, 0, 0, true},        // Ham  800M    3
+    {"630m", SW_BAND_TYPE, LSB, 470, 480, 475, 1, 0, 0, true},       // Ham  630M    4
+    {"160m", SW_BAND_TYPE, LSB, 1800, 2000, 1850, 1, 0, 0, true},    // Ham  160M    5
+    {"120m", SW_BAND_TYPE, AM, 2000, 3200, 2400, 5, 0, 0, false},    //      120M    6
+    {"90m", SW_BAND_TYPE, AM, 3200, 3500, 3300, 5, 0, 0, false},     //       90M    7
+    {"80m", SW_BAND_TYPE, LSB, 3500, 3900, 3630, 1, 0, 0, true},     // Ham   80M    8
+    {"75m", SW_BAND_TYPE, AM, 3900, 5300, 3950, 5, 0, 0, false},     //       75M    9
+    {"60m", SW_BAND_TYPE, USB, 5300, 5900, 5375, 1, 0, 0, true},     // Ham   60M   10
+    {"49m", SW_BAND_TYPE, AM, 5900, 7000, 6000, 5, 0, 0, false},     //       49M   11
+    {"40m", SW_BAND_TYPE, LSB, 7000, 7500, 7074, 1, 0, 0, true},     // Ham   40M   12
+    {"41m", SW_BAND_TYPE, AM, 7200, 9000, 7210, 5, 0, 0, false},     //       41M   13
+    {"31m", SW_BAND_TYPE, AM, 9000, 10000, 9600, 5, 0, 0, false},    //       31M   14
+    {"30m", SW_BAND_TYPE, USB, 10000, 10200, 10099, 1, 0, 0, true},  // Ham   30M   15
+    {"25m", SW_BAND_TYPE, AM, 10200, 13500, 11700, 5, 0, 0, false},  //       25M   16
+    {"22m", SW_BAND_TYPE, AM, 13500, 14000, 13700, 5, 0, 0, false},  //       22M   17
+    {"20m", SW_BAND_TYPE, USB, 14000, 14500, 14074, 1, 0, 0, true},  // Ham   20M   18
+    {"19m", SW_BAND_TYPE, AM, 14500, 17500, 15700, 5, 0, 0, false},  //       19M   19
+    {"17m", SW_BAND_TYPE, AM, 17500, 18000, 17600, 5, 0, 0, false},  //       17M   20
+    {"16m", SW_BAND_TYPE, USB, 18000, 18500, 18100, 1, 0, 0, true},  // Ham   16M   21
+    {"15m", SW_BAND_TYPE, AM, 18500, 21000, 18950, 5, 0, 0, false},  //       15M   22
+    {"14m", SW_BAND_TYPE, USB, 21000, 21500, 21074, 1, 0, 0, true},  // Ham   14M   23
+    {"13m", SW_BAND_TYPE, AM, 21500, 24000, 21500, 5, 0, 0, false},  //       13M   24
+    {"12m", SW_BAND_TYPE, USB, 24000, 25500, 24940, 1, 0, 0, true},  // Ham   12M   25
+    {"11m", SW_BAND_TYPE, AM, 25500, 26100, 25800, 5, 0, 0, false},  //       11M   26
     {"CB", SW_BAND_TYPE, AM, 26100, 28000, 27200, 1, 0, 0, false},   // CB band     27
-    {"10M", SW_BAND_TYPE, USB, 28000, 30000, 28500, 1, 0, 0, true},  // Ham   10M   28
+    {"10m", SW_BAND_TYPE, USB, 28000, 30000, 28500, 1, 0, 0, true},  // Ham   10M   28
     {"SW", SW_BAND_TYPE, AM, 100, 30000, 15500, 5, 0, 0, false}      // Whole SW    29
 };
 

@@ -9,8 +9,11 @@
 #include "DialogBase.h"
 #include "IDialogParent.h"
 #include "IGuiEvents.h"
+#include "MessageDialog.h"
+#include "MultiButtonDialog.h"
 #include "Si4735Utils.h"
 #include "TftButton.h"
+#include "ValueChangeDialog.h"
 #include "rtVars.h"
 #include "utils.h"
 
@@ -87,18 +90,15 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     TftButton **buildScreenButtons(ButtonOrientation orientation, BuildButtonData buttonsData[], uint8_t buttonsDataLength, uint8_t startId, uint8_t &buttonsCount);
 
     /**
-     * Képernyő menügombok legyártása
+     * Vertikális képernyő menügombok legyártása
+     * A kötelező gombokat az elejéhez másolja
      */
-    inline void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength) {
-        horizontalScreenButtons = buildScreenButtons(ButtonOrientation::Horizontal, buttonsData, buttonsDataLength, SCRN_HBTNS_ID_START, horizontalScreenButtonsCount);
-    }
+    void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength);
 
     /**
-     * Képernyő menügombok legyártása (vertikális)
+     * Horizontális képernyő menügombok legyártása
      */
-    inline void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength) {
-        verticalScreenButtons = buildScreenButtons(ButtonOrientation::Vertical, buttonsData, buttonsDataLength, SCRN_VBTNS_ID_START, verticalScreenButtonsCount);
-    }
+    void buildHorizontalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength);
 
     /**
      * Gombok kirajzolása
@@ -142,11 +142,6 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
      * @return A TftButton pointere, vagy nullptr, ha nincs ilyen gomb
      */
     TftButton *findButtonByLabel(const char *label);
-
-    /**
-     * Minden képernyőn megtalálható gombok
-     */
-    void buildMandatoryButtons();
 
     /**
      * Közös gombok touch handlere
