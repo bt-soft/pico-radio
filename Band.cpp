@@ -166,66 +166,6 @@ void Band::loadSSB() {
     ssbLoaded = true;
 }
 
-// /**
-//  * Band beállítása
-//  */
-// void Band::useBand() {
-
-//     BandTable currentBand = bandTable[config.data.bandIdx];
-
-//     switch (currentBand.bandType) {
-
-//         case LW_BAND_TYPE:
-//         case MW_BAND_TYPE:
-//         case SW_BAND_TYPE:
-
-//             switch (currentBand.bandType) {
-//                 case SW_BAND_TYPE:
-//                     currentBand.currentStep = config.data.ssIdxAM;
-//                     si4735.setTuneFrequencyAntennaCapacitor(1);
-//                     break;
-//                 default:
-//                     currentBand.currentStep = config.data.ssIdxMW;
-//                     si4735.setTuneFrequencyAntennaCapacitor(0);
-//                     break;
-//             }
-
-//             if (ssbLoaded) {
-//                 si4735.setSSB(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep, currentMode);
-//                 si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);
-//                 // SSB ONLY 1KHz stepsize
-//                 bandTable[config.data.bandIdx].currentStep = 1;
-//                 si4735.setFrequencyStep(1);
-
-//             } else {
-//                 si4735.setAM(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep);
-//                 rtv::bfoOn = false;
-//             }
-//             break;
-
-//         case FM_BAND_TYPE:
-//             ssbLoaded = false;
-//             rtv::bfoOn = false;
-//             currentBand.currentStep = config.data.ssIdxFM;
-//             si4735.setTuneFrequencyAntennaCapacitor(0);
-//             si4735.setFM(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep);
-//             si4735.setFMDeEmphasis(1);
-//             si4735.RdsInit();
-//             si4735.setRdsConfig(1, 2, 2, 2, 2);
-//             si4735.setSeekFmSpacing(10);
-//             si4735.setSeekFmLimits(bandTable[0].minimumFreq, bandTable[0].maximumFreq);  // FM band limits, a Band táblában a 0. indexü elem
-//             si4735.setSeekAmRssiThreshold(50);
-//             si4735.setSeekAmSrnThreshold(20);
-//             si4735.setSeekFmRssiThreshold(5);
-//             si4735.setSeekFmSrnThreshold(5);
-//             break;
-
-//         default:
-//             DEBUG("Hiba: Le nem kezelt bandType: %d\n", currentBand.bandType);
-//             return;
-//     }
-// }
-
 /**
  * Band beállítása
  */
@@ -426,9 +366,6 @@ void Band::BandInit() {
         si4735.setup(PIN_SI4735_RESET, MW_BAND_TYPE);
         si4735.setAM();
     }
-
-    // Frekvencia beállítása a konfig mentéséből
-    bandTable[config.data.bandIdx].currentFreq = config.data.currentFreq;
 }
 
 /**

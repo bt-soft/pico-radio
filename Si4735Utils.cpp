@@ -50,13 +50,13 @@ void Si4735Utils::checkAGC() {
 
         if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Off)) {
 
-            DEBUG("AGC Off\n");
+            DEBUG("Si4735Utils::checkAGC() -> AGC Off\n");
             // A felhasználó az AGC kikapcsolását kérte.
             si4735.setAutomaticGainControl(1, 0);  // disabled
 
         } else if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Manual)) {
 
-            DEBUG("AGC Manual\n");
+            DEBUG("Si4735Utils::checkAGC() -> AGC Manual\n");
             // A felhasználó manuális AGC beállítást kért
             si4735.setAutomaticGainControl(1, config.data.currentAGCgain);
         }
@@ -64,7 +64,7 @@ void Si4735Utils::checkAGC() {
     } else if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Automatic)) {
         // Ha az AGC nincs engedélyezve az AGC, de a felhasználó az AGC engedélyezését kérte
 
-        DEBUG("AGC Automatic\n");
+        DEBUG("Si4735Utils::checkAGC() -> AGC Automatic\n");
 
         // Ez esetben az AGC-t engedélyezzük (0),
         //  és a csillapítást nullára állítjuk (0).
@@ -91,7 +91,7 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735) {
     // Band init, ha változott az épp használt band
     if (currentBandIdx != config.data.bandIdx) {
 
-        band.BandInit();  // Frekvencia visszaállítása a konfogból
+        band.BandInit();  // Frekvencia visszaállítása a konfigból
         band.BandSet();
 
         // Hangerő beállítása

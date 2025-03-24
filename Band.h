@@ -51,7 +51,6 @@ class Band {
     // BandMode description
     static const char *bandModeDesc[5];
 
-    // Band Width
     static const char *bandWidthFM[5];
     static const char *bandWidthAM[7];
     static const char *bandWidthSSB[6];

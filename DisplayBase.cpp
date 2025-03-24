@@ -452,6 +452,8 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         const __FlashStringHelper *title;
         int bwValuesCount;
         const char **bwValues;
+        uint16_t w = 250;
+        uint16_t h = 170;
 
         if (band.currentMode == FM) {
             title = F("FM Filter in kHz");
@@ -461,14 +463,18 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
             title = F("AM Filter in kHz");
             bwValues = Band::bandWidthAM;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthAM);
+            w = 300;
+            h = 180;
         } else {
             title = F("SSB Filter in kHz");
             bwValues = Band::bandWidthSSB;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthSSB);
+            w = 300;
+            h = 150;
         }
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 250, 170, title, bwValues, bwValuesCount,  //
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, w, h, title, bwValues, bwValuesCount,  //
                                                      [this](TftButton::ButtonTouchEvent event) {
                                                          // A megnyomott gomb indexe
                                                          uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
@@ -484,25 +490,24 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                      });
         processed = true;
 
-        } else if (STREQ("Step", event.label)) {
+    } else if (STREQ("Step", event.label)) {
         // Megállapítjuk a lehetséges lépések méretét
         const __FlashStringHelper *title;
         int stepCount;
         const char **stepValues;
-        uint16_t w = 250;
-        uint16_t h = 140;
+        uint16_t w = 310;
+        uint16_t h = 100;
 
         if (band.currentMode == FM) {
             title = F("Step tune FM");
             stepValues = Band::stepSizeFM;
             stepCount = ARRAY_ITEM_COUNT(Band::stepSizeFM);
-            w = 310;
-            h = 100;
-
         } else {
             title = F("Step tune AM/SSB");
             stepValues = Band::stepSizeAM;
             stepCount = ARRAY_ITEM_COUNT(Band::stepSizeAM);
+            w = 250;
+            h = 140;
         }
 
         DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, w, h, title, stepValues, stepCount,  //

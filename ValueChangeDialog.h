@@ -41,6 +41,7 @@ class ValueChangeDialog : public MessageDialog {
      * Érték kirajzolása
      */
     void drawValue() {
+        tft.setFreeFont();
         tft.setTextSize(2);
         tft.setCursor(x + 50, contentY + 30);
         tft.fillRect(x + 30, contentY, w - 40, 40, DLG_BACKGROUND_COLOR);  // Korábbi érték törlése
