@@ -104,17 +104,19 @@ bool AmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) { return fal
  */
 bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
-    BandTable currentBand = band.getBandByIdx(config.data.bandIdx);
+    BandTable &currentBand = band.getCurrentBand();
 
     if (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) {
 
         if (encoderState.direction == RotaryEncoder::Direction::Up) {
             rtv::freqDec = rtv::freqDec - rtv::freqstep;
             int freqTot = (si4735.getFrequency() * 1000) + (rtv::freqDec * -1);
+
             if (freqTot > (currentBand.maximumFreq * 1000)) {
                 si4735.setFrequency(currentBand.maximumFreq);
                 rtv::freqDec = 0;
             }
+
             if (rtv::freqDec <= -16000) {
                 rtv::freqDec = rtv::freqDec + 16000;
                 int freqPlus16 = config.data.currentFreq + 16;
@@ -189,17 +191,14 @@ void AmDisplay::displayLoop() {
     }
 
     // A Frekvenciát azonnal frisítjuk, de csak ha változott
-    uint16_t lastFreq = 0;
-    uint16_t currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    static uint16_t lastFreq = 0;
+    uint16_t currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
 
-        // pSevenSegmentFreq->freqDraw(currFreq, 0);
-
         pSevenSegmentFreq->freqDispl(currFreq);
+        lastFreq = currFreq;
 
         DEBUG("AmDisplay::displayLoop -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
-              band.getBandByIdx(config.data.bandIdx).currentFreq, si4735.getFrequency());
-
-        lastFreq = currFreq;
+              band.getCurrentBand().currentFreq, si4735.getFrequency());
     }
 }

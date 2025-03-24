@@ -22,6 +22,8 @@
  */
 ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
 
+    DEBUG("ScreenSaverDisplay::ScreenSaverDisplay()\n");
+
     // Előre kiszámítjuk a 'c' értékeket a vonalhoz
     for (uint8_t i = 0; i < SAVER_ANIMATION_LINE_LENGTH; i++) {
         saverLineColors[i] = (31 - abs(i - SAVER_LINE_CENTER));
@@ -29,13 +31,16 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayB
 
     // Frekvencia kijelzés pédányosítása
     pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY, true);
-    currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
 }
 
 /**
  * Destruktor
  */
-ScreenSaverDisplay::~ScreenSaverDisplay() { delete (pSevenSegmentFreq); }
+ScreenSaverDisplay::~ScreenSaverDisplay() {
+    delete (pSevenSegmentFreq);
+    DEBUG("ScreenSaverDisplay::~ScreenSaverDisplay()\n");
+}
 
 /**
  * Képernyő kirajzolása

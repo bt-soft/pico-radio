@@ -102,13 +102,13 @@ void DisplayBase::dawStatusLine() {
 // BAND NAME
 #define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
     tft.setTextColor(TFT_COLOR_STATUSLINE_BAND, TFT_BLACK);
-    tft.drawString(band.getBandByIdx(config.data.bandIdx).bandName, 180, 15);
+    tft.drawString(band.getCurrentBand().bandName, 180, 15);
     tft.drawRect(160, 2, 39, 16, TFT_COLOR_STATUSLINE_BAND);
 
 // STEP
 #define TFT_COLOR_STATUSLINE_STEP TFT_SKYBLUE
     tft.setTextColor(TFT_COLOR_STATUSLINE_STEP, TFT_BLACK);
-    uint8_t currentStep = band.getBandByIdx(config.data.bandIdx).currentStep;
+    uint8_t currentStep = band.getCurrentBand().currentStep;
     tft.drawString(String(currentStep * (band.currentMode == FM ? 10 : 1)) + "kHz", 220, 15);
     tft.drawRect(200, 2, 39, 16, TFT_COLOR_STATUSLINE_STEP);
 }
@@ -425,8 +425,8 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
                                                          // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
-                                                         ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                         BandTable &currentBand = band.getCurrentBand();
+                                                         ::newDisplay = currentBand.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
                                                      });
         processed = true;
     } else if (STREQ("Band", event.label)) {
@@ -442,8 +442,8 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
                                                          // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
-                                                         ::newDisplay = bandRecord.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                         BandTable &currentBand = band.getCurrentBand();
+                                                         ::newDisplay = currentBand.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
                                                      });
         processed = true;
 
@@ -516,10 +516,10 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          uint8_t btnIdx = event.id - DLG_MULTI_BTN_ID_START;
 
                                                          // Kikeressük az aktuális Band rekordot
-                                                         BandTable bandRecord = band.getBandByIdx(config.data.bandIdx);
+                                                         BandTable &currentBand = band.getCurrentBand();
 
                                                          // Beállítjuk a konfigban a stepSize-t
-                                                         if (bandRecord.bandType == MW_BAND_TYPE or bandRecord.bandType == LW_BAND_TYPE) {
+                                                         if (currentBand.bandType == MW_BAND_TYPE or currentBand.bandType == LW_BAND_TYPE) {
                                                              config.data.ssIdxMW = btnIdx;
                                                          } else if (band.currentMode == FM) {
                                                              config.data.ssIdxFM = btnIdx;

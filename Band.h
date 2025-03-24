@@ -66,7 +66,7 @@ class Band {
     /**
      *
      */
-    void BandInit();
+    void BandInit(bool sysStart = false);
 
     /**
      *

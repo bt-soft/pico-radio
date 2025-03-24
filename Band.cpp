@@ -172,7 +172,7 @@ void Band::loadSSB() {
 void Band::useBand() {
 
     // Kikeressük az aktuális Band rekordot
-    BandTable currentBand = bandTable[config.data.bandIdx];
+    BandTable& currentBand = bandTable[config.data.bandIdx];
 
     //---- CurrentStep beállítása a band rekordban
 
@@ -355,24 +355,38 @@ void Band::setBandWidth() {
 /**
  * Band inicializálása konfig szerint
  */
-void Band::BandInit() {
+void Band::BandInit(bool sysStart) {
 
-    if (bandTable[config.data.bandIdx].bandType == FM_BAND_TYPE) {
-        DEBUG("Start in FM\n");
+    if (getCurrentBand().bandType == FM_BAND_TYPE) {
+        DEBUG("Band::BandInit() -> Start in FM\n");
         si4735.setup(PIN_SI4735_RESET, FM_BAND_TYPE);
         si4735.setFM();
 
         si4735.setSeekFmSpacing(10);
-        si4735.setSeekFmLimits(bandTable[config.data.bandIdx].minimumFreq, bandTable[config.data.bandIdx].maximumFreq);
+        si4735.setSeekFmLimits(getCurrentBand().minimumFreq, getCurrentBand().maximumFreq);
         si4735.setSeekAmRssiThreshold(50);
         si4735.setSeekAmSrnThreshold(20);
         si4735.setSeekFmRssiThreshold(5);
         si4735.setSeekFmSrnThreshold(5);
 
     } else {
-        DEBUG("Start in AM\n");
+        DEBUG("Band::BandInit() -> Start in AM\n");
         si4735.setup(PIN_SI4735_RESET, MW_BAND_TYPE);
         si4735.setAM();
+    }
+
+    // Rendszer indítás van?
+    if (sysStart) {
+
+        BandTable& curretBand = getCurrentBand();
+
+        rtv::freqstep = 1000;  // Hz
+        rtv::freqDec = config.data.currentBFO;
+        curretBand.lastBFO = config.data.currentBFO;
+        curretBand.prefmod = config.data.currentMode;
+        curretBand.currentFreq = config.data.currentFreq;
+
+        si4735.setVolume(config.data.currVolume);  // Hangerő
     }
 }
 
@@ -397,5 +411,5 @@ void Band::BandSet() {
     useBand();
     setBandWidth();
 
-    currentMode = bandTable[config.data.bandIdx].prefmod;
+    currentMode = getCurrentBand().prefmod;
 }

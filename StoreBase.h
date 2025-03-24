@@ -1,8 +1,10 @@
 #ifndef __STOREBASE_H
 #define __STOREBASE_H
-#include "EepromManager.h"
 #include <Arduino.h>
+
 #include <list>
+
+#include "EepromManager.h"
 
 /**
  * Generikus wrapper ős osztály a mentés és betöltés + CRC számítás funkciókhoz
@@ -11,30 +13,26 @@
 template <typename T>
 class StoreBase {
 
-private:
+   private:
     // A tárolt adatok CRC32 ellenőrző összege
     uint16_t lastCRC = 0;
 
-protected:
+   protected:
     /**
      * Referencia az adattagra, ez az ős használja
      */
     virtual T &r() = 0;
 
-public:
+   public:
     /**
      * Tárolt adatok mentése
      */
-    virtual void forceSave() {
-        EepromManager<T>::save(r());
-    }
+    virtual void forceSave() { EepromManager<T>::save(r()); }
 
     /**
      * Tárolt adatok betöltése
      */
-    virtual void load() {
-        lastCRC = EepromManager<T>::load(r());
-    }
+    virtual void load() { lastCRC = EepromManager<T>::load(r()); }
 
     /**
      * Alapértelmezett adatok betöltése
@@ -51,9 +49,11 @@ public:
         if (lastCRC != crc) {
             crc = EepromManager<T>::save(r());
             lastCRC = crc;
-            DEBUG("EEPROM save end, crc = %d\n", crc);
+            DEBUG("StoreBase::checkSave() -> Saving the config to the EEPROM is OK., crc = %d\n", crc);
+        } else {
+            DEBUG("StoreBase::checkSave() -> There is no need to save the config to the EEPROM\n");
         }
     }
 };
 
-#endif //__STOREBASE_H
+#endif  //__STOREBASE_H

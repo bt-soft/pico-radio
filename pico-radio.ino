@@ -214,22 +214,12 @@ void setup() {
     delay(1500);
 
     //--------------------------------------------------------------------
-    band.BandInit();
-
-    BandTable curretBand = band.getCurrentBand();
-
-    rtv::freqstep = 1000;  // Hz
-    rtv::freqDec = config.data.currentBFO;
-    curretBand.lastBFO = config.data.currentBFO;
-    curretBand.prefmod = config.data.currentMode;
-    curretBand.currentFreq = config.data.currentFreq;
-
-    // Si4735 init
-    si4735.setVolume(config.data.currVolume);   // Hangerő
+    // Band + Si4735 init
+    band.BandInit(true);
     si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
 
-    // Induló képernyő beállítása
-    newDisplay = curretBand.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+    // Kezdő képernyőtípus beállítása
+    ::newDisplay = band.getCurrentBand().bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
 
     //--------------------------------------------------------------------
 

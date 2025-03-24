@@ -90,7 +90,7 @@ void FmDisplay::drawScreen() {
     this->showMonoStereo(si4735.getCurrentPilot());
 
     // Frekvencia
-    float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    float currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     pSevenSegmentFreq->freqDraw(currFreq, 0);
 
     // Gombok kirajzolása
@@ -183,13 +183,14 @@ bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
     }
 
     // Elmentjük a band táblába az aktuális frekvencia értékét
-    band.getBandByIdx(config.data.bandIdx).currentFreq = si4735.getFrequency();
+    BandTable &currentBand = band.getCurrentBand();
+    currentBand.currentFreq = si4735.getFrequency();
 
     // RDS törlés
     pRds->clearRds();
 
-    DEBUG("FmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
-          band.getBandByIdx(config.data.bandIdx).currentFreq, si4735.getFrequency());
+    DEBUG("FmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx, band.getCurrentBand().currentFreq,
+          si4735.getFrequency());
 
     return true;
 }
@@ -234,12 +235,12 @@ void FmDisplay::displayLoop() {
 
     // A Frekvenciát azonnal frisítjuk, de csak ha változott
     static uint16_t lastFreq = 0;
-    uint16_t currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    uint16_t currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
         pSevenSegmentFreq->freqDraw(currFreq, 0);
         lastFreq = currFreq;
 
         DEBUG("FmDisplay::displayLoop -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
-              band.getBandByIdx(config.data.bandIdx).currentFreq, si4735.getFrequency());
+              band.getCurrentBand().currentFreq, si4735.getFrequency());
     }
 }

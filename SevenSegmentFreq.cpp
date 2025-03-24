@@ -91,7 +91,7 @@ void SevenSegmentFreq::freqDraw(uint16_t currentFrequency, int d) {
 
     } else {
         // AM vagy LW?
-        uint8_t bandType = band.getBandByIdx(config.data.bandIdx).bandType;
+        uint8_t bandType = band.getCurrentBand().bandType;
         if (bandType == MW_BAND_TYPE or bandType == LW_BAND_TYPE) {
             displayFreq = currentFrequency;
             segment(String(displayFreq, 0), "1888", d);
@@ -134,7 +134,7 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
     tft.setTextDatum(BC_DATUM);
 
     // Lekérjük az aktuális band rekordot-ot
-    BandTable currentBand = band.getBandByIdx(config.data.bandIdx);
+    BandTable& currentBand = band.getCurrentBand();
 
     if (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) {
 
