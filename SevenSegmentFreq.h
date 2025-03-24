@@ -30,7 +30,12 @@ class SevenSegmentFreq {
     /**
      *
      */
-    void freqDraw(float freq, int d);
+    void freqDraw(uint16_t freq, int d);
+
+    /**
+     *
+     */
+    void freqDispl(uint16_t freq);
 
     /**
      * Pozíció beállítása (pl.: a ScreenSaver számára)

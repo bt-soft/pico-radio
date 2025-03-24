@@ -138,7 +138,7 @@ const char** Band::getBandNames(uint8_t& count, bool isHamFilter) {
  */
 void Band::loadSSB() {
 
-    // Ha már be van töltve, akkor nem megyünkn tovább
+    // Ha már be van töltve, akkor nem megyünk tovább
     if (ssbLoaded) {
         return;
     }
@@ -353,7 +353,7 @@ void Band::setBandWidth() {
 }
 
 /**
- * Band inicializálása
+ * Band inicializálása konfig szerint
  */
 void Band::BandInit() {
 
@@ -361,6 +361,14 @@ void Band::BandInit() {
         DEBUG("Start in FM\n");
         si4735.setup(PIN_SI4735_RESET, FM_BAND_TYPE);
         si4735.setFM();
+
+        si4735.setSeekFmSpacing(10);
+        si4735.setSeekFmLimits(bandTable[config.data.bandIdx].minimumFreq, bandTable[config.data.bandIdx].maximumFreq);
+        si4735.setSeekAmRssiThreshold(50);
+        si4735.setSeekAmSrnThreshold(20);
+        si4735.setSeekFmRssiThreshold(5);
+        si4735.setSeekFmSrnThreshold(5);
+
     } else {
         DEBUG("Start in AM\n");
         si4735.setup(PIN_SI4735_RESET, MW_BAND_TYPE);

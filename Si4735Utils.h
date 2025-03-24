@@ -9,6 +9,8 @@
 class Si4735Utils {
    private:
     static int8_t currentBandIdx;
+    bool audioMut;
+    uint32_t elapsedAudMut;
 
    protected:
     // SI4735
@@ -46,6 +48,9 @@ class Si4735Utils {
      * Frequency Step set
      */
     void setStep();
+
+    void MuteAud();
+    void MuteAudOn();
 };
 
 #endif  //__SI4735UTILS_H

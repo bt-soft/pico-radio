@@ -11,6 +11,7 @@ const Config_t DEFAULT_CONFIG = {
     .bandIdx = 0,         // Default band, FM
     .currentFreq = 9390,  // Petőfi 93.9MHz
     .currentStep = 100,   // Default step, 100kHz
+    .currentMode = 0,     // FM-ben infulunk először
 
     // BandWidht
     .bwIdxAM = 0,   // BandWidth AM - Band::bandWidthAM index szerint -> "6.0" kHz

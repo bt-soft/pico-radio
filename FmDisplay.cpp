@@ -143,29 +143,6 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 }
 
 /**
- * Rotary encoder esemény lekezelése
- */
-bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
-
-    switch (encoderState.direction) {
-        case RotaryEncoder::Direction::Up:
-            si4735.frequencyUp();
-            break;
-        case RotaryEncoder::Direction::Down:
-            si4735.frequencyDown();
-            break;
-    }
-
-    // Elmentjük a band táblába az aktuális frekvencia értékét
-    band.getBandByIdx(config.data.bandIdx).currentFreq = si4735.getFrequency();
-
-    // RDS törlés
-    pRds->clearRds();
-
-    return true;
-}
-
-/**
  * Touch (nem képrnyő button) esemény lekezelése
  * A további gui elemek vezérléséhez
  */
@@ -192,6 +169,32 @@ void FmDisplay::showMonoStereo(bool stereo) {
 }
 
 /**
+ * Rotary encoder esemény lekezelése
+ */
+bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
+
+    switch (encoderState.direction) {
+        case RotaryEncoder::Direction::Up:
+            si4735.frequencyUp();
+            break;
+        case RotaryEncoder::Direction::Down:
+            si4735.frequencyDown();
+            break;
+    }
+
+    // Elmentjük a band táblába az aktuális frekvencia értékét
+    band.getBandByIdx(config.data.bandIdx).currentFreq = si4735.getFrequency();
+
+    // RDS törlés
+    pRds->clearRds();
+
+    DEBUG("FmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
+          band.getBandByIdx(config.data.bandIdx).currentFreq, si4735.getFrequency());
+
+    return true;
+}
+
+/**
  * Esemény nélküli display loop -> Adatok periódikus megjelenítése
  */
 void FmDisplay::displayLoop() {
@@ -202,7 +205,7 @@ void FmDisplay::displayLoop() {
     }
 
     // Néhány adatot csak ritkábban frissítünk
-    static long elapsedTimedValues = 0;  // Kezdőérték nulla
+    static uint32_t elapsedTimedValues = 0;  // Kezdőérték nulla
     if ((millis() - elapsedTimedValues) >= SCREEN_COMPS_REFRESH_TIME_MSEC) {
 
         // RSSI
@@ -229,11 +232,14 @@ void FmDisplay::displayLoop() {
         elapsedTimedValues = millis();
     }
 
-    // A Freqkvenciát azonnal frisítjuk, de csak ha változott
-    static float lastFreq = 0;
-    float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    // A Frekvenciát azonnal frisítjuk, de csak ha változott
+    static uint16_t lastFreq = 0;
+    uint16_t currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
         pSevenSegmentFreq->freqDraw(currFreq, 0);
         lastFreq = currFreq;
+
+        DEBUG("FmDisplay::displayLoop -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
+              band.getBandByIdx(config.data.bandIdx).currentFreq, si4735.getFrequency());
     }
 }

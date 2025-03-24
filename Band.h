@@ -86,6 +86,11 @@ class Band {
     BandTable &getBandByIdx(uint8_t bandIdx);
 
     /**
+     *
+     */
+    inline BandTable &getCurrentBand() { return getBandByIdx(config.data.bandIdx); }
+
+    /**
      * A Band indexének elkérése a bandName alapján
      *
      * @param bandName A keresett sáv neve

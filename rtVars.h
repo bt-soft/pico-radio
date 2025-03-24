@@ -14,9 +14,13 @@ extern bool mute;
 // Frekvencia kijelzés pozíciója
 extern uint16_t freqDispX;
 extern uint16_t freqDispY;
+extern uint16_t freqstep;
+extern uint8_t freqstepnr;
+extern int freqDec;
 
 // BFO
 extern bool bfoOn;
+extern bool bfoTr;
 
 // Mute
 #define AUDIO_MUTE_ON true

@@ -49,7 +49,7 @@ DisplayBase *pDisplay = nullptr;
  * Induláskor FM - módban indulunk
  * (Ezt a globális változót a képernyők állítgatják, ha más képernyőt választ a felhasználó)
  */
-DisplayBase::DisplayType newDisplay = DisplayBase::DisplayType::fm;
+DisplayBase::DisplayType newDisplay;
 DisplayBase::DisplayType currentDisplay = DisplayBase::DisplayType::none;
 
 // A képernyővédő elindulása előtti screen pointere, majd erre állunk vissza
@@ -213,9 +213,25 @@ void setup() {
     tft.println(si4735Addr, HEX);
     delay(1500);
 
+    //--------------------------------------------------------------------
+    band.BandInit();
+
+    BandTable curretBand = band.getCurrentBand();
+
+    rtv::freqstep = 1000;  // Hz
+    rtv::freqDec = config.data.currentBFO;
+    curretBand.lastBFO = config.data.currentBFO;
+    curretBand.prefmod = config.data.currentMode;
+    curretBand.currentFreq = config.data.currentFreq;
+
     // Si4735 init
     si4735.setVolume(config.data.currVolume);   // Hangerő
     si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
+
+    // Induló képernyő beállítása
+    newDisplay = curretBand.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+
+    //--------------------------------------------------------------------
 
     // Kezdő mód képernyőjének megjelenítése
     changeDisplay();
@@ -271,14 +287,17 @@ void loop() {
         return;
     }
 
+    // FIXME: Ezt majd ellenőrizni...
+    //////////////////////////////////////////////////////pDisplay->MuteAud();
+
     // Aktuális Display loopja
-    bool touched = pDisplay->loop(encoderState);
+    bool handleInLoop = pDisplay->loop(encoderState);
 
 #define SCREEN_SAVER_TIME 1000 * 60 * 10  // 10 perc a képernyővédő időzítése
     static uint32_t lastScreenSaver = millis();
     // Ha volt touch valamelyik képernyőn, vagy volt rotary esemény...
     // Volt felhasználói interakció?
-    bool userInteraction = (touched or encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None);
+    bool userInteraction = (handleInLoop or encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None);
 
     if (userInteraction) {
         // Ha volt interakció, akkor megnézzük, hogy az a képernyővédőn történt-e

@@ -14,6 +14,7 @@ struct Config_t {
     uint8_t bandIdx;
     uint16_t currentFreq;
     uint8_t currentStep;
+    uint8_t currentMode;
 
     // BandWidht
     uint8_t bwIdxAM;

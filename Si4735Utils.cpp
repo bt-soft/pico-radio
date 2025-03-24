@@ -84,7 +84,7 @@ void Si4735Utils::loop() {
 /**
  * Konstruktor
  */
-Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735) {
+Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735), audioMut(false), elapsedAudMut(millis()) {
 
     DEBUG("Si4735Utils::Si4735Utils\n");
 
@@ -122,5 +122,28 @@ void Si4735Utils::setStep() {
     if (!rtv::SCANbut) {
         band.useBand();
         checkAGC();
+    }
+}
+
+/**
+ *
+ */
+void Si4735Utils::MuteAudOn() {
+
+    si4735.setHardwareAudioMute(1);
+    audioMut = true;
+    elapsedAudMut = millis();
+}
+
+/**
+ *
+ */
+void Si4735Utils::MuteAud() {
+#define MIN_ELAPSED_AudMut_TIME 0  // Noise surpression SSB in mSec. 0 mSec = off //Was 0 (LWH)
+
+    // Stop muting only if this condition has changed
+    if (((millis() - elapsedAudMut) > MIN_ELAPSED_AudMut_TIME) and (audioMut = true)) {
+        audioMut = false;
+        si4735.setHardwareAudioMute(0);
     }
 }
