@@ -1,45 +1,83 @@
 #include "Band.h"
 
+#include <avr/pgmspace.h>
 #include <patch_full.h>  // SSB patch for whole SSBRX full download
 
 #include "rtVars.h"
 
-// Band tábla
-BandTable bandTable[] = {
-    {"FM", FM_BAND_TYPE, FM, 6400, 10800, 9390, 10, 0, 0, false},    //  FM          0   //93.9MHz Petőfi
-    {"LW", LW_BAND_TYPE, AM, 100, 514, 198, 9, 0, 0, false},         //  LW          1
-    {"MW", MW_BAND_TYPE, AM, 514, 1800, 540, 9, 0, 0, false},        //  MW          2   // 540kHz Kossuth
-    {"800m", LW_BAND_TYPE, AM, 280, 470, 284, 1, 0, 0, true},        // Ham  800M    3
-    {"630m", SW_BAND_TYPE, LSB, 470, 480, 475, 1, 0, 0, true},       // Ham  630M    4
-    {"160m", SW_BAND_TYPE, LSB, 1800, 2000, 1850, 1, 0, 0, true},    // Ham  160M    5
-    {"120m", SW_BAND_TYPE, AM, 2000, 3200, 2400, 5, 0, 0, false},    //      120M    6
-    {"90m", SW_BAND_TYPE, AM, 3200, 3500, 3300, 5, 0, 0, false},     //       90M    7
-    {"80m", SW_BAND_TYPE, LSB, 3500, 3900, 3630, 1, 0, 0, true},     // Ham   80M    8
-    {"75m", SW_BAND_TYPE, AM, 3900, 5300, 3950, 5, 0, 0, false},     //       75M    9
-    {"60m", SW_BAND_TYPE, USB, 5300, 5900, 5375, 1, 0, 0, true},     // Ham   60M   10
-    {"49m", SW_BAND_TYPE, AM, 5900, 7000, 6000, 5, 0, 0, false},     //       49M   11
-    {"40m", SW_BAND_TYPE, LSB, 7000, 7500, 7074, 1, 0, 0, true},     // Ham   40M   12
-    {"41m", SW_BAND_TYPE, AM, 7200, 9000, 7210, 5, 0, 0, false},     //       41M   13
-    {"31m", SW_BAND_TYPE, AM, 9000, 10000, 9600, 5, 0, 0, false},    //       31M   14
-    {"30m", SW_BAND_TYPE, USB, 10000, 10200, 10099, 1, 0, 0, true},  // Ham   30M   15
-    {"25m", SW_BAND_TYPE, AM, 10200, 13500, 11700, 5, 0, 0, false},  //       25M   16
-    {"22m", SW_BAND_TYPE, AM, 13500, 14000, 13700, 5, 0, 0, false},  //       22M   17
-    {"20m", SW_BAND_TYPE, USB, 14000, 14500, 14074, 1, 0, 0, true},  // Ham   20M   18
-    {"19m", SW_BAND_TYPE, AM, 14500, 17500, 15700, 5, 0, 0, false},  //       19M   19
-    {"17m", SW_BAND_TYPE, AM, 17500, 18000, 17600, 5, 0, 0, false},  //       17M   20
-    {"16m", SW_BAND_TYPE, USB, 18000, 18500, 18100, 1, 0, 0, true},  // Ham   16M   21
-    {"15m", SW_BAND_TYPE, AM, 18500, 21000, 18950, 5, 0, 0, false},  //       15M   22
-    {"14m", SW_BAND_TYPE, USB, 21000, 21500, 21074, 1, 0, 0, true},  // Ham   14M   23
-    {"13m", SW_BAND_TYPE, AM, 21500, 24000, 21500, 5, 0, 0, false},  //       13M   24
-    {"12m", SW_BAND_TYPE, USB, 24000, 25500, 24940, 1, 0, 0, true},  // Ham   12M   25
-    {"11m", SW_BAND_TYPE, AM, 25500, 26100, 25800, 5, 0, 0, false},  //       11M   26
-    {"CB", SW_BAND_TYPE, AM, 26100, 28000, 27200, 1, 0, 0, false},   // CB band     27
-    {"10m", SW_BAND_TYPE, USB, 28000, 30000, 28500, 1, 0, 0, true},  // Ham   10M   28
-    {"SW", SW_BAND_TYPE, AM, 100, 30000, 15500, 5, 0, 0, false}      // Whole SW    29
+// Sávnevek tárolása PROGMEM-ben tömbként
+const char bandNames[][5] PROGMEM = {
+    "FM",    // 0
+    "LW",    // 1
+    "MW",    // 2
+    "800m",  // 3
+    "630m",  // 4
+    "160m",  // 5
+    "120m",  // 6
+    "90m",   // 7
+    "80m",   // 8
+    "75m",   // 9
+    "60m",   // 10
+    "49m",   // 11
+    "40m",   // 12
+    "41m",   // 13
+    "31m",   // 14
+    "30m",   // 15
+    "25m",   // 16
+    "22m",   // 17
+    "20m",   // 18
+    "19m",   // 19
+    "17m",   // 20
+    "16m",   // 21
+    "15m",   // 22
+    "14m",   // 23
+    "13m",   // 24
+    "12m",   // 25
+    "11m",   // 26
+    "CB",    // 27
+    "10m",   // 28
+    "SW"     // 29
 };
 
-// Ha nem található a keresett band, akkor ezzel térünk vissza
-static BandTable EMPTY_BAND = {"", 0, 0, 0, 0, 0, 0, 0, 0, false};
+// PROGMEM - ben tárolt állandó tábla
+const BandTableConst bandTableConst[] PROGMEM = {
+    {bandNames[0], 0, FM, 6400, 10800, 9390, 10, false},    //  FM          0   // 93.9MHz Petőfi
+    {bandNames[1], 1, AM, 100, 514, 198, 9, false},         //  LW          1
+    {bandNames[2], 1, AM, 514, 1800, 540, 9, false},        //  MW          2   // 540kHz Kossuth
+    {bandNames[3], 1, AM, 280, 470, 284, 1, true},          // Ham  800M    3
+    {bandNames[4], 1, LSB, 470, 480, 475, 1, true},         // Ham  630M    4
+    {bandNames[5], 1, LSB, 1800, 2000, 1850, 1, true},      // Ham  160M    5
+    {bandNames[6], 1, AM, 2000, 3200, 2400, 5, false},      //      120M    6
+    {bandNames[7], 1, AM, 3200, 3500, 3300, 5, false},      //       90M    7
+    {bandNames[8], 1, LSB, 3500, 3900, 3630, 1, true},      // Ham   80M    8
+    {bandNames[9], 1, AM, 3900, 5300, 3950, 5, false},      //       75M    9
+    {bandNames[10], 1, USB, 5300, 5900, 5375, 1, true},     // Ham   60M   10
+    {bandNames[11], 1, AM, 5900, 7000, 6000, 5, false},     //       49M   11
+    {bandNames[12], 1, LSB, 7000, 7500, 7074, 1, true},     // Ham   40M   12
+    {bandNames[13], 1, AM, 7200, 9000, 7210, 5, false},     //       41M   13
+    {bandNames[14], 1, AM, 9000, 10000, 9600, 5, false},    //       31M   14
+    {bandNames[15], 1, USB, 10000, 10200, 10099, 1, true},  // Ham   30M   15
+    {bandNames[16], 1, AM, 10200, 13500, 11700, 5, false},  //       25M   16
+    {bandNames[17], 1, AM, 13500, 14000, 13700, 5, false},  //       22M   17
+    {bandNames[18], 1, USB, 14000, 14500, 14074, 1, true},  // Ham   20M   18
+    {bandNames[19], 1, AM, 14500, 17500, 15700, 5, false},  //       19M   19
+    {bandNames[20], 1, AM, 17500, 18000, 17600, 5, false},  //       17M   20
+    {bandNames[21], 1, USB, 18000, 18500, 18100, 1, true},  // Ham   16M   21
+    {bandNames[22], 1, AM, 18500, 21000, 18950, 5, false},  //       15M   22
+    {bandNames[23], 1, USB, 21000, 21500, 21074, 1, true},  // Ham   14M   23
+    {bandNames[24], 1, AM, 21500, 24000, 21500, 5, false},  //       13M   24
+    {bandNames[25], 1, USB, 24000, 25500, 24940, 1, true},  // Ham   12M   25
+    {bandNames[26], 1, AM, 25500, 26100, 25800, 5, false},  //       11M   26
+    {bandNames[27], 1, AM, 26100, 28000, 27200, 1, false},  // CB band     27
+    {bandNames[28], 1, USB, 28000, 30000, 28500, 1, true},  // Ham   10M   28
+    {bandNames[29], 1, AM, 100, 30000, 15500, 5, false}     // Whole SW    29
+};
+
+/// Itt határozzuk meg a BAND_COUNT értékét!
+const size_t BANDTABLE_COUNT = sizeof(bandTableConst) / sizeof(BandTableConst);
+
+// A Kombinált tábla RAM-ban
+BandTable bandTable[BANDTABLE_COUNT];
 
 // BandMode description
 const char* Band::bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
@@ -56,7 +94,33 @@ const char* Band::stepSizeFM[] = {"50Khz", "100KHz", "1MHz"};
 /**
  * Konstruktor
  */
-Band::Band(SI4735& si4735) : si4735(si4735) {}
+Band::Band(SI4735& si4735) : si4735(si4735) {
+
+    // A BandTable inicializálása
+    for (uint8_t i = 0; i < BANDTABLE_COUNT; i++) {
+
+        // Flash adatok pointerének beállítása
+        bandTable[i].pConstData = &bandTableConst[i];  // PROGMEM mutató beállítása, hátha kell
+
+        // RAM Változó adatok inicializálása
+        //  Ha még nem volt az EEPROM mentésből visszaállítás, akkor most bemásoljuk a default értékeket a változó értékekbe
+        if (bandTable[i].varData.currFreq == 0) {
+            bandTable[i].varData.currFreq = bandTableConst[i].defFreq;  // Frekvencia
+            bandTable[i].varData.currStep = bandTableConst[i].defStep;  // Lépés
+            bandTable[i].varData.currMod = bandTableConst[i].prefMod;   // Moduláció
+
+            // Antenna tunning capacitor
+            if (bandTableConst[i].bandType != FM_BAND_TYPE or bandTableConst[i].bandType != MW_BAND_TYPE or bandTableConst[i].bandType != LW_BAND_TYPE) {
+                bandTable[i].varData.antCap = 0;  // Antenna tunning capacitor
+            } else {
+                bandTable[i].varData.antCap = 1;
+            }
+
+            bandTable[i].varData.lastBFO = 0;
+            bandTable[i].varData.lastmanuBFO = 0;
+        }
+    }
+}
 
 /**
  * A Band egy rekordjának elkérése az index alapján
@@ -66,12 +130,11 @@ Band::Band(SI4735& si4735) : si4735(si4735) {}
  */
 BandTable& Band::getBandByIdx(uint8_t bandIdx) {
 
-    // Ha túlcímzés van
-    if (bandIdx >= ARRAY_ITEM_COUNT(bandTable)) {
-        return EMPTY_BAND;
-    }
+    static BandTable emptyBand = {nullptr, {0, 0, 0, 0}};  // Üres rekord
+    if (bandIdx >= BANDTABLE_COUNT) return emptyBand;      // Érvénytelen index esetén üres rekordot adunk vissza
 
-    return bandTable[bandIdx];
+    // return bandTableVar[index];
+    return bandTable[bandIdx];  // Egyébként visszaadjuk a megfelelő rekordot
 }
 
 /**
@@ -82,55 +145,32 @@ BandTable& Band::getBandByIdx(uint8_t bandIdx) {
  */
 int8_t Band::getBandIdxByBandName(const char* bandName) {
 
-    for (int i = 0; i < ARRAY_ITEM_COUNT(bandTable); i++) {
-        if (strcmp(bandTable[i].bandName, bandName) == 0) {
-            return i;
+    for (size_t i = 0; i < BANDTABLE_COUNT; i++) {
+        if (strcmp_P(bandName, bandTableConst[i].bandName) == 0) {
+            return i;  // Megtaláltuk az indexet
         }
     }
-    // Ha nem találtuk meg, akkor -1
-    return -1;
+    return -1;  // Ha nem található
 }
-
-// /**
-//  * A Band egy rekordjának elkérése a bandName alapján
-//  *
-//  * @param bandName A keresett sáv neve
-//  * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
-//  */
-// BandTable& Band::getBandByBandName(const char* bandName) {
-
-//     for (int i = 0; i < ARRAY_ITEM_COUNT(bandTable); i++) {
-//         if (strcmp(bandTable[i].bandName, bandName) == 0) {
-//             return bandTable[i];
-//         }
-//     }
-//     // Ha nem találtuk meg, akkor egy üres rekordot adunk vissza
-//     // (Ez nem ideális, de elkerüljük a null pointert)
-//     return EMPTY_BAND;
-// }
 
 /**
  * Sávok neveinek visszaadása tömbként
+ *
  * @param count talált elemek száma
  * @param isHamFilter HAM szűrő
  */
 const char** Band::getBandNames(uint8_t& count, bool isHamFilter) {
 
-    const uint8_t bandTableSize = ARRAY_ITEM_COUNT(bandTable);
+    static const char* filteredNames[BANDTABLE_COUNT];  // Tároló a kiválasztott nevekre
+    count = 0;                                          // Kezdőérték
 
-    // Max lehetséges értéket foglalunk le
-    static const char* bandNames[bandTableSize];
-
-    count = 0;
-    for (uint8_t i = 0; i < sizeof(bandTable) / sizeof(BandTable); i++) {
-        if (bandTable[i].isHam == isHamFilter) {  // Szűrés HAM vagy nem HAM szerint
-            if (count < bandTableSize) {
-                bandNames[count] = bandTable[i].bandName;
-                count++;
-            }
+    for (size_t i = 0; i < BANDTABLE_COUNT; i++) {
+        if (bandTableConst[i].isHam == isHamFilter) {             // HAM sáv szűrés
+            filteredNames[count++] = bandTableConst[i].bandName;  // Hozzáadás a listához
         }
     }
-    return bandNames;
+
+    return filteredNames;  // A pointert visszaadjuk
 }
 
 /**
@@ -172,42 +212,44 @@ void Band::loadSSB() {
 void Band::useBand() {
 
     // Kikeressük az aktuális Band rekordot
-    BandTable& currentBand = bandTable[config.data.bandIdx];
+    BandTable& currentBand = getCurrentBand();
+    uint8_t currentBandType = getCurrentBandType();
+
+    DEBUG("Band::useBand() -> bandName: %s currStep: %d, currentMode: %s\n", getCurrentBandName(), currentBand.varData.currStep, getCurrentBandModeDesc());
 
     //---- CurrentStep beállítása a band rekordban
 
     // AM esetén 1...1000 között bátmi lehet - {"1kHz", "5kHz", "9kHz", "10kHz"};
     //  For AM, 1 (1kHz) to 1000 (1MHz) are valid values.
-    if ((currentBand.bandType == MW_BAND_TYPE) or (currentBand.bandType == LW_BAND_TYPE)) {
+    if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
         // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxMW]));
         switch (config.data.ssIdxMW) {
             case 0:
-                currentBand.currentStep = 1;
+                currentBand.varData.currStep = 1;
                 break;
             case 1:
-                currentBand.currentStep = 5;
+                currentBand.varData.currStep = 5;
                 break;
             case 2:
-                currentBand.currentStep = 9;
+                currentBand.varData.currStep = 9;
                 break;
             default:
-                currentBand.currentStep = 10;
+                currentBand.varData.currStep = 10;
         }
-
-    } else if (currentBand.bandType == SW_BAND_TYPE) {
+    } else if (currentBandType == SW_BAND_TYPE) {
         // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxAM]));
         switch (config.data.ssIdxAM) {
             case 0:
-                currentBand.currentStep = 1;
+                currentBand.varData.currStep = 1;
                 break;
             case 1:
-                currentBand.currentStep = 5;
+                currentBand.varData.currStep = 5;
                 break;
             case 2:
-                currentBand.currentStep = 9;
+                currentBand.varData.currStep = 9;
                 break;
             default:
-                currentBand.currentStep = 10;
+                currentBand.varData.currStep = 10;
         }
 
     } else {
@@ -215,24 +257,22 @@ void Band::useBand() {
         //  For FM 5 (50kHz), 10 (100kHz) and 100 (1MHz) are valid values.
         switch (config.data.ssIdxFM) {
             case 0:
-                currentBand.currentStep = 5;
+                currentBand.varData.currStep = 5;
                 break;
             case 1:
-                currentBand.currentStep = 10;
+                currentBand.varData.currStep = 10;
                 break;
             default:
-                currentBand.currentStep = 100;
+                currentBand.varData.currStep = 100;
         }
         // static_cast<uint8_t>(atoi(Band::stepSizeFM[config.data.ssIdxFM]));
     }
 
-    DEBUG("currentBand.bandName: %s currentBand.currentStep: %d\n", currentBand.bandName, currentBand.currentStep);
-
-    if (currentBand.bandType == FM_BAND_TYPE) {
+    if (currentBandType == FM_BAND_TYPE) {
         rtv::bfoOn = false;
         si4735.setTuneFrequencyAntennaCapacitor(0);
         delay(100);
-        si4735.setFM(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep);
+        si4735.setFM(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep);
         si4735.setFMDeEmphasis(1);
         ssbLoaded = false;
         si4735.RdsInit();
@@ -240,14 +280,15 @@ void Band::useBand() {
 
     } else {
 
-        if (currentBand.bandType == MW_BAND_TYPE or currentBand.bandType == LW_BAND_TYPE) {
+        if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
             si4735.setTuneFrequencyAntennaCapacitor(0);
         } else {
             si4735.setTuneFrequencyAntennaCapacitor(1);
         }
 
         if (ssbLoaded) {
-            si4735.setSSB(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep, currentMode);
+            si4735.setSSB(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep,
+                          currentBand.varData.currMod);
             // si4735.setSSBAutomaticVolumeControl(1);
             // si4735.setSsbSoftMuteMaxAttenuation(0); // Disable Soft Mute for SSB
             // si4735.setSSBDspAfc(0);
@@ -259,12 +300,12 @@ void Band::useBand() {
             si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);
 
             // SSB ONLY 1KHz stepsize
-            currentBand.currentStep = 1;
-            si4735.setFrequencyStep(currentBand.currentStep);
+            currentBand.varData.currStep = 1;
+            si4735.setFrequencyStep(currentBand.varData.currStep);
 
         } else {
 
-            si4735.setAM(currentBand.minimumFreq, currentBand.maximumFreq, currentBand.currentFreq, currentBand.currentStep);
+            si4735.setAM(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep);
             // si4735.setAutomaticGainControl(1, 0);
             // si4735.setAmSoftMuteMaxAttenuation(0); // // Disable Soft Mute for AM
             rtv::bfoOn = false;
@@ -278,7 +319,10 @@ void Band::useBand() {
  */
 void Band::setBandWidth() {
 
-    if (currentMode == LSB or currentMode == USB) {
+    BandTable& currentBand = getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
+
+    if (currMod == LSB or currMod == USB) {
         /**
          * @ingroup group17 Patch and SSB support
          *
@@ -315,7 +359,7 @@ void Band::setBandWidth() {
         }
     }
 
-    if (currentMode == AM) {
+    if (currMod == AM) {
         /**
          * @ingroup group08 Set bandwidth
          * @brief Selects the bandwidth of the channel filter for AM reception.
@@ -333,7 +377,7 @@ void Band::setBandWidth() {
          */
         si4735.setBandwidth(config.data.bwIdxAM, 0);
 
-    } else if (currentMode == FM) {
+    } else if (currMod == FM) {
         /**
          * @brief Sets the Bandwith on FM mode
          * @details Selects bandwidth of channel filter applied at the demodulation stage. Default is automatic which means the device automatically selects proper channel filter.
@@ -357,14 +401,15 @@ void Band::setBandWidth() {
  */
 void Band::BandInit(bool sysStart) {
 
+    DEBUG("Band::BandInit() ->bandIdx: %d\n", config.data.bandIdx);
     BandTable& curretBand = getCurrentBand();
 
-    if (curretBand.bandType == FM_BAND_TYPE) {
+    if (getCurrentBandType() == FM_BAND_TYPE) {
         si4735.setup(PIN_SI4735_RESET, FM_BAND_TYPE);
         si4735.setFM();
 
         si4735.setSeekFmSpacing(10);
-        si4735.setSeekFmLimits(getCurrentBand().minimumFreq, getCurrentBand().maximumFreq);
+        si4735.setSeekFmLimits(curretBand.pConstData->minimumFreq, curretBand.pConstData->maximumFreq);
         si4735.setSeekAmRssiThreshold(50);
         si4735.setSeekAmSrnThreshold(20);
         si4735.setSeekFmRssiThreshold(5);
@@ -375,16 +420,14 @@ void Band::BandInit(bool sysStart) {
         si4735.setAM();
     }
 
-    DEBUG("Band::BandInit() ->bandIdx: %d\n", config.data.bandIdx);
-
     // Rendszer indítás van?
     if (sysStart) {
 
         // rtv::freqstep = 1000;  // 1kHz
         rtv::freqDec = config.data.currentBFO;
-        curretBand.lastBFO = config.data.currentBFO;
-        curretBand.prefmod = config.data.currentMode;
-        curretBand.currentFreq = config.data.currentFreq;
+        curretBand.varData.lastBFO = config.data.currentBFO;
+        // curretBand.prefMod = config.data.currentMode;
+        // curretBand.varData.currFreq = config.data.currentFreq;
 
         si4735.setVolume(config.data.currVolume);  // Hangerő
     }
@@ -394,15 +437,17 @@ void Band::BandInit(bool sysStart) {
  * Band beállítása
  */
 void Band::BandSet() {
-    if (config.data.bandIdx == 0) {
-        currentMode = FM;
-    }
 
-    if ((currentMode == AM) or (currentMode == FM)) {
+    BandTable& currentBand = getCurrentBand();
+
+    // Átmásoljuk a preferált modulációs módot
+    uint8_t currMod = currentBand.varData.currMod = currentBand.pConstData->prefMod;
+
+    if (currMod == AM or currMod == FM) {
         ssbLoaded = false;  // FIXME: Ez kell? Band váltás után megint be kell tölteni az SSB-t?
     }
 
-    if ((currentMode == LSB) or (currentMode == USB)) {
+    if (currMod == LSB or currMod == USB) {
         if (ssbLoaded == false) {
             this->loadSSB();
         }
@@ -411,5 +456,6 @@ void Band::BandSet() {
     useBand();
     setBandWidth();
 
-    currentMode = getCurrentBand().prefmod;
+    // Antenna Tunning Capacitor beállítása
+    si4735.setTuneFrequencyAntennaCapacitor(currentBand.varData.antCap);
 }

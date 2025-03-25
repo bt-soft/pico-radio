@@ -19,18 +19,32 @@
 #define AM 3
 #define CW 4
 
-// Band data
+// BandTable állandó része (PROGMEM-ben tároljuk)
+struct BandTableConst {
+    const char *bandName;  // Sáv neve (PROGMEM mutató)
+    uint8_t bandType;      // Sáv típusa (FM, MW, LW vagy SW)
+    uint16_t prefMod;      // Preferált moduláció (AM, FM, USB, LSB, CW)
+    uint16_t minimumFreq;  // A sáv minimum frekvenciája
+    uint16_t maximumFreq;  // A sáv maximum frekvenciája
+    uint16_t defFreq;      // Alapértelmezett frekvencia vagy aktuális frekvencia
+    uint8_t defStep;       // Alapértelmezett lépésköz (növelés/csökkentés)
+    bool isHam;            // HAM sáv-e?
+};
+
+// BandTable változó része (RAM-ban tároljuk)
+struct BandTableVar {
+    uint16_t currFreq;    // Aktuális frekvencia
+    uint8_t currStep;     // Aktuális lépésköz (növelés/csökkentés)
+    uint8_t currMod;      // Aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
+    uint16_t antCap;      // Antenna Tuning Capacitor
+    uint8_t lastBFO;      // Utolsó BFO érték
+    uint8_t lastmanuBFO;  // Utolsó manuális BFO érték X-Tal segítségével
+};
+
+// A kombinált struktúra az állandó és változó adatok összekapcsolásával
 struct BandTable {
-    const char *bandName;  // Bandname
-    uint8_t bandType;      // Band type (FM, MW, LW or SW)
-    uint16_t prefmod;      // Pref. modulation (AM, FM, USB, LSB, CW az nem?)
-    uint16_t minimumFreq;  // Minimum frequency of the band
-    uint16_t maximumFreq;  // maximum frequency of the band
-    uint16_t currentFreq;  // Default frequency or current frequency
-    uint8_t currentStep;   // Default step (increment and decrement)
-    int lastBFO;           // Last BFO per band
-    int lastmanuBFO;       // Last Manual BFO per band using X-Tal
-    bool isHam;            // HAM band?
+    const BandTableConst *pConstData;  // PROGMEM-beli állandó adatok
+    BandTableVar varData;              // RAM-ban tárolt változó adatok
 };
 
 /**
@@ -59,8 +73,6 @@ class Band {
     static const char *stepSizeAM[4];
     static const char *stepSizeFM[3];
 
-    uint8_t currentMode;  // aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
-
     Band(SI4735 &si4735);
     virtual ~Band() = default;
     /**
@@ -81,7 +93,7 @@ class Band {
     /**
      * A Band egy rekordjának elkérése az index alapján
      * @param bandIdx a band indexe
-     * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
+     * @return A BandTableVar rekord referenciája, vagy egy üres rekord, ha nem található
      */
     BandTable &getBandByIdx(uint8_t bandIdx);
 
@@ -98,31 +110,41 @@ class Band {
      */
     int8_t getBandIdxByBandName(const char *bandName);
 
-    // /**
-    //  * A Band egy rekordjának elkérése a bandName alapján
-    //  *
-    //  * @param bandName A keresett sáv neve
-    //  * @return A BandTable rekord referenciája, vagy egy üres rekord, ha nem található
-    //  */
-    // BandTable &getBandByBandName(const char *bandName);
-
     /**
-     *
+     * Aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
      */
-    inline const char *getCurrentBandModeDesc() { return bandModeDesc[currentMode]; }
+    inline const char *getCurrentBandModeDesc() { return bandModeDesc[getCurrentBand().varData.currMod]; }
 
     /**
      *
      */
     inline const char *getCurrentBandWithPstr() {
         const char *p;
-        if (currentMode == AM) p = bandWidthAM[config.data.bwIdxAM];
-        if (currentMode == LSB or currentMode == USB or currentMode == CW) p = bandWidthSSB[config.data.bwIdxSSB];
-        if (currentMode == FM) p = bandWidthFM[config.data.bwIdxFM];
+        uint8_t currMod = getCurrentBand().varData.currMod;
+        if (currMod == AM) p = bandWidthAM[config.data.bwIdxAM];
+        if (currMod == LSB or currMod == USB or currMod == CW) p = bandWidthSSB[config.data.bwIdxSSB];
+        if (currMod == FM) p = bandWidthFM[config.data.bwIdxFM];
 
         return p;
     }
 
+    inline const char *getCurrentBandName() { return (const char *)pgm_read_ptr(&getCurrentBand().pConstData->bandName); }
+
+    inline uint8_t getCurrentBandType() { return getCurrentBand().pConstData->bandType; }
+
+    inline uint16_t getCurrentBandMinimumFreq() { return getCurrentBand().pConstData->minimumFreq; }
+
+    inline uint16_t getCurrentBandMaximumFreq() { return getCurrentBand().pConstData->maximumFreq; }
+
+    inline uint16_t getCurrentBandDefaultFreq() { return getCurrentBand().pConstData->defFreq; }
+
+    inline uint8_t getCurrentBandDefaultStep() { return getCurrentBand().pConstData->defStep; }
+
+    inline bool getCurrentBandIsHam() { return getCurrentBand().pConstData->isHam; }
+
+    /**
+     *
+     */
     const char **getBandNames(uint8_t &count, bool isHamFilter);
 };
 

@@ -81,7 +81,7 @@ class EepromManager {
         if (!valid) {
             Utils::beepError();
             Utils::beepError();
-            DEBUG("EEPROM NOT invalid, save defaults!\n");
+            DEBUG("EEPROM content is invalid, save defaults!\n");
             Utils::beepError();
             Utils::beepError();
             save(dataRef, address);

@@ -59,10 +59,10 @@ void AmDisplay::drawScreen() {
     si4735.getCurrentReceivedSignalQuality();
     uint8_t rssi = si4735.getCurrentRSSI();
     uint8_t snr = si4735.getCurrentSNR();
-    pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
+    pSMeter->showRSSI(rssi, snr, band.getCurrentBand().varData.currMod == FM);
 
     // Frekvencia
-    float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    float currFreq = band.getCurrentBand().varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     pSevenSegmentFreq->freqDispl(currFreq);
 
     // Gombok kirajzolása
@@ -81,7 +81,7 @@ void AmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         // FM - the valid range is 0 to 191.
 
         // Antenna kapacitás állítása
-        int maxValue = band.currentMode == FM ? 191 : 6143;
+        int maxValue = band.getCurrentBand().varData.currMod == FM ? 191 : 6143;
 
         int antCapValue = 0;
 
@@ -105,15 +105,16 @@ bool AmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) { return fal
 bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
     BandTable &currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
 
-    if (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) {
+    if (currMod == LSB or currMod == USB or currMod == CW) {
         (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
         checkAGC();
     } else {
         (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
     }
 
-    currentBand.currentFreq = si4735.getFrequency();
+    currentBand.varData.currFreq = si4735.getFrequency();
 
     return true;
 }
@@ -128,16 +129,17 @@ void AmDisplay::displayLoop() {
         return;
     }
 
+    BandTable &currentBand = band.getCurrentBand();
+
     // Néhány adatot csak ritkábban frissítünk
     static uint32_t elapsedTimedValues = 0;  // Kezdőérték nulla
-
     if ((millis() - elapsedTimedValues) >= SCREEN_COMPS_REFRESH_TIME_MSEC) {
 
         // RSSI
         si4735.getCurrentReceivedSignalQuality();
         uint8_t rssi = si4735.getCurrentRSSI();
         uint8_t snr = si4735.getCurrentSNR();
-        pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
+        pSMeter->showRSSI(rssi, snr, currentBand.varData.currMod == FM);
 
         // Frissítjük az időbélyeget
         elapsedTimedValues = millis();
@@ -145,7 +147,7 @@ void AmDisplay::displayLoop() {
 
     // A Frekvenciát azonnal frisítjuk, de csak ha változott
     static uint16_t lastFreq = 0;
-    uint16_t currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    uint16_t currFreq = currentBand.varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
         pSevenSegmentFreq->freqDispl(currFreq);
         lastFreq = currFreq;

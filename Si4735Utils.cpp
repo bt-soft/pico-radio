@@ -111,7 +111,10 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735), audioMut(false), elap
 void Si4735Utils::setStep() {
 
     // This command should work only for SSB mode
-    if (rtv::bfoOn && (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW)) {
+    BandTable& currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
+
+    if (rtv::bfoOn && (currMod == LSB or currMod == USB or currMod == CW)) {
         if (config.data.currentBFOStep == 1)
             config.data.currentBFOStep = 10;
         else if (config.data.currentBFOStep == 10)

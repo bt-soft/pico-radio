@@ -75,11 +75,13 @@ void FmDisplay::drawScreen() {
     // RSSI skála kirajzoltatása
     pSMeter->drawSmeterScale();
 
+    BandTable &currentBand = band.getCurrentBand();
+
     // RSSI aktuális érték
     si4735.getCurrentReceivedSignalQuality();
     uint8_t rssi = si4735.getCurrentRSSI();
     uint8_t snr = si4735.getCurrentSNR();
-    pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
+    pSMeter->showRSSI(rssi, snr, currentBand.varData.currMod == FM);
 
     // RDS (erőből a 'valamilyen' adatok megjelenítése)
     if (config.data.rdsEnabled) {
@@ -90,7 +92,7 @@ void FmDisplay::drawScreen() {
     this->showMonoStereo(si4735.getCurrentPilot());
 
     // Frekvencia
-    float currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    float currFreq = currentBand.varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     pSevenSegmentFreq->freqDispl(currFreq);
 
     // Gombok kirajzolása
@@ -177,12 +179,12 @@ bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
     // Elmentjük a band táblába az aktuális frekvencia értékét
     BandTable &currentBand = band.getCurrentBand();
-    currentBand.currentFreq = si4735.getFrequency();
+    currentBand.varData.currFreq = si4735.getFrequency();
 
     // RDS törlés
     pRds->clearRds();
 
-    DEBUG("FmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx, band.getCurrentBand().currentFreq,
+    DEBUG("FmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.varData.currFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx, currentBand.varData.currFreq,
           si4735.getFrequency());
 
     return true;
@@ -198,6 +200,8 @@ void FmDisplay::displayLoop() {
         return;
     }
 
+    BandTable &currentBand = band.getCurrentBand();
+
     // Néhány adatot csak ritkábban frissítünk
     static uint32_t elapsedTimedValues = 0;  // Kezdőérték nulla
     if ((millis() - elapsedTimedValues) >= SCREEN_COMPS_REFRESH_TIME_MSEC) {
@@ -206,7 +210,7 @@ void FmDisplay::displayLoop() {
         si4735.getCurrentReceivedSignalQuality();
         uint8_t rssi = si4735.getCurrentRSSI();
         uint8_t snr = si4735.getCurrentSNR();
-        pSMeter->showRSSI(rssi, snr, band.currentMode == FM);
+        pSMeter->showRSSI(rssi, snr, currentBand.varData.currMod == FM);
 
         // RDS
         if (config.data.rdsEnabled) {
@@ -228,7 +232,7 @@ void FmDisplay::displayLoop() {
 
     // A Frekvenciát azonnal frisítjuk, de csak ha változott
     static uint16_t lastFreq = 0;
-    uint16_t currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    uint16_t currFreq = currentBand.varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
         pSevenSegmentFreq->freqDispl(currFreq);
         lastFreq = currFreq;

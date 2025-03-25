@@ -49,7 +49,7 @@ void SevenSegmentFreq::segment(String freq, String mask, int d) {
 
     } else {
 
-        if (band.currentMode == AM || band.currentMode == FM) {
+        if (band.getCurrentBand().varData.currMod == AM || band.getCurrentBand().varData.currMod == FM) {
             x = 190;
         }
 
@@ -85,14 +85,14 @@ void SevenSegmentFreq::freqDraw(uint16_t currentFrequency, int d) {
     }
 
     // FM?
-    if (band.currentMode == FM) {
+    if (band.getCurrentBand().varData.currMod == FM) {
         displayFreq = currentFrequency / 100.0f;
         segment(String(displayFreq, 2), "188.88", d - 10);
 
     } else {
         // AM vagy LW?
-        uint8_t bandType = band.getCurrentBand().bandType;
-        if (bandType == MW_BAND_TYPE or bandType == LW_BAND_TYPE) {
+        uint8_t currentBandType = band.getCurrentBandType();
+        if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
             displayFreq = currentFrequency;
             segment(String(displayFreq, 0), "1888", d);
             unit = F("kHz");
@@ -133,10 +133,11 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
 
     // Lekérjük az aktuális band rekordot-ot
     BandTable& currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
 
-    if (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) {
+    if (currMod == LSB or currMod == USB or currMod == CW) {
 
-        float Displayfreq = (currentFrequency * 1000) - (currentBand.lastBFO);
+        float Displayfreq = (currentFrequency * 1000) - (currentBand.varData.lastBFO);
 
         if (rtv::CWShift) {
             Displayfreq = Displayfreq + 700;

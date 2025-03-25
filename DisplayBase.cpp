@@ -22,9 +22,12 @@ void DisplayBase::drawBfoStatus(bool initFont) {
         tft.setTextDatum(BC_DATUM);
     }
 
+    BandTable &currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
+
     // BFO Step
     uint16_t bfoStepColor = TFT_SILVER;
-    if ((band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) and config.data.currentBFOmanu) {
+    if ((currMod == LSB or currMod == USB or currMod == CW) and config.data.currentBFOmanu) {
         bfoStepColor = TFT_ORANGE;
     }
     tft.setTextColor(bfoStepColor, TFT_BLACK);
@@ -102,14 +105,18 @@ void DisplayBase::dawStatusLine() {
 // BAND NAME
 #define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
     tft.setTextColor(TFT_COLOR_STATUSLINE_BAND, TFT_BLACK);
-    tft.drawString(band.getCurrentBand().bandName, 180, 15);
+    tft.drawString(band.getCurrentBandName(), 180, 15);
     tft.drawRect(160, 2, 39, 16, TFT_COLOR_STATUSLINE_BAND);
 
 // STEP
 #define TFT_COLOR_STATUSLINE_STEP TFT_SKYBLUE
+
+    BandTable &currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
+
     tft.setTextColor(TFT_COLOR_STATUSLINE_STEP, TFT_BLACK);
-    uint8_t currentStep = band.getCurrentBand().currentStep;
-    tft.drawString(String(currentStep * (band.currentMode == FM ? 10 : 1)) + "kHz", 220, 15);
+    uint8_t currentStep = band.getCurrentBand().varData.currStep;
+    tft.drawString(String(currentStep * (currMod == FM ? 10 : 1)) + "kHz", 220, 15);
     tft.drawRect(200, 2, 39, 16, TFT_COLOR_STATUSLINE_STEP);
 }
 
@@ -320,13 +327,16 @@ void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[
  */
 void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsData[], uint8_t screenHButtonsDataLength) {
 
+    BandTable &currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
+
     // Kötelező vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData mandatoryHButtons[] = {
         {"Ham", TftButton::ButtonType::Pushable},   //
         {"Band", TftButton::ButtonType::Pushable},  //
 
         // FM mód esetén nem működik a BW állítás
-        {"BndW", TftButton::ButtonType::Pushable, band.currentMode == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
+        {"BndW", TftButton::ButtonType::Pushable, currMod == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
         {"Step", TftButton::ButtonType::Pushable},  //
 
         {"Scan", TftButton::ButtonType::Pushable},  //
@@ -425,8 +435,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
                                                          // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         BandTable &currentBand = band.getCurrentBand();
-                                                         ::newDisplay = currentBand.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                         ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
                                                      });
         processed = true;
     } else if (STREQ("Band", event.label)) {
@@ -442,8 +451,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
                                                          // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         BandTable &currentBand = band.getCurrentBand();
-                                                         ::newDisplay = currentBand.bandType == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+                                                         ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
                                                      });
         processed = true;
 
@@ -455,11 +463,14 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         uint16_t w = 250;
         uint16_t h = 170;
 
-        if (band.currentMode == FM) {
+        BandTable &currentBand = band.getCurrentBand();
+        uint8_t currMod = currentBand.varData.currMod;
+
+        if (currMod == FM) {
             title = F("FM Filter in kHz");
             bwValues = Band::bandWidthFM;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthFM);
-        } else if (band.currentMode == AM) {
+        } else if (currMod == AM) {
             title = F("AM Filter in kHz");
             bwValues = Band::bandWidthAM;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthAM);
@@ -479,9 +490,12 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          // A megnyomott gomb indexe
                                                          uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
 
-                                                         if (band.currentMode == AM) {
+                                                         BandTable &currentBand = band.getCurrentBand();
+                                                         uint8_t currMod = currentBand.varData.currMod;
+
+                                                         if (currMod == AM) {
                                                              config.data.bwIdxAM = bwIdx;
-                                                         } else if (band.currentMode == FM) {
+                                                         } else if (currMod == FM) {
                                                              config.data.bwIdxFM = bwIdx;
                                                          } else {
                                                              config.data.bwIdxSSB = bwIdx;
@@ -498,7 +512,10 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         uint16_t w = 310;
         uint16_t h = 100;
 
-        if (band.currentMode == FM) {
+        BandTable &currentBand = band.getCurrentBand();
+        uint8_t currMod = currentBand.varData.currMod;
+
+        if (currMod == FM) {
             title = F("Step tune FM");
             stepValues = Band::stepSizeFM;
             stepCount = ARRAY_ITEM_COUNT(Band::stepSizeFM);
@@ -515,13 +532,16 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          // A megnyomott gomb indexe
                                                          uint8_t btnIdx = event.id - DLG_MULTI_BTN_ID_START;
 
-                                                         // Kikeressük az aktuális Band rekordot
+                                                         // Kikeressük az aktuális Band típust
+                                                         uint8_t currentBandType = band.getCurrentBandType();
+
                                                          BandTable &currentBand = band.getCurrentBand();
+                                                         uint8_t currMod = currentBand.varData.currMod;
 
                                                          // Beállítjuk a konfigban a stepSize-t
-                                                         if (currentBand.bandType == MW_BAND_TYPE or currentBand.bandType == LW_BAND_TYPE) {
+                                                         if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
                                                              config.data.ssIdxMW = btnIdx;
-                                                         } else if (band.currentMode == FM) {
+                                                         } else if (currMod == FM) {
                                                              config.data.ssIdxFM = btnIdx;
                                                          } else {
                                                              config.data.ssIdxAM = btnIdx;
