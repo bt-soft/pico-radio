@@ -63,7 +63,7 @@ void AmDisplay::drawScreen() {
 
     // Frekvencia
     float currFreq = band.getBandByIdx(config.data.bandIdx).currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
-    pSevenSegmentFreq->freqDraw(currFreq, 0);
+    pSevenSegmentFreq->freqDispl(currFreq);
 
     // Gombok kirajzolása
     DisplayBase::drawScreenButtons();
@@ -107,60 +107,13 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
     BandTable &currentBand = band.getCurrentBand();
 
     if (band.currentMode == LSB or band.currentMode == USB or band.currentMode == CW) {
-
-        if (encoderState.direction == RotaryEncoder::Direction::Up) {
-            rtv::freqDec = rtv::freqDec - rtv::freqstep;
-            int freqTot = (si4735.getFrequency() * 1000) + (rtv::freqDec * -1);
-
-            if (freqTot > (currentBand.maximumFreq * 1000)) {
-                si4735.setFrequency(currentBand.maximumFreq);
-                rtv::freqDec = 0;
-            }
-
-            if (rtv::freqDec <= -16000) {
-                rtv::freqDec = rtv::freqDec + 16000;
-                int freqPlus16 = config.data.currentFreq + 16;
-                ////////////////////////////////////////////////                MuteAudOn();
-                si4735.setFrequency(freqPlus16);
-            }
-            config.data.currentBFO = rtv::freqDec;
-
-        } else {
-            rtv::freqDec = rtv::freqDec + rtv::freqstep;
-            int freqTot = (si4735.getFrequency() * 1000) - rtv::freqDec;
-            if (freqTot < (currentBand.minimumFreq * 1000)) {
-                si4735.setFrequency(currentBand.minimumFreq);
-                rtv::freqDec = 0;
-            }
-
-            if (rtv::freqDec >= 16000) {
-                rtv::freqDec = rtv::freqDec - 16000;
-                int freqMin16 = config.data.currentFreq - 16;
-                ////////////////////////////////////////////////                MuteAudOn();
-                si4735.setFrequency(freqMin16);
-            }
-
-            config.data.currentBFO = rtv::freqDec;
-        }
-        currentBand.lastBFO = config.data.currentBFO;
+        (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
         checkAGC();
-
     } else {
-        switch (encoderState.direction) {
-            case RotaryEncoder::Direction::Up:
-                si4735.frequencyUp();
-                break;
-            case RotaryEncoder::Direction::Down:
-                si4735.frequencyDown();
-                break;
-        }
+        (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
     }
 
-    // Elmentjük a band táblába az aktuális frekvencia értékét
     currentBand.currentFreq = si4735.getFrequency();
-
-    DEBUG("AmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx, currentBand.currentFreq,
-          si4735.getFrequency());
 
     return true;
 }
@@ -194,11 +147,7 @@ void AmDisplay::displayLoop() {
     static uint16_t lastFreq = 0;
     uint16_t currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
-
         pSevenSegmentFreq->freqDispl(currFreq);
         lastFreq = currFreq;
-
-        DEBUG("AmDisplay::displayLoop -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
-              band.getCurrentBand().currentFreq, si4735.getFrequency());
     }
 }

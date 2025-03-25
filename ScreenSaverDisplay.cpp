@@ -94,7 +94,7 @@ void ScreenSaverDisplay::displayLoop() {
 
         // Frekvensia kijelzése
         pSevenSegmentFreq->setPositions(saverX - 35, saverY - 20);
-        pSevenSegmentFreq->freqDraw(currFreq, 0);
+        pSevenSegmentFreq->freqDispl(currFreq);
 
         // if (batShow) {
         //     // float vsupply = 3.724 * analogRead(PIN_BAT_INFO) / 2047; // 3.3v

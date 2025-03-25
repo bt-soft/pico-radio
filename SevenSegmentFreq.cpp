@@ -118,8 +118,6 @@ void SevenSegmentFreq::freqDraw(uint16_t currentFrequency, int d) {
  */
 void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
 
-    DEBUG("SevenSegmentFreq::freqDispl -> currentFrequency = %d\n", currentFrequency);
-
     int d = 0;
 
     // if ((SCANbut or HamBand or Modebut or STEPbut or BandWidth or MEMObut) and !screenV) d = 40;

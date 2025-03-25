@@ -20,17 +20,14 @@ class SevenSegmentFreq {
 
     void segment(String freq, String mask, int d);
 
+    void freqDraw(uint16_t freq, int d);
+
    public:
     /**
      *
      */
     SevenSegmentFreq(TFT_eSPI &tft, uint16_t freqDispX, uint16_t freqDispY, bool screenSaverActive = false)
         : tft(tft), freqDispX(freqDispX), freqDispY(freqDispY), screenSaverActive(screenSaverActive), spr(&tft) {}
-
-    /**
-     *
-     */
-    void freqDraw(uint16_t freq, int d);
 
     /**
      *

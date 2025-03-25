@@ -22,8 +22,8 @@
 // Band data
 struct BandTable {
     const char *bandName;  // Bandname
-    uint8_t bandType;      // Band type (FM, MW or SW)
-    uint16_t prefmod;      // Pref. modulation
+    uint8_t bandType;      // Band type (FM, MW, LW or SW)
+    uint16_t prefmod;      // Pref. modulation (AM, FM, USB, LSB, CW az nem?)
     uint16_t minimumFreq;  // Minimum frequency of the band
     uint16_t maximumFreq;  // maximum frequency of the band
     uint16_t currentFreq;  // Default frequency or current frequency

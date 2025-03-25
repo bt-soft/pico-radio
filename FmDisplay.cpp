@@ -91,7 +91,7 @@ void FmDisplay::drawScreen() {
 
     // Frekvencia
     float currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
-    pSevenSegmentFreq->freqDraw(currFreq, 0);
+    pSevenSegmentFreq->freqDispl(currFreq);
 
     // Gombok kirajzolása
     DisplayBase::drawScreenButtons();
@@ -173,14 +173,7 @@ void FmDisplay::showMonoStereo(bool stereo) {
  */
 bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
-    switch (encoderState.direction) {
-        case RotaryEncoder::Direction::Up:
-            si4735.frequencyUp();
-            break;
-        case RotaryEncoder::Direction::Down:
-            si4735.frequencyDown();
-            break;
-    }
+    (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
 
     // Elmentjük a band táblába az aktuális frekvencia értékét
     BandTable &currentBand = band.getCurrentBand();
@@ -237,10 +230,7 @@ void FmDisplay::displayLoop() {
     static uint16_t lastFreq = 0;
     uint16_t currFreq = band.getCurrentBand().currentFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {
-        pSevenSegmentFreq->freqDraw(currFreq, 0);
+        pSevenSegmentFreq->freqDispl(currFreq);
         lastFreq = currFreq;
-
-        DEBUG("FmDisplay::displayLoop -> config.data.bandIdx: %d, currentBand.currentFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx,
-              band.getCurrentBand().currentFreq, si4735.getFrequency());
     }
 }

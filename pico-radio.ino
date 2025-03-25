@@ -164,7 +164,7 @@ void setup() {
     tft.fillScreen(TFT_COLOR_BACKGROUND);
 
     // Várakozás a soros port megnyitására
-    // Utils::debugWaitForSerial(tft);
+    Utils::debugWaitForSerial(tft);
 
     // Ha a bekapcsolás alatt nyomva tartjuk a rotary gombját, akkor töröljük a konfigot
     if (digitalRead(PIN_ENCODER_SW) == LOW) {
@@ -215,7 +215,6 @@ void setup() {
 
     //--------------------------------------------------------------------
     // Band + Si4735 init
-    band.BandInit(true);
     si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
 
     // Kezdő képernyőtípus beállítása

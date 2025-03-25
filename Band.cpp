@@ -357,8 +357,9 @@ void Band::setBandWidth() {
  */
 void Band::BandInit(bool sysStart) {
 
-    if (getCurrentBand().bandType == FM_BAND_TYPE) {
-        DEBUG("Band::BandInit() -> Start in FM\n");
+    BandTable& curretBand = getCurrentBand();
+
+    if (curretBand.bandType == FM_BAND_TYPE) {
         si4735.setup(PIN_SI4735_RESET, FM_BAND_TYPE);
         si4735.setFM();
 
@@ -370,17 +371,16 @@ void Band::BandInit(bool sysStart) {
         si4735.setSeekFmSrnThreshold(5);
 
     } else {
-        DEBUG("Band::BandInit() -> Start in AM\n");
         si4735.setup(PIN_SI4735_RESET, MW_BAND_TYPE);
         si4735.setAM();
     }
 
+    DEBUG("Band::BandInit() ->bandIdx: %d\n", config.data.bandIdx);
+
     // Rendszer indítás van?
     if (sysStart) {
 
-        BandTable& curretBand = getCurrentBand();
-
-        rtv::freqstep = 1000;  // Hz
+        // rtv::freqstep = 1000;  // 1kHz
         rtv::freqDec = config.data.currentBFO;
         curretBand.lastBFO = config.data.currentBFO;
         curretBand.prefmod = config.data.currentMode;

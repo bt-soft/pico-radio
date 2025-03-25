@@ -91,7 +91,8 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735), audioMut(false), elap
     // Band init, ha változott az épp használt band
     if (currentBandIdx != config.data.bandIdx) {
 
-        band.BandInit();  // Frekvencia visszaállítása a konfigból
+        // A Band  visszaállítása a konfiogból
+        band.BandInit(currentBandIdx == -1);  // Rendszer induláskor -1 a currentBandIdx változást figyelő flag
         band.BandSet();
 
         // Hangerő beállítása
