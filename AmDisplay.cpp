@@ -5,7 +5,7 @@
 /**
  * Konstruktor
  */
-AmDisplay::AmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
+AmDisplay::AmDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band) : DisplayBase(tft, si4735, band) {
 
     DEBUG("AmDisplay::AmDisplay\n");
 
@@ -13,7 +13,7 @@ AmDisplay::AmDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
     pSMeter = new SMeter(tft, 0, 80);
 
     // Frekvencia kijelzés pédányosítása
-    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY);
+    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY, band);
 
     // Függőleges gombok legyártása, nincs saját függőleges gombsor
     DisplayBase::buildVerticalScreenButtons(nullptr, 0);

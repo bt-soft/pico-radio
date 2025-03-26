@@ -12,7 +12,7 @@
 #define SW_BAND_TYPE 2
 #define LW_BAND_TYPE 3
 
-// Modulation types
+// DeModulation types
 #define FM 0
 #define LSB 1
 #define USB 2
@@ -78,12 +78,13 @@ class Band {
     /**
      *
      */
-    void BandInit(bool sysStart = false);
+    void bandInit(bool sysStart = false);
 
     /**
-     *
+     * Band beállítása
+     * @param loadPrefDeMod prefereált demodulációt betöltsük?
      */
-    void BandSet();
+    void bandSet(bool loadPrefDeMod = false);
 
     /**
      *
@@ -114,6 +115,15 @@ class Band {
      * Aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
      */
     inline const char *getCurrentBandModeDesc() { return bandModeDesc[getCurrentBand().varData.currMod]; }
+
+    /**
+     * A lehetséges AM demodulációs módok kigyűjtése
+     */
+    inline const char **getAmDemodulationModes(uint8_t &count) {
+        // count = sizeof(bandModeDesc) / sizeof(bandModeDesc[0]) - 1;
+        count = ARRAY_ITEM_COUNT(bandModeDesc) - 1;
+        return &bandModeDesc[1];
+    }
 
     /**
      *
@@ -147,8 +157,5 @@ class Band {
      */
     const char **getBandNames(uint8_t &count, bool isHamFilter);
 };
-
-// A főprogramban definiálva
-extern Band band;
 
 #endif  // __BAND_H

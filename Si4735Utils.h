@@ -3,6 +3,8 @@
 
 #include <SI4735.h>
 
+#include "Band.h"
+
 /**
  * si4735 utilities
  */
@@ -15,6 +17,9 @@ class Si4735Utils {
    protected:
     // SI4735
     SI4735 &si4735;
+
+    // Band objektum
+    Band &band;
 
     /**
      * Manage Squelch
@@ -42,7 +47,7 @@ class Si4735Utils {
     /**
      * Konstruktor
      */
-    Si4735Utils(SI4735 &si4735);
+    Si4735Utils(SI4735 &si4735, Band &band);
 
     /**
      * Frequency Step set

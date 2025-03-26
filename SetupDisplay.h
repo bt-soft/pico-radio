@@ -33,7 +33,7 @@ class SetupDisplay : public DisplayBase {
     /**
      * Konstruktor
      */
-    SetupDisplay(TFT_eSPI &tft, SI4735 &si4735);
+    SetupDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band);
 
     /**
      * Destruktor

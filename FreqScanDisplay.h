@@ -27,7 +27,7 @@ class FreqScanDisplay : public DisplayBase {
     void processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) override;
 
    public:
-    FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735);
+    FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band);
     ~FreqScanDisplay();
 
     /**

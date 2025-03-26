@@ -399,7 +399,7 @@ void Band::setBandWidth() {
 /**
  * Band inicializálása konfig szerint
  */
-void Band::BandInit(bool sysStart) {
+void Band::bandInit(bool sysStart) {
 
     DEBUG("Band::BandInit() ->bandIdx: %d\n", config.data.bandIdx);
     BandTable& curretBand = getCurrentBand();
@@ -435,13 +435,19 @@ void Band::BandInit(bool sysStart) {
 
 /**
  * Band beállítása
+ * @param loadPrefDeMod prefereált demodulációt betöltsük?
  */
-void Band::BandSet() {
+void Band::bandSet(bool loadPrefDeMod) {
 
     BandTable& currentBand = getCurrentBand();
 
-    // Átmásoljuk a preferált modulációs módot
-    uint8_t currMod = currentBand.varData.currMod = currentBand.pConstData->prefMod;
+    // Demoduláció beállítása
+    uint8_t currMod = currentBand.varData.currMod;
+
+    if (loadPrefDeMod) {
+        // Átmásoljuk a preferált modulációs módot
+        currMod = currentBand.varData.currMod = currentBand.pConstData->prefMod;
+    }
 
     if (currMod == AM or currMod == FM) {
         ssbLoaded = false;  // FIXME: Ez kell? Band váltás után megint be kell tölteni az SSB-t?

@@ -29,7 +29,7 @@ class ScreenSaverDisplay : public DisplayBase {
     /**
      * Konstruktor
      */
-    ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735);
+    ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band);
 
     /**
      * Destruktor

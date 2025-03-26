@@ -39,7 +39,7 @@ class AmDisplay : public DisplayBase {
     /**
      * Konstruktor
      */
-    AmDisplay(TFT_eSPI &tft, SI4735 &si4735);
+    AmDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band);
 
     /**
      * Destruktor

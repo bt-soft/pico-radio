@@ -6,7 +6,7 @@
 /**
  * Konstruktor
  */
-SetupDisplay::SetupDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
+SetupDisplay::SetupDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band) : DisplayBase(tft, si4735, band) {
 
     // Horizontális képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {

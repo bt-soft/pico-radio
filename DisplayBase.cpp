@@ -112,11 +112,10 @@ void DisplayBase::dawStatusLine() {
 #define TFT_COLOR_STATUSLINE_STEP TFT_SKYBLUE
 
     BandTable &currentBand = band.getCurrentBand();
-    uint8_t currMod = currentBand.varData.currMod;
 
     tft.setTextColor(TFT_COLOR_STATUSLINE_STEP, TFT_BLACK);
-    uint8_t currentStep = band.getCurrentBand().varData.currStep;
-    tft.drawString(String(currentStep * (currMod == FM ? 10 : 1)) + "kHz", 220, 15);
+    uint8_t currentStep = currentBand.varData.currStep;
+    tft.drawString(String(currentStep * (currentBand.varData.currMod == FM ? 10 : 1)) + "kHz", 220, 15);
     tft.drawRect(200, 2, 39, 16, TFT_COLOR_STATUSLINE_STEP);
 }
 
@@ -300,7 +299,7 @@ void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[
     // Kötelező vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData mandatoryVButtons[] = {
         {"Mute", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(rtv::muteStat)},         //
-        {"Vol", TftButton::ButtonType::Pushable},                                                    //
+        {"Volum", TftButton::ButtonType::Pushable},                                                  //
         {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},  //
         {"Att", TftButton::ButtonType::Pushable},                                                    //
         {"Setup", TftButton::ButtonType::Pushable},                                                  //
@@ -327,16 +326,14 @@ void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[
  */
 void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsData[], uint8_t screenHButtonsDataLength) {
 
-    BandTable &currentBand = band.getCurrentBand();
-    uint8_t currMod = currentBand.varData.currMod;
-
     // Kötelező vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData mandatoryHButtons[] = {
-        {"Ham", TftButton::ButtonType::Pushable},   //
-        {"Band", TftButton::ButtonType::Pushable},  //
+        {"Ham", TftButton::ButtonType::Pushable},    //
+        {"Band", TftButton::ButtonType::Pushable},   //
+        {"DeMod", TftButton::ButtonType::Pushable},  //
 
         // FM mód esetén nem működik a BW állítás
-        {"BndW", TftButton::ButtonType::Pushable, currMod == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
+        {"BndW", TftButton::ButtonType::Pushable, band.getCurrentBand().varData.currMod == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
         {"Step", TftButton::ButtonType::Pushable},  //
 
         {"Scan", TftButton::ButtonType::Pushable},  //
@@ -372,7 +369,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         rtv::muteStat = event.state == TftButton::ButtonState::On;
         Si4735Utils::si4735.setAudioMute(rtv::muteStat);
         processed = true;
-    } else if (STREQ("Volume", event.label)) {
+    } else if (STREQ("Volum", event.label)) {
         // Hangerő állítása
         this->pDialog = new ValueChangeDialog(this, this->tft, 250, 150, F("Volume"), F("Value:"),           //
                                               &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,  //
@@ -454,6 +451,31 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
                                                      });
         processed = true;
+    } else if (STREQ("DeMod", event.label)) {
+
+        // Kigyűjtjük az összes NEM HAM sáv nevét
+        uint8_t demodCount;
+        const char **demodModes = band.getAmDemodulationModes(demodCount);
+
+        // Multi button Dialog
+        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 270, 150, F("Demodulation Mode"), demodModes, demodCount,  //
+                                                     [this](TftButton::ButtonTouchEvent event) {
+                                                         // Kikeressük az aktuális band-ot
+                                                         BandTable &currentBand = band.getCurrentBand();
+
+                                                         // TODO: Ezt még kitalálni!!
+                                                         if (STREQ("CW", event.label)) {
+                                                             config.data.currentBFO -= 700;
+                                                             currentBand.varData.lastBFO = config.data.currentBFO;
+                                                             DEBUG("DisplayBase::processMandatoryButtonTouchEvent() -> A CW módot még kitalálni!!\n");
+                                                         }
+
+                                                         // Átállítjuk a demodulációs módot
+                                                         currentBand.varData.currMod = event.id - DLG_MULTI_BTN_ID_START + 1;  // Az FM-et kihagyjuk!
+
+                                                         band.bandSet();
+                                                     });
+        processed = true;
 
     } else if (STREQ("BndW", event.label)) {
         // Megállapítjuk a lehetséges sávszélességek tömbjét
@@ -500,7 +522,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                          } else {
                                                              config.data.bwIdxSSB = bwIdx;
                                                          }
-                                                         band.BandSet();
+                                                         band.bandSet();
                                                      });
         processed = true;
 
@@ -562,7 +584,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
 /**
  * Konstruktor
  */
-DisplayBase::DisplayBase(TFT_eSPI &tft, SI4735 &si4735) : Si4735Utils(si4735), tft(tft), pDialog(nullptr) {
+DisplayBase::DisplayBase(TFT_eSPI &tft, SI4735 &si4735, Band &band) : Si4735Utils(si4735, band), tft(tft), pDialog(nullptr) {
     DEBUG("DisplayBase::DisplayBase\n");  //
 }
 

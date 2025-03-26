@@ -20,7 +20,7 @@
 /**
  * Konstruktor
  */
-ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayBase(tft, si4735) {
+ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band) : DisplayBase(tft, si4735, band) {
 
     DEBUG("ScreenSaverDisplay::ScreenSaverDisplay()\n");
 
@@ -30,7 +30,7 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735) : DisplayB
     }
 
     // Frekvencia kijelzés pédányosítása
-    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY, true);
+    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY, band, true);
     currFreq = band.getCurrentBand().varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
 }
 

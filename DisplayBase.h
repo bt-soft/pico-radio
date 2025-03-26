@@ -152,7 +152,7 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     /**
      * Konstruktor
      */
-    DisplayBase(TFT_eSPI &tft, SI4735 &si4735);
+    DisplayBase(TFT_eSPI &tft, SI4735 &si4735, Band &band);
 
     /**
      * Destruktor

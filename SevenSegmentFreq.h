@@ -15,6 +15,9 @@ class SevenSegmentFreq {
    private:
     TFT_eSPI &tft;
     TFT_eSprite spr;
+
+    Band &band;
+
     uint16_t freqDispX, freqDispY;
     bool screenSaverActive;
 
@@ -26,8 +29,8 @@ class SevenSegmentFreq {
     /**
      *
      */
-    SevenSegmentFreq(TFT_eSPI &tft, uint16_t freqDispX, uint16_t freqDispY, bool screenSaverActive = false)
-        : tft(tft), freqDispX(freqDispX), freqDispY(freqDispY), screenSaverActive(screenSaverActive), spr(&tft) {}
+    SevenSegmentFreq(TFT_eSPI &tft, uint16_t freqDispX, uint16_t freqDispY, Band &band, bool screenSaverActive = false)
+        : tft(tft), freqDispX(freqDispX), freqDispY(freqDispY), band(band), screenSaverActive(screenSaverActive), spr(&tft) {}
 
     /**
      *

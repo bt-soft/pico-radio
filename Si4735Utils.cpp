@@ -1,6 +1,5 @@
 #include "Si4735Utils.h"
 
-#include "Band.h"
 #include "Config.h"
 #include "rtVars.h"
 
@@ -84,7 +83,7 @@ void Si4735Utils::loop() {
 /**
  * Konstruktor
  */
-Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735), audioMut(false), elapsedAudMut(millis()) {
+Si4735Utils::Si4735Utils(SI4735& si4735, Band& band) : si4735(si4735), band(band), audioMut(false), elapsedAudMut(millis()) {
 
     DEBUG("Si4735Utils::Si4735Utils\n");
 
@@ -92,8 +91,10 @@ Si4735Utils::Si4735Utils(SI4735& si4735) : si4735(si4735), audioMut(false), elap
     if (currentBandIdx != config.data.bandIdx) {
 
         // A Band  visszaállítása a konfiogból
-        band.BandInit(currentBandIdx == -1);  // Rendszer induláskor -1 a currentBandIdx változást figyelő flag
-        band.BandSet();
+        band.bandInit(currentBandIdx == -1);  // Rendszer induláskor -1 a currentBandIdx változást figyelő flag
+
+        // A sávra preferált demodulációs mód betöltése
+        band.bandSet(true);
 
         // Hangerő beállítása
         si4735.setVolume(config.data.currVolume);
