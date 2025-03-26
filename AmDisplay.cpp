@@ -145,7 +145,7 @@ void AmDisplay::displayLoop() {
         elapsedTimedValues = millis();
     }
 
-    // A Frekvenciát azonnal frisítjuk, de csak ha változott
+    // A Frekvenciát azonnal frissítjuk, de csak ha változott
     static uint16_t lastFreq = 0;
     uint16_t currFreq = currentBand.varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
     if (lastFreq != currFreq) {

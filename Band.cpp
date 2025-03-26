@@ -297,6 +297,7 @@ void Band::useBand() {
             // si4735.setSBBSidebandCutoffFilter(0);
             // si4735.setSSBBfo(currentBFO);
 
+            // Itt van állítva a BFO!!
             si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);
 
             // SSB ONLY 1KHz stepsize
