@@ -13,7 +13,7 @@
 #define COLOR_INDICATOR_FREQ TFT_GOLD  // BFO frekvenciája
 
 /**
- *
+ * 7 szegmenses kijelző
  */
 void SevenSegmentFreq::segment(String freq, String mask, int d) {
 
@@ -22,14 +22,14 @@ void SevenSegmentFreq::segment(String freq, String mask, int d) {
     }
 
     if (rtv::SEEK) {
-        spr.createSprite(194, 38);
+        spr.createSprite(FREQ_7SEGMENT_SEEK_WIDTH, FREQ_7SEGMENT_HEIGHT);
         d = 46;
     } else {
 
         if (rtv::bfoOn) {
-            spr.createSprite(110, 38);
+            spr.createSprite(FREQ_7SEGMENT_BFO_WIDTH, FREQ_7SEGMENT_HEIGHT);
         } else {
-            spr.createSprite(240, 38);
+            spr.createSprite(FREQ_7SEGMENT_WIDTH, FREQ_7SEGMENT_HEIGHT);
         }
     }
     spr.fillScreen(TFT_COLOR_BACKGROUND);
@@ -42,10 +42,10 @@ void SevenSegmentFreq::segment(String freq, String mask, int d) {
     if (rtv::bfoOn) {
         x = 110;
         spr.setTextColor(BFO_COLOR_INACTIVE_SEGMENT);
-        spr.drawString(mask, x, 38);
+        spr.drawString(mask, x, FREQ_7SEGMENT_HEIGHT);
 
         spr.setTextColor(BFO_COLOR_ACTIVE_SEGMENT);
-        spr.drawString(freq, x, 38);
+        spr.drawString(freq, x, FREQ_7SEGMENT_HEIGHT);
 
     } else {
 
@@ -59,11 +59,11 @@ void SevenSegmentFreq::segment(String freq, String mask, int d) {
 
         // Nem aktív szegmens
         spr.setTextColor(rtv::bfoOn ? BFO_COLOR_INACTIVE_SEGMENT : COLOR_INACTIVE_SEGMENT);
-        spr.drawString(mask, x, 38);
+        spr.drawString(mask, x, FREQ_7SEGMENT_HEIGHT);
 
         // Aktív szegmens - ha a screensaver aktív, akkor más színnel rajzoljuk ki
         spr.setTextColor(rtv::bfoOn ? BFO_COLOR_ACTIVE_SEGMENT : screenSaverActive ? COLOR_ACTIVE_SEGMENT_SCREENSAVER : COLOR_ACTIVE_SEGMENT);
-        spr.drawString(freq, x, 38);
+        spr.drawString(freq, x, FREQ_7SEGMENT_HEIGHT);
     }
 
     spr.pushSprite(freqDispX + d, freqDispY + 20);
@@ -81,7 +81,7 @@ void SevenSegmentFreq::freqDraw(uint16_t currentFrequency, int d) {
 
     // ELőző érték törlése, screesaver esetén nem
     if (!screenSaverActive) {
-        tft.fillRect(freqDispX + 46 + d, freqDispY + 20, 194, 40, TFT_COLOR_BACKGROUND);
+        tft.fillRect(freqDispX + 46 + d, freqDispY + 20, 194, FREQ_7SEGMENT_HEIGHT + 2, TFT_COLOR_BACKGROUND);
     }
 
     // FM?

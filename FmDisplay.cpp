@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include "FrequencyInputDialog.h"
+
 /**
  * Konstruktor
  */
@@ -28,6 +30,7 @@ FmDisplay::FmDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band) : DisplayBase(tf
     // Horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData horizontalButtonsData[] = {
         {"RDS", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(config.data.rdsEnabled)},  //
+        {"Freq", TftButton::ButtonType::Pushable},
         // //----
         // {"Popup", TftButton::ButtonType::Pushable},  //
         // {"Multi", TftButton::ButtonType::Pushable},
@@ -114,6 +117,10 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
         } else {
             pRds->clearRds();
         }
+    } else if (STREQ("Freq", event.label)) {
+        // Open the FrequencyInputDialog
+        BandTable &currentBand = band.getCurrentBand();
+        DisplayBase::pDialog = new FrequencyInputDialog(this, DisplayBase::tft, band, currentBand.varData.currFreq);
     }
     //  else if (STREQ("AM", event.label)) {
     //     ::newDisplay = DisplayBase::DisplayType::am;
@@ -143,6 +150,30 @@ void FmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
     //     DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 250, 150, F("Temperature"), F("Value:"), &temperature, (float)-15.0, (float)+30.0, (float)0.05);
     // }
 }
+
+// /**
+//  *
+//  */
+// void FmDisplay::processDialogButtonResponse(TftButton::ButtonTouchEvent &event) {
+
+//     DEBUG("FmDisplay::processDialogButtonResponse() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
+
+//     if (event.id == DLG_OK_BUTTON_ID && STREQ("OK", event.label)) {
+//         // Get the entered frequency
+//         uint32_t newFrequency = event.value;
+
+//         // Do something with the new frequency (e.g., tune the radio)
+//         BandTable &currentBand = band.getCurrentBand();
+//         currentBand.varData.currFreq = newFrequency;
+//         si4735.setFrequency(newFrequency);
+
+//         // RDS törlés
+//         pRds->clearRds();
+//     }
+
+//     // Call the base class method to close the dialog and redraw the screen
+//     DisplayBase::processDialogButtonResponse(event);
+// }
 
 /**
  * Touch (nem képrnyő button) esemény lekezelése

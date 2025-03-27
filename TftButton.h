@@ -55,7 +55,7 @@ class TftButton {
     TFT_eSPI *pTft;        // Itt pointert használunk a dinamikus tömbök miatt (nem lehet null referenciát használni)
     uint16_t x, y, w, h;   // A gomb pozíciója
     uint8_t id;            // A gomb ID-je
-    const char *label;     // A gomb felirata
+    char *label;           // A gomb felirata
     ButtonState state;     // Állapota
     ButtonState oldState;  // Előző állapota
     ButtonType type;       // Típusa
@@ -123,14 +123,21 @@ class TftButton {
      * Konstruktor
      */
     TftButton(uint8_t id, TFT_eSPI &tft, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const char *label, ButtonType type, ButtonState state = ButtonState::Off)
-        : id(id), pTft(&tft), x(x), y(y), w(w), h(h), label(label), type(type), state(state), oldState(state), buttonPressed(false) {}
+        : id(id), pTft(&tft), x(x), y(y), w(w), h(h), type(type), state(state), oldState(state), buttonPressed(false) {
+
+        this->label = new char[strlen(label) + 1];  // Dinamikusan lefoglaljuk a helyet
+        strcpy(this->label, label);                 // Átmásoljuk az eredeti stringet
+    }
 
     /**
      * Konstruktor X/Y pozíció nélkül
      * Automatikus elrendezéshez csak a szélesség és a magasság van megadva
      */
     TftButton(uint8_t id, TFT_eSPI &tft, uint16_t w, uint16_t h, const char *label, ButtonType type, ButtonState state = ButtonState::Off)
-        : id(id), pTft(&tft), x(0), y(0), w(w), h(h), label(label), type(type), buttonPressed(false) {
+        : id(id), pTft(&tft), x(0), y(0), w(w), h(h), type(type), buttonPressed(false) {
+
+        this->label = new char[strlen(label) + 1];  // Dinamikusan lefoglaljuk a helyet
+        strcpy(this->label, label);                 // Átmásoljuk az eredeti stringet
 
         if (state != ButtonState::Off and type != ButtonType::Toggleable) {
             DEBUG("TftButton::TftButton -> Hiba!! Nem toggleable a gomb, nem lehet a state állapotot beállítani!\n");
@@ -143,7 +150,9 @@ class TftButton {
     /**
      * Destruktor
      */
-    virtual ~TftButton() {}
+    virtual ~TftButton() {
+        delete[] label;  // Töröljük a label-t
+    }
 
     /**
      * Button szélességének lekérése
