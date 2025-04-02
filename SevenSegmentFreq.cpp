@@ -116,7 +116,8 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
     int d = 0;
     const SegmentColors& colors = rtv::bfoOn ? bfoColors : (screenSaverActive ? screenSaverColors : normalColors);
 
-    // ELőző érték törlése, screesaver esetén nem
+    // ELőző érték törlése
+    // Screesaver esetén nem törlünk, ott az egész képernyő törlése van
     if (!screenSaverActive) {
         tft.fillRect(freqDispX + 46 + d, freqDispY + 20, 194, FREQ_7SEGMENT_HEIGHT + 2, TFT_COLOR_BACKGROUND);
     }
@@ -171,7 +172,9 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
                 drawFrequency(String(s), "88 888.88", d, colors, F("KHz"));
             }
 
-            drawStepUnderline(d, colors);
+            if (!screenSaverActive) {
+                drawStepUnderline(d, colors);
+            }
         }
 
         if (rtv::bfoOn) {

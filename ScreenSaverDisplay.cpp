@@ -30,8 +30,9 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band
     }
 
     // Frekvencia kijelzés pédányosítása
-    pSevenSegmentFreq = new SevenSegmentFreq(tft, rtv::freqDispX, rtv::freqDispY, band, true);
-    currFreq = band.getCurrentBand().varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
+    saverX = tft.width() / 2;   // Kezdeti érték a képernyő közepére
+    saverY = tft.height() / 2;  // Kezdeti érték a képernyő közepére
+    pSevenSegmentFreq = new SevenSegmentFreq(tft, saverX - 35, saverY - 20, band, true);
 }
 
 /**
@@ -84,17 +85,17 @@ void ScreenSaverDisplay::displayLoop() {
 
         tft.fillScreen(TFT_COLOR_BACKGROUND);
 
-        // if (screenV) {
-        //     saverX = random(40) + 10;
-        //     saverY = random(270) + 5;
-        // } else {
-        saverX = random(120) + 10;
-        saverY = random(190) + 5;
-        // }
+        // Véletlen pozíció a frekvenciának
+        saverX = random(tft.width() / 2) + 10;
+        saverY = random(tft.height() / 2) + 5;
 
         // Frekvensia kijelzése
-        pSevenSegmentFreq->setPositions(saverX - 35, saverY - 20);
-        pSevenSegmentFreq->freqDispl(currFreq);
+        pSevenSegmentFreq->setPositions(saverX, saverY);
+        pSevenSegmentFreq->freqDispl(band.getCurrentBand().varData.currFreq);
+
+        // Az animált keretet hozzá igazítjuk a frekvenciához
+        saverX += 35;
+        saverY += 20;
 
         // if (batShow) {
         //     // float vsupply = 3.724 * analogRead(PIN_BAT_INFO) / 2047; // 3.3v

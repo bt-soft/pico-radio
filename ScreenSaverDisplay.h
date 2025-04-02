@@ -15,7 +15,6 @@ class ScreenSaverDisplay : public DisplayBase {
     uint8_t saverLineColors[63];  // A vonal színeinek tömbje
 
     SevenSegmentFreq *pSevenSegmentFreq;
-    uint16_t currFreq;
 
    protected:
     /**
