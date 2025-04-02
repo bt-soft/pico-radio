@@ -33,6 +33,10 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band
     saverX = tft.width() / 2;   // Kezdeti érték a képernyő közepére
     saverY = tft.height() / 2;  // Kezdeti érték a képernyő közepére
     pSevenSegmentFreq = new SevenSegmentFreq(tft, saverX - 35, saverY - 20, band, true);
+
+    // Kezdeti keret szélesség lekérdezése
+    pSevenSegmentFreq->freqDispl(band.getCurrentBand().varData.currFreq);
+    frequencyDisplayWidth = pSevenSegmentFreq->getFrequencyDisplayWidth();
 }
 
 /**

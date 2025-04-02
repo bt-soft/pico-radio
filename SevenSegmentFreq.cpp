@@ -55,6 +55,9 @@ void SevenSegmentFreq::drawFrequency(const String& freq, const String& mask, int
     spr.setFreeFont();
     spr.deleteSprite();
 
+    // **ÚJ:** A frekvencia kijelzés szélességének kiszámítása
+    frequencyDisplayWidth = tft.textWidth(freq);
+
     // Mértékegység kirajzolása
     if (unit != nullptr) {
         tft.setTextDatum(BC_DATUM);
