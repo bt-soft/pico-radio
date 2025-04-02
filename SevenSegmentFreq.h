@@ -12,29 +12,60 @@
 #define FREQ_7SEGMENT_BFO_WIDTH 110   // BFO kijelzése alatt a kijelző szélessége
 #define FREQ_7SEGMENT_SEEK_WIDTH 194  // Seek alatt a kijelző szélessége
 
+// Színstruktúra
+struct SegmentColors {
+    uint16_t active;
+    uint16_t inactive;
+    uint16_t indicator;
+};
+
 /**
  *
  */
 class SevenSegmentFreq {
 
    private:
-    TFT_eSPI &tft;
+    TFT_eSPI& tft;
     TFT_eSprite spr;
 
-    Band &band;
+    Band& band;
 
     uint16_t freqDispX, freqDispY;
     bool screenSaverActive;
 
-    void segment(String freq, String mask, int d);
+    /**
+     * @brief Kirajzolja a frekvenciát a megadott formátumban.
+     *
+     * @param freq A megjelenítendő frekvencia.
+     * @param mask A nem aktív szegmensek maszkja.
+     * @param d Az X pozíció eltolása.
+     * @param colors A szegmensek színei.
+     * @param unit A mértékegység.
+     */
+    void drawFrequency(const String& freq, const String& mask, int d, const SegmentColors& colors, const __FlashStringHelper* unit = nullptr);
 
-    void freqDraw(uint16_t freq, int d);
+    /**
+     * @brief Kirajzolja a BFO frekvenciát.
+     *
+     * @param bfoValue A BFO frekvencia értéke.
+     * @param d Az X pozíció eltolása.
+     * @param colors A színek.
+     */
+    void drawBfo(int bfoValue, int d, const SegmentColors& colors);
+
+    /**
+     * @brief Kirajzolja a frekvencia lépésének jelzésére az aláhúzást.
+     *
+     * @param d Az X pozíció eltolása.
+     * @param colors A színek.
+     */
+    void drawStepUnderline(int d, const SegmentColors& colors);
 
    public:
     /**
      *
      */
-    SevenSegmentFreq(TFT_eSPI &tft, uint16_t freqDispX, uint16_t freqDispY, Band &band, bool screenSaverActive = false)
+    SevenSegmentFreq(TFT_eSPI& tft, uint16_t freqDispX, uint16_t freqDispY, Band& band, bool screenSaverActive = false)
         : tft(tft), freqDispX(freqDispX), freqDispY(freqDispY), band(band), screenSaverActive(screenSaverActive), spr(&tft) {}
 
     /**
