@@ -20,7 +20,7 @@ const SegmentColors bfoColors = {TFT_ORANGE, TFT_BROWN, TFT_ORANGE};
  * @param colors A szegmensek színei.
  * @param unit A mértékegység.
  */
-void SevenSegmentFreq::drawFrequency(const String& freq, const String& mask, int d, const SegmentColors& colors, const __FlashStringHelper* unit) {
+void SevenSegmentFreq::drawFrequency(const String& freq, const __FlashStringHelper* mask, int d, const SegmentColors& colors, const __FlashStringHelper* unit) {
     uint16_t spriteWidth = rtv::bfoOn ? FREQ_7SEGMENT_BFO_WIDTH : tft.width() / 2;
     if (rtv::SEEK) {
         spriteWidth = FREQ_7SEGMENT_SEEK_WIDTH;
@@ -80,7 +80,7 @@ void SevenSegmentFreq::drawFrequency(const String& freq, const String& mask, int
  * @param colors A színek.
  */
 void SevenSegmentFreq::drawBfo(int bfoValue, int d, const SegmentColors& colors) {
-    drawFrequency(String(bfoValue), "-888", d, colors);
+    drawFrequency(String(bfoValue), F("-888"), d, colors);
     tft.setTextSize(2);
     tft.setTextDatum(BL_DATUM);
     tft.setTextColor(colors.indicator, TFT_BLACK);
@@ -175,9 +175,10 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
             }
 
             if (!rtv::bfoOn) {
-                drawFrequency(String(s), "88 888.88", d, colors, F("KHz"));
+                drawFrequency(String(s), F("88 888.88"), d, colors, F("KHz"));
             }
 
+            // Képernyővédő üzemmódban nics aláhúzás a touch-hoz
             if (!screenSaverActive) {
                 drawStepUnderline(d, colors);
             }
@@ -199,17 +200,17 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
         // FM?
         if (band.getCurrentBand().varData.currMod == FM) {
             displayFreq = currentFrequency / 100.0f;
-            drawFrequency(String(displayFreq, 2), "188.88", d - 10, colors, unit);
+            drawFrequency(String(displayFreq, 2), F("188.88"), d - 10, colors, unit);
 
         } else {
             // AM vagy LW?
             if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
                 displayFreq = currentFrequency;
-                drawFrequency(String(displayFreq, 0), "8888", d, colors, F("kHz"));  // AM esetén más a maszk
+                drawFrequency(String(displayFreq, 0), F("8888"), d, colors, F("kHz"));  // AM esetén más a maszk
 
             } else {  // SW !
                 displayFreq = currentFrequency / 1000.0f;
-                drawFrequency(String(displayFreq, 3), "88.888", d, colors, unit);
+                drawFrequency(String(displayFreq, 3), F("88.888"), d, colors, unit);
             }
         }
     }
