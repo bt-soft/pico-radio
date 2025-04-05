@@ -2,6 +2,35 @@
 
 #include "ValueChangeDialog.h"
 
+namespace DisplayConstants {
+// Status line méretek és pozíciók
+constexpr int StatusLineHeight = 16;
+constexpr int StatusLineWidth = 240;
+constexpr int StatusLineBfoX = 20;
+constexpr int StatusLineAgcX = 60;
+constexpr int StatusLineModX = 95;
+constexpr int StatusLineBandWidthX = 135;
+constexpr int StatusLineBandNameX = 180;
+constexpr int StatusLineStepX = 220;
+
+// Gombok méretei és margói
+constexpr int ButtonWidth = 39;
+constexpr int ButtonHeight = 16;
+constexpr int ButtonMargin = 5;
+
+// Színek
+constexpr uint16_t BfoStepColor = TFT_ORANGE;
+constexpr uint16_t AgcColor = TFT_COLOR(255, 130, 0);
+constexpr uint16_t StatusLineModeColor = TFT_YELLOW;
+constexpr uint16_t StatusLineBandWidthColor = TFT_COLOR(255, 127, 255);  // Magenta
+constexpr uint16_t StatusLineBandColor = TFT_CYAN;
+constexpr uint16_t StatusLineStepColor = TFT_SKYBLUE;
+
+// Egyéb
+constexpr int VolumeMin = 0;
+constexpr int VolumeMax = 63;
+}  // namespace DisplayConstants
+
 // Vízszintes gombok definíciói
 #define SCREEN_HBTNS_X_START 5    // Horizontális gombok kezdő X koordinátája
 #define SCREEN_HBTNS_Y_MARGIN 5   // Horizontális gombok alsó margója
@@ -14,8 +43,8 @@
  *  BFO Status kirajzolása
  */
 void DisplayBase::drawBfoStatus(bool initFont) {
+    using namespace DisplayConstants;
 
-    // Fontot kell váltani?
     if (initFont) {
         tft.setFreeFont();
         tft.setTextSize(1);
@@ -24,20 +53,20 @@ void DisplayBase::drawBfoStatus(bool initFont) {
 
     uint8_t currMod = band.getCurrentBand().varData.currMod;
 
-    // BFO Step
     uint16_t bfoStepColor = TFT_SILVER;
-    if ((currMod == LSB or currMod == USB or currMod == CW) and config.data.currentBFOmanu) {
-        bfoStepColor = TFT_ORANGE;
+    if ((currMod == LSB || currMod == USB || currMod == CW) && config.data.currentBFOmanu) {
+        bfoStepColor = BfoStepColor;
     }
     tft.setTextColor(bfoStepColor, TFT_BLACK);
+
     if (rtv::bfoOn) {
 #ifdef IhaveCrystal
-        tft.drawString(String(config.data.currentBFOStep) + " Hz", 20, 15);
+        tft.drawString(String(config.data.currentBFOStep) + " Hz", StatusLineBfoX, 15);
 #endif
     } else {
-        tft.drawString(F(" BFO "), 20, 15);
+        tft.drawString(F(" BFO "), StatusLineBfoX, 15);
     }
-    tft.drawRect(0, 2, 39, 16, bfoStepColor);
+    tft.drawRect(0, 2, ButtonWidth, ButtonHeight, bfoStepColor);
 }
 
 /**
@@ -53,21 +82,23 @@ void DisplayBase::drawAgcAttStatus(bool initFont) {
     }
 
     // AGC / ATT
-    uint16_t agcColor = config.data.agcGain == 0 ? TFT_SILVER : TFT_COLOR(255, 130, 0);
+    uint16_t agcColor = config.data.agcGain == 0 ? TFT_SILVER : DisplayConstants::AgcColor;
     tft.setTextColor(agcColor, TFT_BLACK);
     if (config.data.agcGain > 1) {
-        tft.drawString("ATT" + String(config.data.currentAGCgain < 9 ? " " : "") + String(config.data.currentAGCgain), 60, 15);
+        tft.drawString("ATT" + String(config.data.currentAGCgain < 9 ? " " : "") + String(config.data.currentAGCgain), DisplayConstants::StatusLineAgcX, 15);
     } else {
-        tft.drawString(F(" AGC "), 60, 15);
+        tft.drawString(F(" AGC "), DisplayConstants::StatusLineAgcX, 15);
     }
-    tft.drawRect(40, 2, 39, 16, agcColor);
+    tft.drawRect(40, 2, DisplayConstants::ButtonWidth, DisplayConstants::ButtonHeight, agcColor);
 }
 
 /**
  * Státusz a képernyő tetején
  */
 void DisplayBase::dawStatusLine() {
-    tft.fillRect(0, 0, 240, 16, TFT_COLOR_BACKGROUND);  // Teljes statusline törlése
+    using namespace DisplayConstants;
+
+    tft.fillRect(0, 0, StatusLineWidth, StatusLineHeight, TFT_COLOR_BACKGROUND);
 
     tft.setFreeFont();
     tft.setTextSize(1);
@@ -79,43 +110,36 @@ void DisplayBase::dawStatusLine() {
     // AGC Status
     drawAgcAttStatus();
 
-// Demodulációs mód
-#define TFT_COLOR_STATUSLINE_MODE TFT_YELLOW
-    tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+    // Demodulációs mód
+    tft.setTextColor(StatusLineModeColor, TFT_BLACK);
     String modtext = band.getCurrentBandModeDesc();
-    if ((modtext == "USB") and (rtv::CWShift == true)) {
+    if ((modtext == "USB") && (rtv::CWShift == true)) {
         modtext = "CW";
     }
-    tft.drawString(modtext, 95, 15);
-    tft.drawRect(80, 2, 29, 16, TFT_COLOR_STATUSLINE_MODE);
+    tft.drawString(modtext, StatusLineModX, 15);
+    tft.drawRect(80, 2, 29, ButtonHeight, StatusLineModeColor);
 
-// BandWidth
-#define TFT_COLOR_STATUSLINE_BANDW TFT_COLOR(255, 127, 255)  // magenta?
-    tft.setTextColor(TFT_COLOR_STATUSLINE_BANDW, TFT_BLACK);
-
+    // BandWidth
+    tft.setTextColor(StatusLineBandWidthColor, TFT_BLACK);
     String bwText = band.getCurrentBandWithPstr();
     if (bwText == "AUTO") {
-        tft.drawString("F AUTO", 135, 15);
+        tft.drawString("F AUTO", StatusLineBandWidthX, 15);
     } else {
-        tft.drawString("F" + bwText + "KHz", 135, 15);
+        tft.drawString("F" + bwText + "KHz", StatusLineBandWidthX, 15);
     }
-    tft.drawRect(110, 2, 49, 16, TFT_COLOR_STATUSLINE_BANDW);
+    tft.drawRect(110, 2, 49, ButtonHeight, StatusLineBandWidthColor);
 
-// BAND NAME
-#define TFT_COLOR_STATUSLINE_BAND TFT_CYAN
-    tft.setTextColor(TFT_COLOR_STATUSLINE_BAND, TFT_BLACK);
-    tft.drawString(band.getCurrentBandName(), 180, 15);
-    tft.drawRect(160, 2, 39, 16, TFT_COLOR_STATUSLINE_BAND);
+    // BAND NAME
+    tft.setTextColor(StatusLineBandColor, TFT_BLACK);
+    tft.drawString(band.getCurrentBandName(), StatusLineBandNameX, 15);
+    tft.drawRect(160, 2, ButtonWidth, ButtonHeight, StatusLineBandColor);
 
-// STEP
-#define TFT_COLOR_STATUSLINE_STEP TFT_SKYBLUE
-
+    // STEP
     BandTable &currentBand = band.getCurrentBand();
-
-    tft.setTextColor(TFT_COLOR_STATUSLINE_STEP, TFT_BLACK);
+    tft.setTextColor(StatusLineStepColor, TFT_BLACK);
     uint8_t currentStep = currentBand.varData.currStep;
-    tft.drawString(String(currentStep * (currentBand.varData.currMod == FM ? 10 : 1)) + "kHz", 220, 15);
-    tft.drawRect(200, 2, 39, 16, TFT_COLOR_STATUSLINE_STEP);
+    tft.drawString(String(currentStep * (currentBand.varData.currMod == FM ? 10 : 1)) + "kHz", StatusLineStepX, 15);
+    tft.drawRect(200, 2, ButtonWidth, ButtonHeight, StatusLineStepColor);
 }
 
 /**
@@ -370,8 +394,8 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         processed = true;
     } else if (STREQ("Volum", event.label)) {
         // Hangerő állítása
-        this->pDialog = new ValueChangeDialog(this, this->tft, 250, 150, F("Volume"), F("Value:"),           //
-                                              &config.data.currVolume, (uint8_t)0, (uint8_t)63, (uint8_t)1,  //
+        this->pDialog = new ValueChangeDialog(this, this->tft, 250, 150, F("Volume"), F("Value:"),                                                              //
+                                              &config.data.currVolume, (uint8_t)DisplayConstants::VolumeMin, (uint8_t)DisplayConstants::VolumeMax, (uint8_t)1,  //
                                               [this](uint8_t newValue) { si4735.setVolume(newValue); });
         processed = true;
     } else if (STREQ("AGC", event.label)) {  // Automatikus AGC
