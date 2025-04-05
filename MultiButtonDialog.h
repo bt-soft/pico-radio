@@ -57,7 +57,7 @@ class MultiButtonDialog : public DialogBase {
     /**
      * Gombok tömbjének létrehozása a gomb feliratok alapján
      */
-    void buildButtonArray(const char *buttonLabels[]) {
+    void buildButtonArray(const char *buttonLabels[], const char *currentActiveButtonLabel) {
 
         if (!buttonLabels || buttonCount == 0) return;
 
@@ -65,7 +65,12 @@ class MultiButtonDialog : public DialogBase {
         uint8_t id = DLG_MULTI_BTN_ID_START;
 
         for (uint8_t i = 0; i < buttonCount; i++) {
-            buttonsArray[i] = new TftButton(id++, tft, MULTI_BTN_W, MULTI_BTN_H, buttonLabels[i], TftButton::ButtonType::Pushable);
+
+            // Ha a gomb felirat megegyezik a jelenlegi aktív gomb feliratával, akkor az állapota CurrentActive lesz
+            bool currentActiveButton = currentActiveButtonLabel != nullptr and STREQ(buttonLabels[i], currentActiveButtonLabel);
+
+            TftButton::TftButton::ButtonState state = currentActiveButton ? TftButton::ButtonState::CurrentActive : TftButton::ButtonState::Off;
+            buttonsArray[i] = new TftButton(id++, tft, MULTI_BTN_W, MULTI_BTN_H, buttonLabels[i], TftButton::ButtonType::Pushable, state);
         }
     }
 
@@ -82,11 +87,11 @@ class MultiButtonDialog : public DialogBase {
      * @param buttonCount A gombok száma
      */
     MultiButtonDialog(IDialogParent *pParent, TFT_eSPI &tft, uint16_t w, uint16_t h, const __FlashStringHelper *title, const char *buttonLabels[] = nullptr,
-                      uint8_t buttonCount = 0, std::function<void(TftButton::ButtonTouchEvent)> onButtonClicked = nullptr)
+                      uint8_t buttonCount = 0, std::function<void(TftButton::ButtonTouchEvent)> onButtonClicked = nullptr, const char *currentActiveButtonLabel = nullptr)
         : DialogBase(pParent, tft, w, h, title), buttonCount(buttonCount), onButtonClicked(onButtonClicked) {
 
         // Legyártjuk a gombok töbmjét
-        buildButtonArray(buttonLabels);
+        buildButtonArray(buttonLabels, currentActiveButtonLabel);
 
         // Elhelyezzük a dialógon a gombokat
         placeButtons();

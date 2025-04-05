@@ -436,20 +436,22 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                                                      });
         processed = true;
     } else if (STREQ("Band", event.label)) {
-
         // Kigyűjtjük az összes NEM HAM sáv nevét
         uint8_t bandCount;
         const char **bandNames = band.getBandNames(bandCount, false);
+        const char *currentBandName = band.getCurrentBand().pConstData->bandName;
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 250, F("All Radio Bands"), bandNames, bandCount,  //
-                                                     [this](TftButton::ButtonTouchEvent event) {
-                                                         // Átállítjuk a használni kívánt BAND indexet
-                                                         config.data.bandIdx = band.getBandIdxByBandName(event.label);
+        DisplayBase::pDialog = new MultiButtonDialog(
+            this, DisplayBase::tft, 400, 250, F("All Radio Bands"), bandNames, bandCount,
+            [this](TftButton::ButtonTouchEvent event) {
+                // Átállítjuk a használni kívánt BAND indexet
+                config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
-                                                         // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
-                                                     });
+                // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
+                ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+            },
+            currentBandName);
         processed = true;
     } else if (STREQ("DeMod", event.label)) {
 

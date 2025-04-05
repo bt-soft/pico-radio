@@ -24,6 +24,7 @@ class TftButton {
         Off = 0,
         On,
         Disabled,
+        CurrentActive,  // Épp aktív módot jelző gomb, de nem választható (hiszen épp ez van kiválasztva)
         //---- technikai állapotok
         Pushed,  // Csak az esemény jelzésére a calbback függvénynek, nincs színhez kötve az állapota
         //---
@@ -46,10 +47,11 @@ class TftButton {
 
    private:
     // A gomb állapotainak megfelelő háttérszín
-    const uint16_t TFT_BUTTON_STATE_BG_COLORS[3] = {
-        TFT_COLOR(65, 65, 114),  // normal
-        TFT_COLOR(65, 65, 114),  // pushed
-        TFT_COLOR(65, 65, 65)    // disabled
+    const uint16_t TFT_BUTTON_STATE_BG_COLORS[4] = {
+        TFT_COLOR(65, 65, 114),   // normal
+        TFT_COLOR(65, 65, 114),   // pushed
+        TFT_COLOR(65, 65, 65),    // disabled
+        TFT_COLOR(243, 179, 105)  // current active
     };
 
     TFT_eSPI *pTft;        // Itt pointert használunk a dinamikus tömbök miatt (nem lehet null referenciát használni)
@@ -139,7 +141,7 @@ class TftButton {
         this->label = new char[strlen(label) + 1];  // Dinamikusan lefoglaljuk a helyet
         strcpy(this->label, label);                 // Átmásoljuk az eredeti stringet
 
-        if (state != ButtonState::Off and type != ButtonType::Toggleable) {
+        if ((state != ButtonState::Off and state != ButtonState::CurrentActive) and type != ButtonType::Toggleable) {
             DEBUG("TftButton::TftButton -> Hiba!! Nem toggleable a gomb, nem lehet a state állapotot beállítani!\n");
         } else {
             this->state = state;
@@ -185,11 +187,34 @@ class TftButton {
             pTft->fillRoundRect(x, y, w, h, 5, TFT_BUTTON_STATE_BG_COLORS[state]);
         }
 
-        // Ha tiltott, akkor sötétszürke a keret, ha aktív, akkor zöld, narancs ha nyomják
-        pTft->drawRoundRect(x, y, w, h, 5, state == ButtonState::Disabled ? TFT_DARKGREY : state == ButtonState::On ? TFT_GREEN : buttonPressed ? TFT_ORANGE : TFT_WHITE);
+        // A gomb keretének színe a gomb állapotától függően változik
+        // Ha a gomb tiltott, akkor sötétszürke, ha épp aktív, akkor kék, egyébként fehér
+        uint32_t color;
+        if (buttonPressed) {
+            color = TFT_ORANGE;
+        } else {
+            switch (state) {
+                case ButtonState::Disabled:
+                    color = TFT_DARKGREY;
+                    break;
 
-        // zöld a szöveg, ha aktív, narancs ha nyomják
-        pTft->setTextColor(state == ButtonState::Disabled ? TFT_DARKGREY : state == ButtonState::On ? TFT_GREEN : buttonPressed ? TFT_ORANGE : TFT_WHITE);
+                case ButtonState::On:
+                    color = TFT_GREEN;
+                    break;
+
+                case ButtonState::CurrentActive:
+                    color = TFT_BLUE;
+                    break;
+
+                default:
+                    color = TFT_WHITE;
+                    break;
+            }
+        }
+        // A gomb keretének kirajzolása
+        pTft->drawRoundRect(x, y, w, h, 5, color);
+
+        pTft->setTextColor(color);
 
         // Az (x, y) koordináta a szöveg középpontja
         pTft->setTextDatum(MC_DATUM);
@@ -228,8 +253,8 @@ class TftButton {
      */
     bool handleTouch(bool touched, uint16_t tx, uint16_t ty) {
 
-        // Ha tiltott a gomb, akkor nem megyünk tovább
-        if (state == ButtonState::Disabled) {
+        // Ha tiltott vagy épp aktív a gomb, akkor nem megyünk tovább, nem reagál a touch-ra
+        if (state == ButtonState::Disabled or state == ButtonState::CurrentActive) {
             return false;
         }
 
@@ -294,6 +319,8 @@ class TftButton {
                 return "On";
             case ButtonState::Disabled:
                 return "Disabled";
+            case ButtonState::CurrentActive:
+                return "CurrentActive";
             case ButtonState::HOLD:
                 return "HOLD";
             case ButtonState::Pushed:
