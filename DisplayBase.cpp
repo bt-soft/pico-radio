@@ -80,7 +80,7 @@ void DisplayBase::dawStatusLine() {
     // AGC Status
     drawAgcAttStatus();
 
-// Band MODE
+// Demodulációs mód
 #define TFT_COLOR_STATUSLINE_MODE TFT_YELLOW
     tft.setTextColor(TFT_YELLOW, TFT_BLACK);
     String modtext = band.getCurrentBandModeDesc();
@@ -90,7 +90,7 @@ void DisplayBase::dawStatusLine() {
     tft.drawString(modtext, 95, 15);
     tft.drawRect(80, 2, 29, 16, TFT_COLOR_STATUSLINE_MODE);
 
-// BANDWIDTH
+// BandWidth
 #define TFT_COLOR_STATUSLINE_BANDW TFT_COLOR(255, 127, 255)  // magenta?
     tft.setTextColor(TFT_COLOR_STATUSLINE_BANDW, TFT_BLACK);
 
@@ -426,20 +426,22 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         const char **hamBands = band.getBandNames(hamBandCount, true);
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount,  //
-                                                     [this](TftButton::ButtonTouchEvent event) {
-                                                         // Átállítjuk a használni kívánt BAND indexet
-                                                         config.data.bandIdx = band.getBandIdxByBandName(event.label);
+        DisplayBase::pDialog = new MultiButtonDialog(
+            this, DisplayBase::tft, 400, 180, F("HAM Radio Bands"), hamBands, hamBandCount,  //
+            [this](TftButton::ButtonTouchEvent event) {
+                // Átállítjuk a használni kívánt BAND indexet
+                config.data.bandIdx = band.getBandIdxByBandName(event.label);
 
-                                                         // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
-                                                         ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
-                                                     });
+                // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
+                ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
+            },
+            band.getCurrentBand().pConstData->bandName);
         processed = true;
+
     } else if (STREQ("Band", event.label)) {
         // Kigyűjtjük az összes NEM HAM sáv nevét
         uint8_t bandCount;
         const char **bandNames = band.getBandNames(bandCount, false);
-        const char *currentBandName = band.getCurrentBand().pConstData->bandName;
 
         // Multi button Dialog
         DisplayBase::pDialog = new MultiButtonDialog(
@@ -451,8 +453,9 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                 // Megkeressük, hogy ez FM vagy AM-e és arra állítjuk a display-t
                 ::newDisplay = band.getCurrentBandType() == FM_BAND_TYPE ? DisplayBase::DisplayType::fm : DisplayBase::DisplayType::am;
             },
-            currentBandName);
+            band.getCurrentBand().pConstData->bandName);
         processed = true;
+
     } else if (STREQ("DeMod", event.label)) {
 
         // Kigyűjtjük az összes NEM HAM sáv nevét
@@ -460,118 +463,139 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         const char **demodModes = band.getAmDemodulationModes(demodCount);
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, 270, 150, F("Demodulation Mode"), demodModes, demodCount,  //
-                                                     [this](TftButton::ButtonTouchEvent event) {
-                                                         // Kikeressük az aktuális band-ot
-                                                         BandTable &currentBand = band.getCurrentBand();
+        DisplayBase::pDialog = new MultiButtonDialog(
+            this, DisplayBase::tft, 270, 150, F("Demodulation Mode"), demodModes, demodCount,  //
+            [this](TftButton::ButtonTouchEvent event) {
+                // Kikeressük az aktuális band-ot
+                BandTable &currentBand = band.getCurrentBand();
 
-                                                         // TODO: Ezt még kitalálni!!
-                                                         if (STREQ("CW", event.label)) {
-                                                             config.data.currentBFO -= 700;
-                                                             currentBand.varData.lastBFO = config.data.currentBFO;
-                                                             DEBUG("DisplayBase::processMandatoryButtonTouchEvent() -> A CW módot még kitalálni!!\n");
-                                                         }
+                // TODO: Ezt még kitalálni!!
+                if (STREQ("CW", event.label)) {
+                    config.data.currentBFO -= 700;
+                    currentBand.varData.lastBFO = config.data.currentBFO;
+                    DEBUG("DisplayBase::processMandatoryButtonTouchEvent() -> A CW módot még kitalálni!!\n");
+                }
 
-                                                         // Átállítjuk a demodulációs módot
-                                                         currentBand.varData.currMod = event.id - DLG_MULTI_BTN_ID_START + 1;  // Az FM-et kihagyjuk!
+                // Átállítjuk a demodulációs módot
+                currentBand.varData.currMod = event.id - DLG_MULTI_BTN_ID_START + 1;  // Az FM-et kihagyjuk!
 
-                                                         band.bandSet();
-                                                     });
+                band.bandSet();
+            },
+            band.getCurrentBandModeDesc());
         processed = true;
 
     } else if (STREQ("BndW", event.label)) {
+
+        uint8_t currMod = band.getCurrentBand().varData.currMod;  // Demodulációs mód
+
         // Megállapítjuk a lehetséges sávszélességek tömbjét
         const __FlashStringHelper *title;
         int bwValuesCount;
         const char **bwValues;
+        const char *currentBandWidthStr;  // Az aktuális sávszélesség felirata
         uint16_t w = 250;
         uint16_t h = 170;
-
-        BandTable &currentBand = band.getCurrentBand();
-        uint8_t currMod = currentBand.varData.currMod;
 
         if (currMod == FM) {
             title = F("FM Filter in kHz");
             bwValues = Band::bandWidthFM;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthFM);
+
+            currentBandWidthStr = Band::bandWidthFM[config.data.bwIdxFM];
+
         } else if (currMod == AM) {
             title = F("AM Filter in kHz");
             bwValues = Band::bandWidthAM;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthAM);
             w = 300;
             h = 180;
+
+            currentBandWidthStr = Band::bandWidthAM[config.data.bwIdxAM];
+
         } else {
             title = F("SSB Filter in kHz");
             bwValues = Band::bandWidthSSB;
             bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthSSB);
             w = 300;
             h = 150;
+
+            currentBandWidthStr = Band::bandWidthSSB[config.data.bwIdxSSB];
         }
 
         // Multi button Dialog
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, w, h, title, bwValues, bwValuesCount,  //
-                                                     [this](TftButton::ButtonTouchEvent event) {
-                                                         // A megnyomott gomb indexe
-                                                         uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
+        DisplayBase::pDialog = new MultiButtonDialog(
+            this, DisplayBase::tft, w, h, title, bwValues, bwValuesCount,  //
+            [this](TftButton::ButtonTouchEvent event) {
+                // A megnyomott gomb indexe
+                uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
 
-                                                         BandTable &currentBand = band.getCurrentBand();
-                                                         uint8_t currMod = currentBand.varData.currMod;
-
-                                                         if (currMod == AM) {
-                                                             config.data.bwIdxAM = bwIdx;
-                                                         } else if (currMod == FM) {
-                                                             config.data.bwIdxFM = bwIdx;
-                                                         } else {
-                                                             config.data.bwIdxSSB = bwIdx;
-                                                         }
-                                                         band.bandSet();
-                                                     });
+                uint8_t currMod = band.getCurrentBand().varData.currMod;  // Demodulációs mód
+                if (currMod == AM) {
+                    config.data.bwIdxAM = bwIdx;
+                } else if (currMod == FM) {
+                    config.data.bwIdxFM = bwIdx;
+                } else {
+                    config.data.bwIdxSSB = bwIdx;
+                }
+                band.bandSet();
+            },
+            currentBandWidthStr);  // Az aktuális sávszélesség felirata
         processed = true;
 
     } else if (STREQ("Step", event.label)) {
+
+        uint8_t currentBandType = band.getCurrentBandType();      // Kikeressük az aktuális Band típust
+        uint8_t currMod = band.getCurrentBand().varData.currMod;  // Demodulációs mód
+
         // Megállapítjuk a lehetséges lépések méretét
         const __FlashStringHelper *title;
         int stepCount;
         const char **stepValues;
+        const char *currentStepStr;  // Az aktuális lépés felirata
         uint16_t w = 310;
         uint16_t h = 100;
-
-        BandTable &currentBand = band.getCurrentBand();
-        uint8_t currMod = currentBand.varData.currMod;
 
         if (currMod == FM) {
             title = F("Step tune FM");
             stepValues = Band::stepSizeFM;
             stepCount = ARRAY_ITEM_COUNT(Band::stepSizeFM);
+
+            currentStepStr = Band::stepSizeFM[config.data.ssIdxFM];
+
         } else {
+
             title = F("Step tune AM/SSB");
             stepValues = Band::stepSizeAM;
             stepCount = ARRAY_ITEM_COUNT(Band::stepSizeAM);
             w = 250;
             h = 140;
+
+            currentStepStr = Band::stepSizeAM[currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE ? config.data.ssIdxMW : config.data.ssIdxAM];
         }
 
-        DisplayBase::pDialog = new MultiButtonDialog(this, DisplayBase::tft, w, h, title, stepValues, stepCount,  //
-                                                     [this](TftButton::ButtonTouchEvent event) {
-                                                         // A megnyomott gomb indexe
-                                                         uint8_t btnIdx = event.id - DLG_MULTI_BTN_ID_START;
+        DisplayBase::pDialog = new MultiButtonDialog(
+            this, DisplayBase::tft, w, h, title, stepValues, stepCount,  //
+            [this](TftButton::ButtonTouchEvent event) {
+                // A megnyomott gomb indexe
+                uint8_t btnIdx = event.id - DLG_MULTI_BTN_ID_START;
 
-                                                         // Kikeressük az aktuális Band típust
-                                                         uint8_t currentBandType = band.getCurrentBandType();
+                // Kikeressük az aktuális Band típust
+                uint8_t currentBandType = band.getCurrentBandType();
 
-                                                         BandTable &currentBand = band.getCurrentBand();
-                                                         uint8_t currMod = currentBand.varData.currMod;
+                // Demodulációs mód
+                uint8_t currMod = band.getCurrentBand().varData.currMod;
 
-                                                         // Beállítjuk a konfigban a stepSize-t
-                                                         if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
-                                                             config.data.ssIdxMW = btnIdx;
-                                                         } else if (currMod == FM) {
-                                                             config.data.ssIdxFM = btnIdx;
-                                                         } else {
-                                                             config.data.ssIdxAM = btnIdx;
-                                                         }
-                                                         Si4735Utils::setStep();
-                                                     });
+                // Beállítjuk a konfigban a stepSize-t
+                if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
+                    config.data.ssIdxMW = btnIdx;
+                } else if (currMod == FM) {
+                    config.data.ssIdxFM = btnIdx;
+                } else {
+                    config.data.ssIdxAM = btnIdx;
+                }
+                Si4735Utils::setStep();
+            },
+            currentStepStr);  // Az aktuális lépés felirata
         processed = true;
 
     } else if (STREQ("Scan", event.label)) {
