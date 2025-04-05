@@ -7,10 +7,7 @@
 #include "Config.h"
 #include "rtVars.h"
 
-#define FREQ_7SEGMENT_HEIGHT 38       // Magassága
-#define FREQ_7SEGMENT_WIDTH 240       // Sima megjelenítés alatt a kijelző szélessége
-#define FREQ_7SEGMENT_BFO_WIDTH 110   // BFO kijelzése alatt a kijelző szélessége
-#define FREQ_7SEGMENT_SEEK_WIDTH 194  // Seek alatt a kijelző szélessége
+#define FREQ_7SEGMENT_HEIGHT 38  // Magassága
 
 // Színstruktúra
 struct SegmentColors {

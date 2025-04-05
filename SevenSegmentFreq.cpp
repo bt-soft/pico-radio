@@ -3,6 +3,9 @@
 #include "DSEG7_Classic_Mini_Regular_34.h"
 #include "rtVars.h"
 
+#define FREQ_7SEGMENT_BFO_WIDTH 110   // BFO kijelzése alatt a kijelző szélessége
+#define FREQ_7SEGMENT_SEEK_WIDTH 194  // Seek alatt a kijelző szélessége
+
 // Színek a különböző módokhoz
 const SegmentColors normalColors = {TFT_GOLD, TFT_COLOR(50, 50, 50), TFT_YELLOW};
 const SegmentColors screenSaverColors = {TFT_SKYBLUE, TFT_COLOR(50, 50, 50), TFT_SKYBLUE};
@@ -18,7 +21,7 @@ const SegmentColors bfoColors = {TFT_ORANGE, TFT_BROWN, TFT_ORANGE};
  * @param unit A mértékegység.
  */
 void SevenSegmentFreq::drawFrequency(const String& freq, const String& mask, int d, const SegmentColors& colors, const __FlashStringHelper* unit) {
-    uint16_t spriteWidth = rtv::bfoOn ? FREQ_7SEGMENT_BFO_WIDTH : FREQ_7SEGMENT_WIDTH;
+    uint16_t spriteWidth = rtv::bfoOn ? FREQ_7SEGMENT_BFO_WIDTH : tft.width() / 2;
     if (rtv::SEEK) {
         spriteWidth = FREQ_7SEGMENT_SEEK_WIDTH;
     }

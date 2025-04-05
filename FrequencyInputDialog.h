@@ -133,7 +133,7 @@ class FrequencyInputDialog : public DialogBase {
         decimalPlaces = 0;
 
         // Frekvencia kijelző
-        uint16_t sevenSegmentFreqX = x + (w - FREQ_7SEGMENT_WIDTH) / 2;  // Dinamikusan számított X pozíció
+        uint16_t sevenSegmentFreqX = x + (w - tft.width() / 2) / 2;  // Dinamikusan számított X pozíció
         pSevenSegmentFreq = new SevenSegmentFreq(tft, sevenSegmentFreqX, y + 20, band);
 
         // Gombok létrehozása
