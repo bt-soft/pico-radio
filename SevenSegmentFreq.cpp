@@ -6,6 +6,16 @@
 #define FREQ_7SEGMENT_BFO_WIDTH 110   // BFO kijelzése alatt a kijelző szélessége
 #define FREQ_7SEGMENT_SEEK_WIDTH 194  // Seek alatt a kijelző szélessége
 
+namespace SevenSegmentConstants {
+constexpr int DigitXStart[] = {141, 171, 200};     // Digit X koordináták kezdőértékei
+constexpr int DigitWidth = 30;                     // Egy digit szélessége
+constexpr int DigitHeight = FREQ_7SEGMENT_HEIGHT;  // Digit magassága
+constexpr int DigitYStart = 20;                    // Digit Y kezdőértéke
+constexpr int UnderlineYOffset = 60;               // Aláhúzás Y eltolása
+constexpr int UnderlineHeight = 5;                 // Aláhúzás magassága
+constexpr int FrequencyStep[] = {1000, 100, 10};   // Frekvencia lépések (Hz)
+}  // namespace SevenSegmentConstants
+
 // Színek a különböző módokhoz
 const SegmentColors normalColors = {TFT_GOLD, TFT_COLOR(50, 50, 50), TFT_YELLOW};
 const SegmentColors screenSaverColors = {TFT_SKYBLUE, TFT_COLOR(50, 50, 50), TFT_SKYBLUE};
@@ -98,20 +108,13 @@ void SevenSegmentFreq::drawBfo(int bfoValue, int d, const SegmentColors& colors)
  * @param colors A színek.
  */
 void SevenSegmentFreq::drawStepUnderline(int d, const SegmentColors& colors) {
-    tft.fillRect(freqDispX + 141 + d, freqDispY + 60, 81, 5, TFT_COLOR_BACKGROUND);
-    uint8_t digitUnderLineX;
-    switch (rtv::freqstepnr) {
-        case 0:  // freqstep = 1 kHz;
-            digitUnderLineX = 141;
-            break;
-        case 1:  // freqstep = 100 Hz;
-            digitUnderLineX = 171;
-            break;
-        case 2:  // freqstep = 10 Hz;
-            digitUnderLineX = 200;
-            break;
-    }
-    tft.fillRect(freqDispX + digitUnderLineX + d, freqDispY + 60, 21, 5, colors.indicator);
+    using namespace SevenSegmentConstants;
+
+    // Töröljük az aláhúzást
+    tft.fillRect(freqDispX + DigitXStart[0] + d, freqDispY + UnderlineYOffset, DigitWidth * 3, UnderlineHeight, TFT_COLOR_BACKGROUND);
+
+    // Rajzoljuk ki az aktuális aláhúzást
+    tft.fillRect(freqDispX + DigitXStart[rtv::freqstepnr] + d, freqDispY + UnderlineYOffset, DigitWidth, UnderlineHeight, colors.indicator);
 }
 
 /**
@@ -122,17 +125,15 @@ void SevenSegmentFreq::drawStepUnderline(int d, const SegmentColors& colors) {
  * @return true, ha az eseményt kezeltük, false, ha nem.
  */
 bool SevenSegmentFreq::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+    using namespace SevenSegmentConstants;
 
-    // Ellenőrizzük, hogy az érintés a digit teljes területére esett-e?
-    if (ty >= freqDispY + 20 && ty <= freqDispY + 20 + FREQ_7SEGMENT_HEIGHT) {  // Digit teljes magassága
-        if (tx >= freqDispX + 141 && tx < freqDispX + 171) {
-            rtv::freqstepnr = 0;  // 1 kHz
-        } else if (tx >= freqDispX + 171 && tx < freqDispX + 200) {
-            rtv::freqstepnr = 1;  // 100 Hz
-        } else if (tx >= freqDispX + 200 && tx < freqDispX + 221) {
-            rtv::freqstepnr = 2;  // 10 Hz
-        } else {
-            return false;  // Nem a digit területére esett
+    // Ellenőrizzük, hogy az érintés a digit teljes területére esett-e
+    if (ty >= freqDispY + DigitYStart && ty <= freqDispY + DigitYStart + DigitHeight) {  // Digit teljes magassága
+        for (int i = 0; i < 3; ++i) {
+            if (tx >= freqDispX + DigitXStart[i] && tx < freqDispX + DigitXStart[i] + DigitWidth) {
+                rtv::freqstepnr = i;  // Frekvencia lépés index
+                break;
+            }
         }
 
         // Frissítsük az aláhúzást a kijelzőn
