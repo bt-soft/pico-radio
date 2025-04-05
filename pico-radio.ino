@@ -47,7 +47,7 @@ Band band(si4735);
 DisplayBase *pDisplay = nullptr;
 
 /**
- * GLobális változó az aktuális kijelző váltásának előjegyzése
+ * Globális változó az aktuális kijelző váltásának előjegyzése
  * Induláskor FM - módban indulunk
  * (Ezt a globális változót a képernyők állítgatják, ha más képernyőt választ a felhasználó)
  */

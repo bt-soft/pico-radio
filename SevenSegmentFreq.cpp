@@ -51,12 +51,12 @@ void SevenSegmentFreq::drawFrequency(const String& freq, const String& mask, int
     spr.setTextColor(colors.active);
     spr.drawString(freq, x, FREQ_7SEGMENT_HEIGHT);
 
+    // A frekvencia kijelzés szélességének kiszámítása a sprite-on
+    frequencyDisplayWidth = spr.textWidth(freq);
+
     spr.pushSprite(freqDispX + d, freqDispY + 20);
     spr.setFreeFont();
     spr.deleteSprite();
-
-    // **ÚJ:** A frekvencia kijelzés szélességének kiszámítása
-    frequencyDisplayWidth = tft.textWidth(freq);
 
     // Mértékegység kirajzolása
     if (unit != nullptr) {
