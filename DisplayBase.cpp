@@ -22,8 +22,7 @@ void DisplayBase::drawBfoStatus(bool initFont) {
         tft.setTextDatum(BC_DATUM);
     }
 
-    BandTable &currentBand = band.getCurrentBand();
-    uint8_t currMod = currentBand.varData.currMod;
+    uint8_t currMod = band.getCurrentBand().varData.currMod;
 
     // BFO Step
     uint16_t bfoStepColor = TFT_SILVER;

@@ -97,7 +97,17 @@ void AmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
  * Touch (nem képrnyő button) esemény lekezelése
  * A további gui elemek vezérléséhez
  */
-bool AmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) { return false; }
+bool AmDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+
+    uint8_t currMod = band.getCurrentBand().varData.currMod;
+
+    // A frekvencia kijelző kezeli a touch eseményeket SSB/CW módban
+    if (currMod == LSB or currMod == USB or currMod == CW) {
+        return pSevenSegmentFreq->handleTouch(touched, tx, ty);
+    }
+
+    return false;
+}
 
 /**
  * Rotary encoder esemény lekezelése

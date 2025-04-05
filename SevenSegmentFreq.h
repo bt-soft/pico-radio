@@ -84,6 +84,15 @@ class SevenSegmentFreq {
      * @return uint16_t A frekvencia kijelzés szélessége.
      */
     inline uint16_t getFrequencyDisplayWidth() { return frequencyDisplayWidth; }
+
+    /**
+     * @brief Kezeli az érintési eseményeket a frekvencia kijelzőn.
+     *
+     * @param touchX Az érintés X koordinátája.
+     * @param touchY Az érintés Y koordinátája.
+     * @return true, ha az eseményt kezeltük, false, ha nem.
+     */
+    bool handleTouch(bool touched, uint16_t tx, uint16_t ty);
 };
 
 #endif  //__SEVENSEGMENTFREQ_H

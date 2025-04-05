@@ -11,7 +11,7 @@ bool mute = false;
 uint16_t freqDispX = 0;
 uint16_t freqDispY = 0;
 
-// Frekvencia lépés
+// Frekvencia lépés, a kijelző digitje alatti aláhúzással jelezve
 // uint16_t freqstep = 1000;  // frekvencia lépés értéke Hz-ben
 // freqstepnr==0 -> freqstep = 1000 Hz;
 // freqstepnr==1 -> freqstep = 100 Hz;

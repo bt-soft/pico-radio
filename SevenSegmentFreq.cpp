@@ -115,6 +115,36 @@ void SevenSegmentFreq::drawStepUnderline(int d, const SegmentColors& colors) {
 }
 
 /**
+ * @brief Kezeli az érintési eseményeket a frekvencia kijelzőn.
+ *
+ * @param touchX Az érintés X koordinátája.
+ * @param touchY Az érintés Y koordinátája.
+ * @return true, ha az eseményt kezeltük, false, ha nem.
+ */
+bool SevenSegmentFreq::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+
+    // Ellenőrizzük, hogy az érintés a digit teljes területére esett-e?
+    if (ty >= freqDispY + 20 && ty <= freqDispY + 20 + FREQ_7SEGMENT_HEIGHT) {  // Digit teljes magassága
+        if (tx >= freqDispX + 141 && tx < freqDispX + 171) {
+            rtv::freqstepnr = 0;  // 1 kHz
+        } else if (tx >= freqDispX + 171 && tx < freqDispX + 200) {
+            rtv::freqstepnr = 1;  // 100 Hz
+        } else if (tx >= freqDispX + 200 && tx < freqDispX + 221) {
+            rtv::freqstepnr = 2;  // 10 Hz
+        } else {
+            return false;  // Nem a digit területére esett
+        }
+
+        // Frissítsük az aláhúzást a kijelzőn
+        drawStepUnderline(0, normalColors);
+
+        return true;  // Esemény kezelve
+    }
+
+    return false;  // Nem kezeltük az eseményt
+}
+
+/**
  *
  */
 void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
