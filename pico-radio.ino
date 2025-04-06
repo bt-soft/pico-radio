@@ -4,7 +4,7 @@
 #include "utils.h"
 
 //------------------ TFT
-#define SCREEN_SAVER_TIME 1000 * 60 * 1  // 10 perc a képernyővédő időzítése
+#define SCREEN_SAVER_TIME 1000 * 60 * 10  // 10 perc a képernyővédő időzítése
 
 #include <TFT_eSPI.h>  // TFT_eSPI könyvtár
 TFT_eSPI tft;          // TFT objektum
@@ -19,7 +19,7 @@ RPI_PICO_Timer ITimer1(1);
 
 #include "RotaryEncoder.h"
 RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW);
-#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 10  // 1msec
+#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 1  // 1msec
 
 //------------------- EEPROM Config
 #include "Config.h"
