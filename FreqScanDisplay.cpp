@@ -34,7 +34,7 @@ bool FreqScanDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) { r
 void FreqScanDisplay::drawScreen() {
     startFrequency = band.getCurrentBand().pConstData->minimumFreq;
     endFrequency = band.getCurrentBand().pConstData->maximumFreq;
-    stepFrequency = band.getCurrentBand().pConstData->defStep / 10;
+    stepFrequency = band.getCurrentBand().pConstData->defStep;
 
     tft.setFreeFont();
     tft.fillScreen(TFT_BLACK);
@@ -189,23 +189,26 @@ void FreqScanDisplay::updateSpectrumScan() {
 // }
 
 int FreqScanDisplay::calculateBarHeight(uint8_t rssi) {
-    constexpr float rssiMin = 5.0f;
+    constexpr float rssiMin = 35.0f;  // New minimum RSSI for empty channel
     constexpr float rssiMax = 127.0f;
-    constexpr float noiseThreshold = 10.0f;
-    constexpr float signalThreshold = 50.0f;
+    constexpr float noiseThreshold = 35.0f;   // Empty channel threshold
+    constexpr float signalThreshold = 40.0f;  // 40% height threshold
 
+    // Treat RSSI below noiseThreshold as 0
     if (rssi < noiseThreshold) {
-        rssi = 0;  // Zajszint elnyomása
+        rssi = 0;
     }
 
     float constrainedRssi = constrain((float)rssi, rssiMin, rssiMax);
-    // Lineáris normalizálás
+    // Linear mapping with adjustment for signalThreshold
     float normalizedRssi = (constrainedRssi - rssiMin) / (rssiMax - rssiMin);
 
-    // Enyhébb kiemelés
+    // Adjust height for stronger signals above signalThreshold
     if (rssi >= signalThreshold) {
         float signalBoost = (rssi - signalThreshold) / (rssiMax - signalThreshold);
-        normalizedRssi += signalBoost * 0.2f;  // Csökkentett kiemelés
+        normalizedRssi += signalBoost * 0.6f;  // Increased boost for better visibility
+    } else if (rssi > noiseThreshold) {
+        normalizedRssi *= 0.4f;  // Scale up values between noise and signal thresholds
     }
 
     return (int)(normalizedRssi * spectrumHeight);
