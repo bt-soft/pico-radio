@@ -47,6 +47,12 @@ struct BandTable {
     BandTableVar varData;              // RAM-ban tárolt változó adatok
 };
 
+// Sávszélesség struktúra
+struct BandWidth {
+    const char *label;  // Megjelenítendő felirat
+    uint8_t index;      // Az si4735-nek átadandó index
+};
+
 /**
  * Band class
  */
@@ -65,9 +71,10 @@ class Band {
     // BandMode description
     static const char *bandModeDesc[5];
 
-    static const char *bandWidthFM[5];
-    static const char *bandWidthAM[7];
-    static const char *bandWidthSSB[6];
+    // Sávszélesség struktúrák tömbjei
+    static const BandWidth bandWidthFM[5];
+    static const BandWidth bandWidthAM[7];
+    static const BandWidth bandWidthSSB[6];
 
     // Frequency Step
     static const char *stepSizeAM[4];
@@ -126,16 +133,65 @@ class Band {
     }
 
     /**
-     *
+     * Az aktuális sávszélesség labeljének lekérdezése
+     * @return A sávszélesség labelje, vagy nullptr, ha nem található
      */
-    inline const char *getCurrentBandWithPstr() {
+    const char *getCurrentBandWidthLabel() {
         const char *p;
         uint8_t currMod = getCurrentBand().varData.currMod;
-        if (currMod == AM) p = bandWidthAM[config.data.bwIdxAM];
-        if (currMod == LSB or currMod == USB or currMod == CW) p = bandWidthSSB[config.data.bwIdxSSB];
-        if (currMod == FM) p = bandWidthFM[config.data.bwIdxFM];
+        if (currMod == AM) p = getCurrentBandWidthLabelByIndex(bandWidthAM, config.data.bwIdxAM);
+        if (currMod == LSB or currMod == USB or currMod == CW) p = getCurrentBandWidthLabelByIndex(bandWidthSSB, config.data.bwIdxSSB);
+        if (currMod == FM) p = getCurrentBandWidthLabelByIndex(bandWidthFM, config.data.bwIdxFM);
 
         return p;
+    }
+
+    /**
+     * Sávszélesség tömb labeljeinek visszaadása
+     * @param bandWidth A sávszélesség tömbje
+     * @param count A tömb elemeinek száma
+     * @return A label-ek tömbje
+     */
+    template <size_t N>
+    const char **getBandWidthLabels(const BandWidth (&bandWidth)[N], size_t &count) {
+        count = N;  // A tömb mérete
+        static const char *labels[N];
+        for (size_t i = 0; i < N; i++) {
+            labels[i] = bandWidth[i].label;
+        }
+        return labels;
+    }
+
+    /**
+     * A sávszélesség labeljének lekérdezése az index alapján
+     * @param bandWidth A sávszélesség tömbje
+     * @param index A keresett sávszélesség indexe
+     * @return A sávszélesség labelje, vagy nullptr, ha nem található
+     */
+    template <size_t N>
+    const char *getCurrentBandWidthLabelByIndex(const BandWidth (&bandWidth)[N], uint8_t index) {
+        for (size_t i = 0; i < N; i++) {
+            if (bandWidth[i].index == index) {
+                return bandWidth[i].label;  // Megtaláltuk a labelt
+            }
+        }
+        return nullptr;  // Ha nem található
+    }
+
+    /**
+     * A sávszélesség indexének lekérdezése a label alapján
+     * @param bandWidth A sávszélesség tömbje
+     * @param label A keresett sávszélesség labelje
+     * @return A sávszélesség indexe, vagy -1, ha nem található
+     */
+    template <size_t N>
+    int8_t getBandWidthIndexByLabel(const BandWidth (&bandWidth)[N], const char *label) {
+        for (size_t i = 0; i < N; i++) {
+            if (strcmp(label, bandWidth[i].label) == 0) {
+                return bandWidth[i].index;  // Megtaláltuk az indexet
+            }
+        }
+        return -1;  // Ha nem található
     }
 
     inline const char *getCurrentBandName() { return (const char *)pgm_read_ptr(&getCurrentBand().pConstData->bandName); }

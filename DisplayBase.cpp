@@ -121,7 +121,7 @@ void DisplayBase::dawStatusLine() {
 
     // BandWidth
     tft.setTextColor(StatusLineBandWidthColor, TFT_BLACK);
-    String bwText = band.getCurrentBandWithPstr();
+    String bwText = band.getCurrentBandWidthLabel();
     if (bwText == "AUTO") {
         tft.drawString("F AUTO", StatusLineBandWidthX, 15);
     } else {
@@ -513,56 +513,49 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
 
         // Megállapítjuk a lehetséges sávszélességek tömbjét
         const __FlashStringHelper *title;
-        int bwValuesCount;
-        const char **bwValues;
-        const char *currentBandWidthStr;  // Az aktuális sávszélesség felirata
+        size_t labelsCount;
+        const char **labels;
         uint16_t w = 250;
         uint16_t h = 170;
 
         if (currMod == FM) {
             title = F("FM Filter in kHz");
-            bwValues = Band::bandWidthFM;
-            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthFM);
 
-            currentBandWidthStr = Band::bandWidthFM[config.data.bwIdxFM];
+            labels = band.getBandWidthLabels(Band::bandWidthFM, labelsCount);
 
         } else if (currMod == AM) {
             title = F("AM Filter in kHz");
-            bwValues = Band::bandWidthAM;
-            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthAM);
             w = 300;
             h = 180;
 
-            currentBandWidthStr = Band::bandWidthAM[config.data.bwIdxAM];
+            labels = band.getBandWidthLabels(Band::bandWidthAM, labelsCount);
 
         } else {
             title = F("SSB Filter in kHz");
-            bwValues = Band::bandWidthSSB;
-            bwValuesCount = ARRAY_ITEM_COUNT(Band::bandWidthSSB);
             w = 300;
             h = 150;
 
-            currentBandWidthStr = Band::bandWidthSSB[config.data.bwIdxSSB];
+            labels = band.getBandWidthLabels(Band::bandWidthSSB, labelsCount);
         }
+
+        const char *currentBandWidthLabel = band.getCurrentBandWidthLabel();  // Az aktuális sávszélesség felirata
 
         // Multi button Dialog
         DisplayBase::pDialog = new MultiButtonDialog(
-            this, DisplayBase::tft, w, h, title, bwValues, bwValuesCount,  //
+            this, DisplayBase::tft, w, h, title, labels, labelsCount,  //
             [this](TftButton::ButtonTouchEvent event) {
-                // A megnyomott gomb indexe
-                uint8_t bwIdx = event.id - DLG_MULTI_BTN_ID_START;
-
+                // A megnyomott gomb indexének kikeresése
                 uint8_t currMod = band.getCurrentBand().varData.currMod;  // Demodulációs mód
                 if (currMod == AM) {
-                    config.data.bwIdxAM = bwIdx;
+                    config.data.bwIdxAM = band.getBandWidthIndexByLabel(Band::bandWidthAM, event.label);
                 } else if (currMod == FM) {
-                    config.data.bwIdxFM = bwIdx;
+                    config.data.bwIdxFM = band.getBandWidthIndexByLabel(Band::bandWidthFM, event.label);
                 } else {
-                    config.data.bwIdxSSB = bwIdx;
+                    config.data.bwIdxSSB = band.getBandWidthIndexByLabel(Band::bandWidthSSB, event.label);
                 }
                 band.bandSet();
             },
-            currentBandWidthStr);  // Az aktuális sávszélesség felirata
+            currentBandWidthLabel);  // Az aktuális sávszélesség felirata
         processed = true;
 
     } else if (STREQ("Step", event.label)) {

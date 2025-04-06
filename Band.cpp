@@ -82,10 +82,10 @@ BandTable bandTable[BANDTABLE_COUNT];
 // BandMode description
 const char* Band::bandModeDesc[5] = {"FM", "LSB", "USB", "AM", "CW"};
 
-// Band Width - ez indexre állítódik az si4735-ben!
-const char* Band::bandWidthFM[5] = {"AUTO", "110", "84", "60", "40"};
-const char* Band::bandWidthAM[7] = {"6.0", "4.0", "3.0", "2.0", "1.0", "1.8", "2.5"};
-const char* Band::bandWidthSSB[6] = {"1.2", "2.2", "3.0", "4.0", "0.5", "1.0"};
+// Sávszélesség struktúrák tömbjei - ez indexre állítódik az si4735-ben!
+const BandWidth Band::bandWidthFM[] = {{"AUTO", 0}, {"110", 1}, {"84", 2}, {"60", 3}, {"40", 4}};
+const BandWidth Band::bandWidthAM[] = {{"1.0", 4}, {"1.8", 5}, {"2.0", 3}, {"2.5", 6}, {"3.0", 2}, {"4.0", 1}, {"6.0", 0}};
+const BandWidth Band::bandWidthSSB[] = {{"0.5", 4}, {"1.0", 5}, {"1.2", 0}, {"2.2", 1}, {"3.0", 2}, {"4.0", 3}};
 
 // Frequency Step - Ez decimális értékre állítódik az si4735-ben!
 const char* Band::stepSizeAM[] = {"1kHz", "5kHz", "9kHz", "10kHz"};
