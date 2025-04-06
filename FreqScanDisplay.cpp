@@ -34,7 +34,7 @@ bool FreqScanDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) { r
 void FreqScanDisplay::drawScreen() {
     startFrequency = band.getCurrentBand().pConstData->minimumFreq;
     endFrequency = band.getCurrentBand().pConstData->maximumFreq;
-    stepFrequency = band.getCurrentBand().pConstData->defStep;
+    stepFrequency = band.getCurrentBand().pConstData->defStep / 10;
 
     tft.setFreeFont();
     tft.fillScreen(TFT_BLACK);
@@ -124,7 +124,8 @@ void FreqScanDisplay::updateSpectrumScan() {
     if (!scanning) return;
 
     si4735.setFrequency(currentFrequency);
-    delay(50);  // Stabilizációs idő
+    // A  stabilizációs idő már benne van a setFrequency() függvényben
+    // -> #define MAX_DELAY_AFTER_SET_FREQUENCY 30 // In ms - This value helps to improve the precision during of getting frequency value
 
     // Frissítsük a bal felső sarokban az aktuális frekvenciát
     tft.fillRect(0, 0, 100, 20, TFT_BLACK);
@@ -134,6 +135,10 @@ void FreqScanDisplay::updateSpectrumScan() {
 
     si4735.getCurrentReceivedSignalQuality();
     uint8_t rssi = si4735.getCurrentRSSI();
+
+    // Debug információk kiírása
+    DEBUG("FreqScanDisplay::updateSpectrumScan() -> Frequency: %d kHz, RSSI: %d\n", currentFrequency, rssi);
+
     rssiValues.push_back(rssi);
 
     uint8_t barHeight = calculateBarHeight(rssi);
@@ -161,6 +166,28 @@ void FreqScanDisplay::updateSpectrumScan() {
 /**
  * Oszlop magasságának kiszámítása
  */
+// int FreqScanDisplay::calculateBarHeight(uint8_t rssi) {
+//     constexpr float rssiMin = 5.0f;
+//     constexpr float rssiMax = 127.0f;
+//     constexpr float noiseThreshold = 10.0f;
+//     constexpr float signalThreshold = 50.0f;
+
+//     if (rssi < noiseThreshold) {
+//         rssi = 0;  // Zajszint elnyomása
+//     }
+
+//     float constrainedRssi = constrain((float)rssi, rssiMin, rssiMax);
+//     float normalizedRssi = pow((constrainedRssi - rssiMin) / (rssiMax - rssiMin), 3.0f);
+
+//     // Adók további kiemelése
+//     if (rssi >= signalThreshold) {
+//         float signalBoost = (rssi - signalThreshold) / (rssiMax - signalThreshold);
+//         normalizedRssi += signalBoost * 0.8f;
+//     }
+
+//     return (int)(normalizedRssi * spectrumHeight);
+// }
+
 int FreqScanDisplay::calculateBarHeight(uint8_t rssi) {
     constexpr float rssiMin = 5.0f;
     constexpr float rssiMax = 127.0f;
@@ -172,12 +199,13 @@ int FreqScanDisplay::calculateBarHeight(uint8_t rssi) {
     }
 
     float constrainedRssi = constrain((float)rssi, rssiMin, rssiMax);
-    float normalizedRssi = pow((constrainedRssi - rssiMin) / (rssiMax - rssiMin), 3.0f);
+    // Lineáris normalizálás
+    float normalizedRssi = (constrainedRssi - rssiMin) / (rssiMax - rssiMin);
 
-    // Adók további kiemelése
+    // Enyhébb kiemelés
     if (rssi >= signalThreshold) {
         float signalBoost = (rssi - signalThreshold) / (rssiMax - signalThreshold);
-        normalizedRssi += signalBoost * 0.8f;
+        normalizedRssi += signalBoost * 0.2f;  // Csökkentett kiemelés
     }
 
     return (int)(normalizedRssi * spectrumHeight);
