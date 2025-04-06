@@ -50,6 +50,13 @@ void FreqScanDisplay::drawScreen() {
 
     // Spektrumkép keretének kirajzolása
     tft.drawRect(spectrumX - 1, spectrumY - 1, spectrumWidth + 10, spectrumHeight + 2, TFT_WHITE);
+
+    // Start és end frekvenciák kiírása a vízszintes vonal alá
+    tft.setTextColor(TFT_WHITE, TFT_BLACK);
+    tft.setTextSize(1);
+    tft.setTextDatum(TL_DATUM);
+    tft.drawString("Start: " + String(startFrequency) + " kHz", spectrumX, spectrumY + spectrumHeight + 10);
+    tft.drawString("End: " + String(endFrequency) + " kHz", spectrumX + spectrumWidth / 2, spectrumY + spectrumHeight + 10);
 }
 
 /**
@@ -147,9 +154,12 @@ void FreqScanDisplay::updateSpectrumScan() {
     // Oszlop pozíciója
     uint32_t x = map(currentFrequency, startFrequency, endFrequency, spectrumX, spectrumX + spectrumWidth);
 
+    // Fehér pixel az oszlop tetején
+    tft.drawPixel(x, spectrumY, TFT_WHITE);
+
     // Oszlop kirajzolása
-    uint8_t barWidth = (rssi < 10.0f) ? 1 : 2;  // Zajszint oszlopai vékonyabbak
-    tft.fillRect(x, spectrumY + spectrumHeight - barHeight, barWidth, barHeight, barColor);
+    uint8_t barWidth = (rssi < 10.0f) ? 1 : 2;                                                               // Zajszint oszlopai vékonyabbak
+    tft.fillRect(x + 1, spectrumY + 1 + spectrumHeight - barHeight, barWidth - 1, barHeight - 1, barColor);  // -1 miatt nem lesz túl vastag
 
     // Következő frekvencia
     currentFrequency += stepFrequency;
