@@ -19,7 +19,7 @@ RPI_PICO_Timer ITimer1(1);
 
 #include "RotaryEncoder.h"
 RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW);
-#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 1  // 1msec
+#define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 10  // 1msec
 
 //------------------- EEPROM Config
 #include "Config.h"
