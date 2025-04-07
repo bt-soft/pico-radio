@@ -137,9 +137,38 @@ bool SevenSegmentFreq::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
 
     // Ellenőrizzük, hogy az érintés a digit teljes területére esett-e
     if (ty >= freqDispY + DigitYStart && ty <= freqDispY + DigitYStart + DigitHeight) {  // Digit teljes magassága
-        for (int i = 0; i < 3; ++i) {
+
+        // Csak 3 digitet ismerünk, amit megérinthet
+        for (int i = 0; i <= 2; ++i) {
+
+            // Az i. digitet érintettük meg?
             if (tx >= freqDispX + DigitXStart[i] && tx < freqDispX + DigitXStart[i] + DigitWidth) {
-                rtv::freqstepnr = i;  // Frekvencia lépés index
+
+                // Ha ugyanazt a digitet érintettük meg, ami eddig volt aktív, akkor nem csinálunk semmit
+                if (rtv::freqstepnr == i) {
+                    break;
+                }
+
+                // Ha a digit indexe nem 0-2 között van, akkor hiba történt
+                if (i > 2) {
+                    Utils::beepError();
+                    DEBUG("SevenSegmentFreq::handleTouch -> Érvénytelen digit érintés (freqstepnr: %d)\n", rtv::freqstepnr);
+                    return false;  // Nem kezeltük az eseményt
+                }
+
+                // Ha másik digit-et érintettük meg, akkor beállítjuk a frekvencia lépést
+                rtv::freqstepnr = i;  // Frekvencia lépés index beállítása
+
+                // Frekvencia lépés értékének a beállítása (Hz-ben)
+                if (rtv::freqstepnr == 0)
+                    rtv::freqstep = 1000;
+                else if (rtv::freqstepnr == 1)
+                    rtv::freqstep = 100;
+                else  // (rtv::freqstepnr == 2)
+                    rtv::freqstep = 10;
+
+                DEBUG("SevenSegmentFreq::handleTouch -> rtv::freqstepnr: %d, rtv::freqstep: %d\n", rtv::freqstepnr, rtv::freqstep);
+
                 break;
             }
         }

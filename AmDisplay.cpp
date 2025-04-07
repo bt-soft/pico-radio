@@ -118,12 +118,73 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
     uint8_t currMod = currentBand.varData.currMod;
 
     if (currMod == LSB or currMod == USB or currMod == CW) {
-        (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
+
+        // rtv::freqDec = rtv::freqDec - (encoderState.direction == RotaryEncoder::Direction::Up ? rtv::freqstep : -rtv::freqstep);
+        // rtv::freqDec = constrain(rtv::freqDec, -16000, 16000);  // Tartomány korlátozás
+
+        // int freqTot = (si4735.getFrequency() * 1000) + (rtv::freqDec * -1);
+
+        // // Frekvencia korlátozás
+        // freqTot = constrain(freqTot, currentBand.pConstData->minimumFreq * 1000, currentBand.pConstData->maximumFreq * 1000);
+
+        // // Zajszűrés: az SSB frekvenciaváltás huppogásának elkerülésére
+        // Si4735Utils::hardwareAudioMuteOn();
+
+        // // Egész számra kerekítés
+        // freqTot = freqTot / 1000;
+
+        // // A frekvenciát beállítjuk
+        // si4735.setFrequency(freqTot);
+
+        uint16_t currentFrequency = si4735.getFrequency();
+
+        if (encoderState.direction == RotaryEncoder::Direction::Up) {
+            rtv::freqDec = rtv::freqDec - rtv::freqstep;
+            int freqTot = (si4735.getFrequency() * 1000) + (rtv::freqDec * -1);
+            if (freqTot > (currentBand.pConstData->maximumFreq * 1000)) {
+                si4735.setFrequency(currentBand.pConstData->maximumFreq);
+                rtv::freqDec = 0;
+            }
+
+            int freqPlus16;
+            if (rtv::freqDec <= -16000) {
+                rtv::freqDec = rtv::freqDec + 16000;
+                freqPlus16 = currentFrequency + 16;
+                Si4735Utils::hardwareAudioMuteOn();
+                si4735.setFrequency(freqPlus16);
+            }
+            config.data.currentBFO = rtv::freqDec;
+
+            DEBUG("AmDisplay::handleRotary -> freqTot: %d, rtv::freqDec: %d, currentFrequency: %d, freqPlus16: %d\n", freqTot, rtv::freqDec, currentFrequency, freqPlus16);
+
+        } else {
+            rtv::freqDec = rtv::freqDec + rtv::freqstep;
+            int freqTot = (si4735.getFrequency() * 1000) - rtv::freqDec;
+            if (freqTot < (currentBand.pConstData->minimumFreq * 1000)) {
+                si4735.setFrequency(currentBand.pConstData->minimumFreq);
+                rtv::freqDec = 0;
+            }
+
+            int freqMin16;
+            if (rtv::freqDec >= 16000) {
+                rtv::freqDec = rtv::freqDec - 16000;
+                freqMin16 = currentFrequency - 16;
+                Si4735Utils::hardwareAudioMuteOn();
+                si4735.setFrequency(freqMin16);
+            }
+            config.data.currentBFO = rtv::freqDec;
+
+            DEBUG("AmDisplay::handleRotary -> freqTot: %d, rtv::freqDec: %d, currentFrequency: %d, freqMin16: %d\n", freqTot, rtv::freqDec, currentFrequency, freqMin16);
+        }
+
+        currentBand.varData.lastBFO = config.data.currentBFO;
         checkAGC();
+
     } else {
         (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
     }
 
+    // Elmentjük a beállított frekvenciát a Band táblába
     currentBand.varData.currFreq = si4735.getFrequency();
 
     return true;

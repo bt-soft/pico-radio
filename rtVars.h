@@ -14,9 +14,10 @@ extern bool mute;
 // Frekvencia kijelzés pozíciója
 extern uint16_t freqDispX;
 extern uint16_t freqDispY;
-// extern uint16_t freqstep;
+
 extern uint8_t freqstepnr;  // A frekvencia kijelző digit száma, itt jelezzük SSB/CW-ben, hogy mi a frekvencia lépés
-extern int freqDec;
+extern uint16_t freqstep;
+extern int16_t freqDec;
 
 // BFO
 extern bool bfoOn;

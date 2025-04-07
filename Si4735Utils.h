@@ -11,8 +11,14 @@
 class Si4735Utils {
    private:
     static int8_t currentBandIdx;
-    bool audioMut;
-    uint32_t elapsedAudMut;
+    bool hardwareAudioMuteState;        // SI4735 hardware audio mute állapot
+    uint32_t hardwareAudioMuteElapsed;  // SI4735 hardware audio mute állapot start ideje
+
+    /**
+     * Manage Audio Mute
+     * (SSB/CW frekvenciaváltáskor a zajszűrés miatt)
+     */
+    void manageHardwareAudioMute();
 
    protected:
     // SI4735
@@ -54,8 +60,11 @@ class Si4735Utils {
      */
     void setStep();
 
-    void MuteAud();
-    void MuteAudOn();
+    /**
+     * Mute Audio On
+     * (SSB/CW frekvenciaváltáskor a zajszűrés miatt)
+     */
+    void hardwareAudioMuteOn();
 };
 
 #endif  //__SI4735UTILS_H

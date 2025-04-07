@@ -4,7 +4,7 @@
 #include "utils.h"
 
 //------------------ TFT
-#define SCREEN_SAVER_TIME 1000 * 60 * 1  // 10 perc a képernyővédő időzítése
+#define SCREEN_SAVER_TIME 1000 * 60 * 10  // 10 perc a képernyővédő időzítése
 
 #include <TFT_eSPI.h>  // TFT_eSPI könyvtár
 TFT_eSPI tft;          // TFT objektum
@@ -216,6 +216,10 @@ void setup() {
     delay(1500);
 
     //--------------------------------------------------------------------
+
+    rtv::freqstep = 1000;  // hz
+    rtv::freqDec = config.data.currentBFO;
+
     // Band + Si4735 init
     si4735.setAudioMuteMcuPin(PIN_AUDIO_MUTE);  // Audio Mute pin
 

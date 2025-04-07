@@ -77,13 +77,16 @@ void Si4735Utils::checkAGC() {
  */
 void Si4735Utils::loop() {
     //
-    // manageSquelch();
+    // this.manageSquelch();
+
+    // A némítás után a hangot vissza kell állítani
+    manageHardwareAudioMute();
 }
 
 /**
  * Konstruktor
  */
-Si4735Utils::Si4735Utils(SI4735& si4735, Band& band) : si4735(si4735), band(band), audioMut(false), elapsedAudMut(millis()) {
+Si4735Utils::Si4735Utils(SI4735& si4735, Band& band) : si4735(si4735), band(band), hardwareAudioMuteState(false), hardwareAudioMuteElapsed(millis()) {
 
     DEBUG("Si4735Utils::Si4735Utils\n");
 
@@ -131,24 +134,25 @@ void Si4735Utils::setStep() {
 }
 
 /**
- *
+ * Manage Audio Mute
+ * (SSB/CW frekvenciaváltáskor a zajszűrés miatt)
  */
-void Si4735Utils::MuteAudOn() {
-
-    si4735.setHardwareAudioMute(1);
-    audioMut = true;
-    elapsedAudMut = millis();
+void Si4735Utils::hardwareAudioMuteOn() {
+    si4735.setHardwareAudioMute(true);
+    hardwareAudioMuteState = true;
+    hardwareAudioMuteElapsed = millis();
 }
 
 /**
  *
  */
-void Si4735Utils::MuteAud() {
-#define MIN_ELAPSED_AudMut_TIME 0  // Noise surpression SSB in mSec. 0 mSec = off //Was 0 (LWH)
+void Si4735Utils::manageHardwareAudioMute() {
+#define MIN_ELAPSED_HARDWARE_AUDIO_MUTE_TIME 0  // Noise surpression SSB in mSec. 0 mSec = off //Was 0 (LWH)
 
     // Stop muting only if this condition has changed
-    if (((millis() - elapsedAudMut) > MIN_ELAPSED_AudMut_TIME) and (audioMut = true)) {
-        audioMut = false;
-        si4735.setHardwareAudioMute(0);
+    if (hardwareAudioMuteState and ((millis() - hardwareAudioMuteElapsed) > MIN_ELAPSED_HARDWARE_AUDIO_MUTE_TIME)) {
+        // Ha a mute állapotban vagyunk és eltelt a minimális idő, akkor kikapcsoljuk a mute-t
+        hardwareAudioMuteState = false;
+        si4735.setHardwareAudioMute(false);
     }
 }
