@@ -13,7 +13,6 @@ constexpr int DigitHeight = FREQ_7SEGMENT_HEIGHT;  // Digit magassága
 constexpr int DigitYStart = 20;                    // Digit Y kezdőértéke
 constexpr int UnderlineYOffset = 60;               // Aláhúzás Y eltolása
 constexpr int UnderlineHeight = 5;                 // Aláhúzás magassága
-constexpr int FrequencyStep[] = {1000, 100, 10};   // Frekvencia lépések (Hz)
 }  // namespace SevenSegmentConstants
 
 // Színek a különböző módokhoz
@@ -31,7 +30,9 @@ const SegmentColors bfoColors = {TFT_ORANGE, TFT_BROWN, TFT_ORANGE};
  * @param unit A mértékegység.
  */
 void SevenSegmentFreq::drawFrequency(const String& freq, const __FlashStringHelper* mask, int d, const SegmentColors& colors, const __FlashStringHelper* unit) {
+
     uint16_t spriteWidth = rtv::bfoOn ? FREQ_7SEGMENT_BFO_WIDTH : tft.width() / 2;
+
     if (rtv::SEEK) {
         spriteWidth = FREQ_7SEGMENT_SEEK_WIDTH;
     }
@@ -42,12 +43,19 @@ void SevenSegmentFreq::drawFrequency(const String& freq, const __FlashStringHelp
     spr.setFreeFont(&DSEG7_Classic_Mini_Regular_34);
     spr.setTextDatum(BR_DATUM);
 
+    uint8_t currentBandType = band.getCurrentBandType();
+    uint8_t currentDemod = band.getCurrentBand().varData.currMod;
+
     int x = 222;
     if (rtv::bfoOn) {
         x = 110;
-    } else if (band.getCurrentBand().varData.currMod == AM || band.getCurrentBand().varData.currMod == FM) {
+        spr.setTextColor(TFT_BROWN);
+        spr.drawString(mask, x, 38);
+        spr.setTextColor(TFT_ORANGE);
+        spr.drawString(freq, x, 38);
+    } else if (currentDemod == FM or currentDemod == AM) {
         x = 190;
-    } else if (band.getCurrentBandType() == MW_BAND_TYPE || band.getCurrentBandType() == LW_BAND_TYPE) {
+    } else if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
         x = 222;
     }
     if (rtv::SEEK) {
@@ -63,9 +71,6 @@ void SevenSegmentFreq::drawFrequency(const String& freq, const __FlashStringHelp
     // Majd utána a frekvenciát
     spr.setTextColor(colors.active);
     spr.drawString(freq, x, FREQ_7SEGMENT_HEIGHT);
-
-    // A frekvencia kijelzés szélességének kiszámítása a sprite-on
-    frequencyDisplayWidth = spr.textWidth(freq);
 
     spr.pushSprite(freqDispX + d, freqDispY + 20);
     spr.setFreeFont();
@@ -90,6 +95,7 @@ void SevenSegmentFreq::drawFrequency(const String& freq, const __FlashStringHelp
  * @param colors A színek.
  */
 void SevenSegmentFreq::drawBfo(int bfoValue, int d, const SegmentColors& colors) {
+
     drawFrequency(String(bfoValue), F("-888"), d, colors);
     tft.setTextSize(2);
     tft.setTextDatum(BL_DATUM);
@@ -108,6 +114,7 @@ void SevenSegmentFreq::drawBfo(int bfoValue, int d, const SegmentColors& colors)
  * @param colors A színek.
  */
 void SevenSegmentFreq::drawStepUnderline(int d, const SegmentColors& colors) {
+
     using namespace SevenSegmentConstants;
 
     // Töröljük az aláhúzást
@@ -125,6 +132,7 @@ void SevenSegmentFreq::drawStepUnderline(int d, const SegmentColors& colors) {
  * @return true, ha az eseményt kezeltük, false, ha nem.
  */
 bool SevenSegmentFreq::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
+
     using namespace SevenSegmentConstants;
 
     // Ellenőrizzük, hogy az érintés a digit teljes területére esett-e
@@ -161,10 +169,11 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
 
     // Lekérjük az aktuális band rekordot-ot
     BandTable& currentBand = band.getCurrentBand();
-    uint8_t currMod = currentBand.varData.currMod;
+    uint8_t currDemod = currentBand.varData.currMod;
     uint8_t currentBandType = band.getCurrentBandType();
 
-    if (currMod == LSB or currMod == USB or currMod == CW) {
+    // Ha nem ScreenSaver módban vagyunk és SSB vagy CW az üzemmód
+    if (!screenSaverActive and (currDemod == LSB or currDemod == USB or currDemod == CW)) {
 
         float Displayfreq = (currentFrequency * 1000) - (currentBand.varData.lastBFO);
 
@@ -229,7 +238,7 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
         float displayFreq = 0;
 
         // FM?
-        if (band.getCurrentBand().varData.currMod == FM) {
+        if (currDemod == FM) {
             displayFreq = currentFrequency / 100.0f;
             drawFrequency(String(displayFreq, 2), F("188.88"), d - 10, colors, unit);
 

@@ -28,7 +28,6 @@ class SevenSegmentFreq {
 
     uint16_t freqDispX, freqDispY;
     bool screenSaverActive;
-    uint16_t frequencyDisplayWidth;  // A frekvencia kijelzés tényleges szélessége
 
     /**
      * @brief Kirajzolja a frekvenciát a megadott formátumban.
@@ -77,13 +76,6 @@ class SevenSegmentFreq {
         this->freqDispX = freqDispX;
         this->freqDispY = freqDispY;
     }
-
-    /**
-     * @brief Visszaadja a frekvencia kijelzés szélességét.
-     *
-     * @return uint16_t A frekvencia kijelzés szélessége.
-     */
-    inline uint16_t getFrequencyDisplayWidth() { return frequencyDisplayWidth; }
 
     /**
      * @brief Kezeli az érintési eseményeket a frekvencia kijelzőn.

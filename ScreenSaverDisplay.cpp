@@ -35,8 +35,8 @@ ScreenSaverDisplay::ScreenSaverDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band
     pSevenSegmentFreq = new SevenSegmentFreq(tft, saverX - FREQ_7SEGMENT_HEIGHT, saverY - 20, band, true);
 
     // Kezdeti keret szélesség lekérdezése
-    pSevenSegmentFreq->freqDispl(band.getCurrentBand().varData.currFreq);
-    frequencyDisplayWidth = pSevenSegmentFreq->getFrequencyDisplayWidth();
+    currentFrequency = band.getCurrentBand().varData.currFreq;
+    pSevenSegmentFreq->freqDispl(currentFrequency);
 }
 
 /**
@@ -93,9 +93,9 @@ void ScreenSaverDisplay::displayLoop() {
         saverX = random(tft.width() / 2) + 10;
         saverY = random(tft.height() / 2) + 5;
 
-        // Frekvensia kijelzése
+        // Frekvencia kijelzése
         pSevenSegmentFreq->setPositions(saverX, saverY);
-        pSevenSegmentFreq->freqDispl(band.getCurrentBand().varData.currFreq);
+        pSevenSegmentFreq->freqDispl(currentFrequency);
 
         // Az animált keretet hozzá igazítjuk a frekvenciához
         saverX += 35;

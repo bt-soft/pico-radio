@@ -392,7 +392,8 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         rtv::muteStat = event.state == TftButton::ButtonState::On;
         Si4735Utils::si4735.setAudioMute(rtv::muteStat);
         processed = true;
-    } else if (STREQ("Volum", event.label)) {
+
+        } else if (STREQ("Volum", event.label)) {
         // Hangerő állítása
         this->pDialog = new ValueChangeDialog(this, this->tft, 250, 150, F("Volume"), F("Value:"),                                                              //
                                               &config.data.currVolume, (uint8_t)DisplayConstants::VolumeMin, (uint8_t)DisplayConstants::VolumeMax, (uint8_t)1,  //
