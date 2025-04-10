@@ -255,14 +255,13 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
                 // Kivettük a F("kHz") paramétert, külön rajzoljuk ki lejjebb
                 drawFrequency(String(s), F("88 888.88"), d, colors);
 
-                // *** ÚJ RÉSZ: "kHz" felirat kirajzolása külön, 10 pixellel lejjebb ***
+                // A "kHz" felirat kirajzolása külön
                 tft.setTextDatum(BC_DATUM);
                 tft.setFreeFont();   // Font beállítása (biztonság kedvéért)
                 tft.setTextSize(2);  // Méret beállítása (biztonság kedvéért)
                 tft.setTextColor(colors.indicator, TFT_COLOR_BACKGROUND);
                 uint16_t xOffset = 215;                                             // X pozíció eltolás (a digit szélessége + 5 pixel)
                 tft.drawString(F("kHz"), freqDispX + xOffset + d, freqDispY + 85);  // Y pozíció
-                // *** ÚJ RÉSZ VÉGE ***
             }
 
             // Képernyővédő üzemmódban nincs aláhúzás a touch-hoz
