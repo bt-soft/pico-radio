@@ -138,6 +138,7 @@ class ValueChangeDialog : public MessageDialog {
         // Callbackot általánosítjuk
         onValueChanged = callback;
 
+        // Megjelenítjük a dialógot
         drawDialog();
     }
 
@@ -150,9 +151,7 @@ class ValueChangeDialog : public MessageDialog {
      * Dialog kirajzolása
      */
     void drawDialog() override {
-        // Először az ős metódusát hívjuk meg, hogy a dialógus alapja kirajzolódjon
-        MessageDialog::drawDialog();
-        // Majd kirajzoljuk az értéket
+        // Kirajzoljuk az értéket
         drawValue();
     }
 
