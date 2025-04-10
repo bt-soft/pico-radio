@@ -37,8 +37,8 @@ struct BandTableVar {
     uint8_t currStep;     // Aktuális lépésköz (növelés/csökkentés)
     uint8_t currMod;      // Aktuális mód/modulációs típus (FM, AM, LSB, USB, CW)
     uint16_t antCap;      // Antenna Tuning Capacitor
-    uint8_t lastBFO;      // Utolsó BFO érték
-    uint8_t lastmanuBFO;  // Utolsó manuális BFO érték X-Tal segítségével
+    int16_t lastBFO;      // Utolsó BFO érték
+    int16_t lastmanuBFO;  // Utolsó manuális BFO érték X-Tal segítségével
 };
 
 // A kombinált struktúra az állandó és változó adatok összekapcsolásával

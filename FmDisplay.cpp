@@ -206,17 +206,19 @@ void FmDisplay::showMonoStereo(bool stereo) {
  */
 bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
-    (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
+    BandTable &currentBand = band.getCurrentBand();
+
+    // Kiszámítjuk a frekvencia lépés nagyságát
+    uint16_t step = encoderState.value * currentBand.varData.currStep;  // A lépés nagysága
+
+    // Beállítjuk a frekvenciát
+    si4735.setFrequency(si4735.getFrequency() + step);
 
     // Elmentjük a band táblába az aktuális frekvencia értékét
-    BandTable &currentBand = band.getCurrentBand();
     currentBand.varData.currFreq = si4735.getFrequency();
 
     // RDS törlés
     pRds->clearRds();
-
-    DEBUG("FmDisplay::handleRotary -> config.data.bandIdx: %d, currentBand.varData.currFreq = %d, si4735.getFrequency() = %d\n", config.data.bandIdx, currentBand.varData.currFreq,
-          si4735.getFrequency());
 
     return true;
 }

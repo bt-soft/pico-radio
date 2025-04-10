@@ -18,7 +18,7 @@ RPI_PICO_Timer ITimer1(1);
 #endif
 
 #include "RotaryEncoder.h"
-RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW);
+RotaryEncoder rotaryEncoder = RotaryEncoder(PIN_ENCODER_CLK, PIN_ENCODER_DT, PIN_ENCODER_SW, ROTARY_ENCODER_STEPS_PER_NOTCH);
 #define ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC 1  // 1msec
 
 //------------------- EEPROM Config
@@ -154,7 +154,7 @@ void setup() {
 
     // Rotary Encoder beállítása
     rotaryEncoder.setDoubleClickEnabled(true);
-    rotaryEncoder.setAccelerationEnabled(false);
+    rotaryEncoder.setAccelerationEnabled(true);
 #ifdef __USE_ROTARY_ENCODER_IN_HW_TIMER
     // Pico HW Timer1 beállítása a rotaryhoz
     ITimer1.attachInterruptInterval(ROTARY_ENCODER_SERVICE_INTERVAL_IN_MSEC * 1000, hardwareTimerHandler1);

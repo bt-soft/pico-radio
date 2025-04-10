@@ -124,9 +124,10 @@ class ValueChangeDialog : public MessageDialog {
             value = *valuePtr;
             originalValue = *valuePtr;
             this->valuePtrType = ValuePtrType::Boolean;
-            this->step = 1;    // a bool-nak nincs lépésköze, de a kód igényli
-            this->minVal = 0;  // a bool-nak nincs minimuma, de a kód igényli
-            this->maxVal = 1;  // a bool-nak nincs maximuma, de a kód igényli
+            // A bool típusnál a step, min, max értékeket felülírjuk, mert nincs értelmük
+            this->step = 1;
+            this->minVal = 0;
+            this->maxVal = 1;
 
         } else {
             this->valuePtrType = ValuePtrType::Unknown;
@@ -148,7 +149,12 @@ class ValueChangeDialog : public MessageDialog {
     /**
      * Dialog kirajzolása
      */
-    void drawDialog() override { drawValue(); }
+    void drawDialog() override {
+        // Először az ős metódusát hívjuk meg, hogy a dialógus alapja kirajzolódjon
+        MessageDialog::drawDialog();
+        // Majd kirajzoljuk az értéket
+        drawValue();
+    }
 
     /**
      * Rotary handler
@@ -161,21 +167,27 @@ class ValueChangeDialog : public MessageDialog {
         }
 
         // Ha nincs tekergetés akkor nem megyünk tovább
-        if (encoderState.direction == RotaryEncoder::Direction::None) {
+        if (encoderState.direction == RotaryEncoder::Direction::None && encoderState.value == 0) {
             return false;
         }
 
-        // Az érték változtatása a Rotary irányának megfelelően
+        // Megnézzük, hogy a step 0-e és nem bool típusról van-e szó
+        bool useEncoderValue = (step == 0.0 && valueType != ValueType::Boolean);
+
+        // Az érték változtatása a Rotary irányának vagy értékének megfelelően
         if (valueType == ValueType::Uint8) {
             uint8_t &val = std::get<uint8_t>(value);
             int tempVal = val;  // nagyobb típusra
 
-            if (encoderState.direction == RotaryEncoder::Direction::Up) {
-                tempVal += static_cast<int>(step);
+            if (useEncoderValue) {
+                tempVal += encoderState.value;  // Közvetlenül az encoder értékével növelünk/csökkentünk
             } else {
-                tempVal -= static_cast<int>(step);
+                if (encoderState.direction == RotaryEncoder::Direction::Up) {
+                    tempVal += static_cast<int>(step);
+                } else {
+                    tempVal -= static_cast<int>(step);
+                }
             }
-
             // Érvényes tartomány rögzítése
             tempVal = std::max(static_cast<int>(minVal), std::min(tempVal, static_cast<int>(maxVal)));
             val = static_cast<uint8_t>(tempVal);  // uint8_t-re vissza cast
@@ -184,12 +196,16 @@ class ValueChangeDialog : public MessageDialog {
             int &val = std::get<int>(value);
             long long tempVal = val;  // nagyobb típusra
 
-            if (encoderState.direction == RotaryEncoder::Direction::Up) {
-                tempVal += static_cast<long long>(step);
+            if (useEncoderValue) {
+                tempVal += encoderState.value;  // Közvetlenül az encoder értékével növelünk/csökkentünk
+                DEBUG("ValueChangeDialog::handleRotary(long long) -> encoderState.value: %d\n", encoderState.value);
             } else {
-                tempVal -= static_cast<long long>(step);
+                if (encoderState.direction == RotaryEncoder::Direction::Up) {
+                    tempVal += static_cast<long long>(step);
+                } else {
+                    tempVal -= static_cast<long long>(step);
+                }
             }
-
             // Érvényes tartomány rögzítése
             tempVal = std::max(static_cast<long long>(minVal), std::min(tempVal, static_cast<long long>(maxVal)));
             val = static_cast<int>(tempVal);  // int-re vissza cast
@@ -198,20 +214,25 @@ class ValueChangeDialog : public MessageDialog {
             float &val = std::get<float>(value);
             double tempVal = val;  // nagyobb típusra
 
-            if (encoderState.direction == RotaryEncoder::Direction::Up) {
-                tempVal += static_cast<double>(step);
+            if (useEncoderValue) {
+                tempVal += static_cast<double>(encoderState.value);  // Közvetlenül az encoder értékével növelünk/csökkentünk
             } else {
-                tempVal -= static_cast<double>(step);
+                if (encoderState.direction == RotaryEncoder::Direction::Up) {
+                    tempVal += static_cast<double>(step);
+                } else {
+                    tempVal -= static_cast<double>(step);
+                }
             }
-
             // Érvényes tartomány rögzítése
             tempVal = std::max(static_cast<double>(minVal), std::min(tempVal, static_cast<double>(maxVal)));
             val = static_cast<float>(tempVal);  // float-ra vissza cast
 
         } else if (valueType == ValueType::Boolean) {
+            // A bool típusnál marad a régi logika (irány alapján váltás)
             bool &val = std::get<bool>(value);
             if (encoderState.direction != RotaryEncoder::Direction::None) {
-                val = encoderState.direction == RotaryEncoder::Direction::Up;
+                // Csak akkor váltunk, ha volt elmozdulás
+                val = !val;  // Egyszerűen invertáljuk az értéket
             }
         }
 
@@ -231,13 +252,14 @@ class ValueChangeDialog : public MessageDialog {
 
         if (MessageDialog::handleTouch(touched, tx, ty)) {
 
-            // Az 'X'-etnyomták meg?
+            // Az 'X'-et vagy 'Cancel'-t nyomták meg?
             if (DialogBase::pParent->isDialogResponseCancelOrCloseX()) {
                 // Visszaállítjuk az eredeti értéket
                 restoreOriginalValue();
             }
 
             // beállítjuk az új értéket (pointer + callback)
+            // Az OK gomb megnyomásakor is lefut ez a setValue()
             setValue();
 
             return true;

@@ -393,7 +393,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         Si4735Utils::si4735.setAudioMute(rtv::muteStat);
         processed = true;
 
-        } else if (STREQ("Volum", event.label)) {
+    } else if (STREQ("Volum", event.label)) {
         // Hangerő állítása
         this->pDialog = new ValueChangeDialog(this, this->tft, 250, 150, F("Volume"), F("Value:"),                                                              //
                                               &config.data.currVolume, (uint8_t)DisplayConstants::VolumeMin, (uint8_t)DisplayConstants::VolumeMax, (uint8_t)1,  //
@@ -671,9 +671,7 @@ bool DisplayBase::loop(RotaryEncoder::EncoderState encoderState) {
 
         // Ha nincs feldolgozandó képernyő vagy dialóg gomb esemény, akkor ...
 
-        //
         // Rotary esemény vizsgálata (ha nem tekergetik vagy nem nyomogatják, akkor nem reagálunk rá)
-        //
         if (encoderState.buttonState != RotaryEncoder::Open or encoderState.direction != RotaryEncoder::Direction::None) {
 
             // Ha van dialóg, akkor annak passzoljuk a rotary eseményt, de csak ha van esemény

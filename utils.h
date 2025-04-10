@@ -12,8 +12,8 @@
 #define PIN_SI4735_RESET 10
 
 // Rotary Encoder
-#define PIN_ENCODER_CLK 16
-#define PIN_ENCODER_DT 17
+#define PIN_ENCODER_CLK 17
+#define PIN_ENCODER_DT 16
 #define PIN_ENCODER_SW 18
 
 // Others

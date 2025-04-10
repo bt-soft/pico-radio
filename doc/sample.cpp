@@ -1,20 +1,4 @@
-//=======================================================================================
-void MuteAudOn() {
-    //=======================================================================================
-    si4735.setHardwareAudioMute(1);
-    AudioMut = true;
-    elapsedAudMut = millis();
-}
-
-//=======================================================================================
-void MuteAud() {
-    //=======================================================================================
-    // Stop muting only if this condition has changed
-    if (((millis() - elapsedAudMut) > MIN_ELAPSED_AudMut_TIME) and (AudioMut = true)) {
-        AudioMut = false;
-        si4735.setHardwareAudioMute(0);
-    }
-}  //  V.5.2b Dark Mode  17.09.2022 Added a squelch function By Lyle Hancock Sr. Replaced the "CHIP" button with "SQLCH"
+//  V.5.2b Dark Mode  17.09.2022 Added a squelch function By Lyle Hancock Sr. Replaced the "CHIP" button with "SQLCH"
 
 //  V.5.2a Dark mode 08.09.2022 Fully RDS services - RDS Station  name - RDS News & info - RDS Time station Mod.by IU4ALH ;
 //                     led colors on S-Meter bar -
@@ -3936,6 +3920,7 @@ void encoderCheck() {
                 currentScanLine = tmpcurline;
 
                 // set frequency ========================================================
+/////finomhangolás!!!!!!!!!				
                 if (currentMode == USB or currentMode == LSB or currentMode == CW) {
                     if (rotaryEncoderResult.direction == RotaryEncoder::Direction::UP)
                         currentBFO -= 1000;
@@ -4191,7 +4176,7 @@ void encoderCheck() {
                 }
             }
             // ================================================================
-            /// finomhangolás //////////////////////////////////////////////////////////////////////////////////////////// finomhangolás
+/// Ez az igazi finomhangolás //////////////////////////////////////////////////////////////////////////////////////////// finomhangolás
             if (currentMode == LSB || currentMode == USB || currentMode == CW) {
                 if (rotaryEncoderResult.direction == RotaryEncoder::Direction::UP) {
                     freqDec = freqDec - freqstep;

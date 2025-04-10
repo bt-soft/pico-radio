@@ -85,9 +85,9 @@ void AmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
         int antCapValue = 0;
 
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"),  //
-                                                     &antCapValue, (int)0, (int)maxValue,                                                     //
-                                                     (int)1, [this](int newValue) {
+        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"), &antCapValue, (int)0, (int)maxValue,
+                                                     (int)0,  // A rotary encoder értéke lesz a step
+                                                     [this](int newValue) {
                                                          Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
                                                      });
     }
@@ -119,68 +119,55 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
     if (currMod == LSB or currMod == USB or currMod == CW) {
 
-        // rtv::freqDec = rtv::freqDec - (encoderState.direction == RotaryEncoder::Direction::Up ? rtv::freqstep : -rtv::freqstep);
-        // rtv::freqDec = constrain(rtv::freqDec, -16000, 16000);  // Tartomány korlátozás
-
-        // int freqTot = (si4735.getFrequency() * 1000) + (rtv::freqDec * -1);
-
-        // // Frekvencia korlátozás
-        // freqTot = constrain(freqTot, currentBand.pConstData->minimumFreq * 1000, currentBand.pConstData->maximumFreq * 1000);
-
-        // // Zajszűrés: az SSB frekvenciaváltás huppogásának elkerülésére
-        // Si4735Utils::hardwareAudioMuteOn();
-
-        // // Egész számra kerekítés
-        // freqTot = freqTot / 1000;
-
-        // // A frekvenciát beállítjuk
-        // si4735.setFrequency(freqTot);
-
         uint16_t currentFrequency = si4735.getFrequency();
 
         if (encoderState.direction == RotaryEncoder::Direction::Up) {
+
+            // Felfelé hangolásnál
             rtv::freqDec = rtv::freqDec - rtv::freqstep;
-            int freqTot = (si4735.getFrequency() * 1000) + (rtv::freqDec * -1);
-            if (freqTot > (currentBand.pConstData->maximumFreq * 1000)) {
+            uint32_t freqTot = (uint32_t)(currentFrequency * 1000) + (rtv::freqDec * -1);
+            if (freqTot > (uint32_t)(currentBand.pConstData->maximumFreq * 1000)) {
                 si4735.setFrequency(currentBand.pConstData->maximumFreq);
                 rtv::freqDec = 0;
             }
 
-            int freqPlus16;
             if (rtv::freqDec <= -16000) {
                 rtv::freqDec = rtv::freqDec + 16000;
-                freqPlus16 = currentFrequency + 16;
+                int16_t freqPlus16 = currentFrequency + 16;
                 Si4735Utils::hardwareAudioMuteOn();
                 si4735.setFrequency(freqPlus16);
+                DEBUG("AmDisplay::handleRotary -> si4735.setFrequency(freqPlus16: %d)\n", freqPlus16);
             }
-            config.data.currentBFO = rtv::freqDec;
-
-            DEBUG("AmDisplay::handleRotary -> freqTot: %d, rtv::freqDec: %d, currentFrequency: %d, freqPlus16: %d\n", freqTot, rtv::freqDec, currentFrequency, freqPlus16);
 
         } else {
+
+            // Lefelé hangolásnál
             rtv::freqDec = rtv::freqDec + rtv::freqstep;
-            int freqTot = (si4735.getFrequency() * 1000) - rtv::freqDec;
-            if (freqTot < (currentBand.pConstData->minimumFreq * 1000)) {
+            uint32_t freqTot = (uint32_t)(currentFrequency * 1000) - rtv::freqDec;
+            if (freqTot < (uint32_t)(currentBand.pConstData->minimumFreq * 1000)) {
                 si4735.setFrequency(currentBand.pConstData->minimumFreq);
                 rtv::freqDec = 0;
             }
-
-            int freqMin16;
             if (rtv::freqDec >= 16000) {
                 rtv::freqDec = rtv::freqDec - 16000;
-                freqMin16 = currentFrequency - 16;
+                int16_t freqMin16 = currentFrequency - 16;
                 Si4735Utils::hardwareAudioMuteOn();
                 si4735.setFrequency(freqMin16);
+                DEBUG("AmDisplay::handleRotary -> si4735.setFrequency(freqMin16: %d)\n", freqMin16);
             }
-            config.data.currentBFO = rtv::freqDec;
-
-            DEBUG("AmDisplay::handleRotary -> freqTot: %d, rtv::freqDec: %d, currentFrequency: %d, freqMin16: %d\n", freqTot, rtv::freqDec, currentFrequency, freqMin16);
         }
 
+        config.data.currentBFO = rtv::freqDec;
         currentBand.varData.lastBFO = config.data.currentBFO;
+        si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);  // <- Itt állítjuk be a BFO-t Hz-ben!
         checkAGC();
 
+        DEBUG("AmDisplay::handleRotary -> currentFrequency: %d, config.data.currentBFO: %d, summ: %d\n", currentFrequency, config.data.currentBFO,
+              currentFrequency + config.data.currentBFO);
+
     } else {
+
+        // AM - sima frekvencia léptetés
         (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
     }
 
@@ -201,6 +188,7 @@ void AmDisplay::displayLoop() {
     }
 
     BandTable &currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;  // Aktuális mód lekérdezése
 
     // Néhány adatot csak ritkábban frissítünk
     static uint32_t elapsedTimedValues = 0;  // Kezdőérték nulla
@@ -218,9 +206,20 @@ void AmDisplay::displayLoop() {
 
     // A Frekvenciát azonnal frissítjuk, de csak ha változott
     static uint16_t lastFreq = 0;
-    uint16_t currFreq = currentBand.varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
-    if (lastFreq != currFreq) {
+    static int16_t lastBfo = INT16_MIN;  // <-- ÚJ: Előző BFO érték tárolása (kezdetben érvénytelen érték)
+
+    uint16_t currFreq = currentBand.varData.currFreq;
+    int16_t currentBfo = 0;  // Alapértelmezett érték nem SSB/CW módhoz
+
+    // Ha SSB vagy CW módban vagyunk, olvassuk ki a BFO-t is
+    if (currMod == LSB || currMod == USB || currMod == CW) {
+        currentBfo = currentBand.varData.lastBFO;
+    }
+
+    // Frissítés, ha az alapfrekvencia VAGY (SSB/CW módban) a BFO változott
+    if (lastFreq != currFreq || ((currMod == LSB || currMod == USB || currMod == CW) && lastBfo != currentBfo)) {
         pSevenSegmentFreq->freqDispl(currFreq);
         lastFreq = currFreq;
+        lastBfo = currentBfo;  // <-- ÚJ: Mentsük el az aktuális BFO-t is
     }
 }
