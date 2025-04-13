@@ -730,33 +730,31 @@ void FreqScanDisplay::drawScanLine(int xPos) {
  * @param all Minden szöveget rajzoljon újra? (true = igen, false = csak a változókat)
  */
 void FreqScanDisplay::drawScanText(bool all) {
-    int d = 0;  // screenV nem releváns
+    int d = 0;  // screenV itt nem releváns
 
-    tft.setTextFont(1);  // <<<--- MÓDOSÍTÁS: Kisebb font a szövegekhez
+    // --- A többi szöveg rajzolása  ---
+    tft.setTextFont(1);  // Kisebb font a többi szöveghez
     tft.setTextSize(1);
     tft.setTextColor(TFT_SILVER, TFT_BLACK);
     tft.setTextDatum(BC_DATUM);
 
-    // Sáv eleje/vége jelzések (ha látszanak és változtak vagy all=true)
-    // A sample.cpp a grafikon fölé rajzolja, itt is úgy teszünk
+    // Sáv eleje/vége jelzések...
     if (all || (scanEndBand < (spectrumWidth - 5))) {
-        tft.fillRect(spectrumX + scanEndBand + 3, spectrumY - 15, 40, 15, TFT_BLACK);  // Törlés (kisebb magasság)
+        tft.fillRect(spectrumX + scanEndBand + 3, spectrumY - 15, 40, 15, TFT_BLACK);
         if (scanEndBand < (spectrumWidth - 5)) {
             tft.setTextDatum(BL_DATUM);
-            tft.drawString("END", spectrumX + scanEndBand + 5, spectrumY - 5);  // Feljebb húzva
-            // tft.drawString("BAND", spectrumX + scanEndBand + 5, spectrumY - 20); // Ezt nem írjuk ki
+            tft.drawString("END", spectrumX + scanEndBand + 5, spectrumY - 5);
         }
     }
     if (all || (scanBeginBand > 5)) {
-        tft.fillRect(spectrumX + scanBeginBand - 43, spectrumY - 15, 40, 15, TFT_BLACK);  // Törlés (kisebb magasság)
+        tft.fillRect(spectrumX + scanBeginBand - 43, spectrumY - 15, 40, 15, TFT_BLACK);
         if (scanBeginBand > 5) {
             tft.setTextDatum(BR_DATUM);
-            tft.drawString("BEGIN", spectrumX + scanBeginBand - 5, spectrumY - 5);  // Feljebb húzva
-            // tft.drawString("BAND", spectrumX + scanBeginBand - 5, spectrumY - 20); // Ezt nem írjuk ki
+            tft.drawString("BEGIN", spectrumX + scanBeginBand - 5, spectrumY - 5);
         }
     }
 
-    // Skála kezdő és vég frekvenciájának kiírása (ha változott vagy all=true)
+    // Skála kezdő és vég frekvenciájának kiírása...
     if (all) {
         uint16_t freqStartVisible = startFrequency + static_cast<uint16_t>((deltaScanLine - (spectrumWidth / 2.0f)) * scanStep);
         uint16_t freqEndVisible = startFrequency + static_cast<uint16_t>((deltaScanLine + (spectrumWidth / 2.0f)) * scanStep);
@@ -765,28 +763,49 @@ void FreqScanDisplay::drawScanText(bool all) {
 
         tft.setTextColor(TFT_GREEN, TFT_BLACK);
         tft.setTextDatum(BL_DATUM);
-        tft.fillRect(spectrumX, spectrumEndY + 5, 100, 15, TFT_BLACK);  // Törlés
-        tft.drawString(String(freqStartVisible) + " kHz", spectrumX, spectrumEndY + 15);
+        tft.fillRect(spectrumX, spectrumEndY + 5, 100, 15, TFT_BLACK);
+        tft.drawString(String(freqStartVisible) + " kHz", spectrumX, spectrumEndY + 15);  // Itt is lehetne MHz/kHz váltás, de most maradhat
 
         tft.setTextDatum(BR_DATUM);
-        tft.fillRect(spectrumEndScanX - 100, spectrumEndY + 5, 100, 15, TFT_BLACK);  // Törlés
-        tft.drawString(String(freqEndVisible) + " kHz", spectrumEndScanX, spectrumEndY + 15);
+        tft.fillRect(spectrumEndScanX - 100, spectrumEndY + 5, 100, 15, TFT_BLACK);
+        tft.drawString(String(freqEndVisible) + " kHz", spectrumEndScanX, spectrumEndY + 15);  // Itt is lehetne MHz/kHz váltás
 
-        // Lépésköz kiírása
+        // Lépésköz kiírása...
         tft.setTextDatum(BC_DATUM);
-        tft.fillRect(spectrumX + spectrumWidth / 2 - 50, spectrumEndY + 5, 100, 15, TFT_BLACK);  // Törlés
+        tft.fillRect(spectrumX + spectrumWidth / 2 - 50, spectrumEndY + 5, 100, 15, TFT_BLACK);
         tft.setTextColor(TFT_YELLOW, TFT_BLACK);
         tft.drawString("Step: " + String(scanStep, scanStep < 1.0f ? 3 : 1) + " kHz", spectrumX + spectrumWidth / 2, spectrumEndY + 15);
     }
 
-    // Aktuális frekvencia kiírása (mindig frissül)
-    uint16_t freqToDisplay = (scanning && !scanPaused) ? posScanFreq : currentFrequency;  // <<<--- MÓDOSÍTÁS: Szkenneléskor posScanFreq-et mutatunk
+    // --- Aktuális frekvencia kiírása (MÓDOSÍTOTT RÉSZ) ---
+    uint16_t freqToDisplayRaw = (scanning && !scanPaused) ? posScanFreq : currentFrequency;
+    String freqStr;
 
-    tft.setTextFont(2);                       // <<<--- Visszaállítjuk a nagyobb fontot a fő frekvenciához
-    tft.fillRect(0, 20, 150, 20, TFT_BLACK);  // Törlés
+    // Mértékegység és formázás meghatározása
+    if (band.getCurrentBandType() == FM_BAND_TYPE) {
+        // FM: MHz-ben, 2 tizedesjeggyel
+        float freqMHz = freqToDisplayRaw / 100.0f;
+        freqStr = String(freqMHz, 2);
+    } else {
+        // AM/LW/MW/SW: kHz-ben, tizedesjegy nélkül
+        freqStr = String(freqToDisplayRaw);
+    }
+
+    // Nagyobb font visszaállítása a fő frekvenciához
+    tft.setTextFont(2);
+    tft.setTextDatum(TL_DATUM);  // Bal felső igazítás
+
+    // "Freq: " címke kiírása (ezt nem töröljük)
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.setTextDatum(TL_DATUM);
-    tft.drawString("Freq: " + String(freqToDisplay) + " kHz", 5, 25);  // <<<--- MÓDOSÍTÁS: freqToDisplay használata
+    tft.drawString("Freq: ", 5, 25);
+
+    // Kiszámoljuk a frekvencia érték helyét és töröljük azt (a mértékegység helyét is)
+    uint16_t valueStartX = 5 + tft.textWidth("Freq: ");  // Ahol az érték kezdődik
+    // Szélesebb törlés, hogy a régi mértékegység is biztosan eltűnjön
+    tft.fillRect(valueStartX, 20, 100, 20, TFT_BLACK);  // Törlés 100 px szélességben
+
+    // Új érték kiírása (mértékegység nélkül)
+    tft.drawString(freqStr, valueStartX, 25);
 }
 
 /**

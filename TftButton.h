@@ -281,11 +281,6 @@ class TftButton {
      * @param newState új állapot
      */
     inline void setState(ButtonState newState) {
-        if (type != ButtonType::Toggleable) {
-            DEBUG("TftButton::setState -> Hiba!! Nem toggleable a gomb!!\n");
-            return;
-        }
-
         state = newState;
         oldState = newState;
         draw();
