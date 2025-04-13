@@ -46,10 +46,14 @@ class FreqScanDisplay : public DisplayBase {
    private:
     // --- Konstansok ---
     // A spektrum mérete és pozíciója (igazodik a 480x320 kijelzőhöz)
-    static constexpr int spectrumWidth = 320;   // Vízszintes képernyőn a szélesség
-    static constexpr int spectrumHeight = 120;  // Magasság
-    static constexpr int spectrumX = 0;         // Bal szélre igazítva
-    static constexpr int spectrumY = 80;        // Y pozíció (gombok és státuszsor alatt)
+    // <<<--- MÓDOSÍTÁSOK ITT --->>>
+    static constexpr int spectrumX = 5;         // Bal oldali margó
+    static constexpr int spectrumY = 90;        // Y pozíció (lejjebb tolva)
+    static constexpr int spectrumWidth = 350;   // Szélesség (megnövelve)
+    static constexpr int spectrumHeight = 150;  // Magasság (megnövelve)
+    // <<<--- MÓDOSÍTÁSOK VÉGE --->>>
+
+    // Számított konstansok (ezek automatikusan frissülnek)
     static constexpr int spectrumEndY = spectrumY + spectrumHeight;
     static constexpr int spectrumEndScanX = spectrumX + spectrumWidth;
 
@@ -69,7 +73,7 @@ class FreqScanDisplay : public DisplayBase {
     uint8_t scanAGC = 0;            // AGC állapota a szkennelés indításakor
 
     // Spektrum adatok
-    std::vector<uint8_t> scanValueRSSI;  // RSSI értékek
+    std::vector<uint8_t> scanValueRSSI;  // RSSI értékek (Y koordináták)
     std::vector<uint8_t> scanValueSNR;   // SNR értékek
     std::vector<bool> scanMark;          // Jelölők (pl. erős jel)
     std::vector<uint8_t> scanScaleLine;  // Skálavonal típusok
@@ -91,7 +95,7 @@ class FreqScanDisplay : public DisplayBase {
 
     // --- Metódusok (sample.cpp alapján) ---
     void drawScanGraph(bool erase);  // Spektrum alapjának és skálájának rajzolása
-    void drawScanLine(int n);        // Egy spektrumvonal/oszlop rajzolása
+    void drawScanLine(int xPos);     // Egy spektrumvonal/oszlop rajzolása (xPos a képernyőn)
     void drawScanText(bool all);     // Frekvencia címkék rajzolása
     void displayScanSignal();        // Aktuális RSSI/SNR kiírása
     int getSignal(bool rssi);        // Jelerősség (RSSI vagy SNR) lekérése (átlagolással)

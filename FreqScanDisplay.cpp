@@ -166,7 +166,6 @@ void FreqScanDisplay::displayLoop() {
                 // Ha ez az első adatpont, jelezzük, hogy a spektrum már nem üres
                 if (scanEmpty) {
                     scanEmpty = false;
-                    DEBUG("First scan data point acquired, scanEmpty set to false.\n");
                 }
             }
 
