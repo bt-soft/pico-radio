@@ -91,9 +91,12 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
 
     /**
      * Vertikális képernyő menügombok legyártása
-     * A kötelező gombokat az elejéhez másolja
+     *
+     * @param buttonsData A gombok adatai
+     * @param buttonsDataLength A gombok száma
+     * @param isMandatoryNeed Ha true, akkor a kötelező gombokat az elejéhez másolja
      */
-    void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength);
+    void buildVerticalScreenButtons(BuildButtonData buttonsData[], uint8_t buttonsDataLength, bool isMandatoryNeed = true);
 
     /**
      * Horizontális képernyő menügombok legyártása

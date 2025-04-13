@@ -315,9 +315,13 @@ TftButton *DisplayBase::findButtonByLabel(const char *label) {
 }
 
 /**
- * Képernyő menügombok legyártása (vertikális)
+ * Vertikális képernyő menügombok legyártása
+ *
+ * @param buttonsData A gombok adatai
+ * @param buttonsDataLength A gombok száma
+ * @param isMandatoryNeed Ha true, akkor a kötelező gombokat az elejéhez másolja
  */
-void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[], uint8_t screenVButtonsDataLength) {
+void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[], uint8_t screenVButtonsDataLength, bool isMandatoryNeed) {
 
     // Kötelező vertikális Képernyőgombok definiálása
     DisplayBase::BuildButtonData mandatoryVButtons[] = {
@@ -326,22 +330,37 @@ void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[
         {"AGC", TftButton::ButtonType::Toggleable, TFT_TOGGLE_BUTTON_STATE(si4735.isAgcEnabled())},  //
         {"Att", TftButton::ButtonType::Pushable},                                                    //
         {"Setup", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
     };
-    // Vertikális képernyőgombok legyártása
     uint8_t mandatoryVButtonsLength = ARRAY_ITEM_COUNT(mandatoryVButtons);
 
-    // Eredmény tömb
-    BuildButtonData mergedButtons[mandatoryVButtonsLength + screenVButtonsDataLength];
+    // Eredmény tömb és hossz változók
+    BuildButtonData *mergedButtons = nullptr;
     uint8_t mergedLength = 0;
 
-    // Tömbök összefűzése
-    Utils::mergeArrays(mandatoryVButtons, mandatoryVButtonsLength, screenVButtonsData, screenVButtonsDataLength, mergedButtons, mergedLength);
+    if (isMandatoryNeed) {
+        // Ha kellenek a kötelező gombok, összefűzzük őket
+        mergedLength = mandatoryVButtonsLength + screenVButtonsDataLength;
+        mergedButtons = new BuildButtonData[mergedLength];  // Dinamikus allokáció
+        Utils::mergeArrays(mandatoryVButtons, mandatoryVButtonsLength, screenVButtonsData, screenVButtonsDataLength, mergedButtons, mergedLength);
+    } else {
+        // Ha nem kellenek a kötelező gombok, csak a kapottakat használjuk
+        mergedLength = screenVButtonsDataLength;
+        // Ha vannak egyedi gombok, akkor allokálunk és másolunk
+        if (mergedLength > 0) {
+            mergedButtons = new BuildButtonData[mergedLength];  // Dinamikus allokáció
+            memcpy(mergedButtons, screenVButtonsData, mergedLength * sizeof(BuildButtonData));
+        }
+        // Ha nincsenek egyedi gombok sem (mergedLength == 0), akkor a mergedButtons nullptr marad
+    }
 
-    // Összefűzött gombok legyártása
+    // Gombok legyártása a (potenciálisan összefűzött) tömb alapján
+    // Fontos: A buildScreenButtons most már beállítja a verticalScreenButtonsCount értékét
     verticalScreenButtons = buildScreenButtons(ButtonOrientation::Vertical, mergedButtons, mergedLength, SCRN_VBTNS_ID_START, verticalScreenButtonsCount);
+
+    // Felszabadítjuk a dinamikusan allokált memóriát, ha volt allokálva
+    if (mergedButtons != nullptr) {
+        delete[] mergedButtons;
+    }
 }
 
 /**

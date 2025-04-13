@@ -30,7 +30,7 @@ FreqScanDisplay::FreqScanDisplay(TFT_eSPI &tft, SI4735 &si4735, Band &band) : Di
     buildHorizontalScreenButtons(horizontalButtonsData, ARRAY_ITEM_COUNT(horizontalButtonsData), false);
 
     // Vertikális gombok (a Base osztályból jönnek a kötelezőek)
-    buildVerticalScreenButtons(nullptr, 0);  // Nincs egyedi vertikális gombunk
+    buildVerticalScreenButtons(nullptr, 0, false);  // Nincs egyedi vertikális gombunk, nem kellenek a defaultak sem
 }
 
 /**

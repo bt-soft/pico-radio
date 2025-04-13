@@ -46,12 +46,10 @@ class FreqScanDisplay : public DisplayBase {
    private:
     // --- Konstansok ---
     // A spektrum mérete és pozíciója (igazodik a 480x320 kijelzőhöz)
-    // <<<--- MÓDOSÍTÁSOK ITT --->>>
     static constexpr int spectrumX = 5;         // Bal oldali margó
-    static constexpr int spectrumY = 90;        // Y pozíció (lejjebb tolva)
-    static constexpr int spectrumWidth = 350;   // Szélesség (megnövelve)
-    static constexpr int spectrumHeight = 150;  // Magasság (megnövelve)
-    // <<<--- MÓDOSÍTÁSOK VÉGE --->>>
+    static constexpr int spectrumY = 60;        // Y pozíció
+    static constexpr int spectrumWidth = 470;   // Szélesség
+    static constexpr int spectrumHeight = 180;  // Magasság
 
     // Számított konstansok (ezek automatikusan frissülnek)
     static constexpr int spectrumEndY = spectrumY + spectrumHeight;
