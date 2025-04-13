@@ -730,7 +730,6 @@ void FreqScanDisplay::drawScanLine(int xPos) {
  * @param all Minden szöveget rajzoljon újra? (true = igen, false = csak a változókat)
  */
 void FreqScanDisplay::drawScanText(bool all) {
-    int d = 0;  // screenV itt nem releváns
 
     // --- A többi szöveg rajzolása  ---
     tft.setTextFont(1);  // Kisebb font a többi szöveghez
