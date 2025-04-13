@@ -346,35 +346,52 @@ void DisplayBase::buildVerticalScreenButtons(BuildButtonData screenVButtonsData[
 
 /**
  * Horizontális képernyő menügombok legyártása
+ *
+ * @param buttonsData A gombok adatai
+ * @param buttonsDataLength A gombok száma
+ * @param isMandatoryNeed Ha true, akkor a kötelező gombokat az elejéhez másolja
  */
-void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsData[], uint8_t screenHButtonsDataLength) {
+void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsData[], uint8_t screenHButtonsDataLength, bool isMandatoryNeed) {
 
-    // Kötelező vertikális Képernyőgombok definiálása
+    // Kötelező horizontális Képernyőgombok definiálása
     DisplayBase::BuildButtonData mandatoryHButtons[] = {
         {"Ham", TftButton::ButtonType::Pushable},    //
         {"Band", TftButton::ButtonType::Pushable},   //
         {"DeMod", TftButton::ButtonType::Pushable},  //
-
-        // FM mód esetén nem működik a BW állítás
         {"BndW", TftButton::ButtonType::Pushable, band.getCurrentBand().varData.currMod == FM ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off},
         {"Step", TftButton::ButtonType::Pushable},  //
-
         {"Scan", TftButton::ButtonType::Pushable},  //
-        //{"Test-1", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-2", TftButton::ButtonType::Pushable},                                                  //
-        //{"Test-3", TftButton::ButtonType::Pushable},                                                  //
     };
-    // Vertikális képernyőgombok legyártása
     uint8_t mandatoryHButtonsLength = ARRAY_ITEM_COUNT(mandatoryHButtons);
 
-    // Eredmény tömb
-    BuildButtonData mergedButtons[mandatoryHButtonsLength + screenHButtonsDataLength];
+    // Eredmény tömb és hossz változók
+    BuildButtonData *mergedButtons = nullptr;
     uint8_t mergedLength = 0;
 
-    // Tömbök összefűzése
-    Utils::mergeArrays(mandatoryHButtons, mandatoryHButtonsLength, screenHButtonsData, screenHButtonsDataLength, mergedButtons, mergedLength);
+    if (isMandatoryNeed) {
+        // Ha kellenek a kötelező gombok, összefűzzük őket
+        mergedLength = mandatoryHButtonsLength + screenHButtonsDataLength;
+        mergedButtons = new BuildButtonData[mergedLength];  // Dinamikus allokáció
+        Utils::mergeArrays(mandatoryHButtons, mandatoryHButtonsLength, screenHButtonsData, screenHButtonsDataLength, mergedButtons, mergedLength);
+    } else {
+        // Ha nem kellenek a kötelező gombok, csak a kapottakat használjuk
+        mergedLength = screenHButtonsDataLength;
+        // Ha vannak egyedi gombok, akkor allokálunk és másolunk
+        if (mergedLength > 0) {
+            mergedButtons = new BuildButtonData[mergedLength];  // Dinamikus allokáció
+            memcpy(mergedButtons, screenHButtonsData, mergedLength * sizeof(BuildButtonData));
+        }
+        // Ha nincsenek egyedi gombok sem (mergedLength == 0), akkor a mergedButtons nullptr marad
+    }
 
+    // Gombok legyártása a (potenciálisan összefűzött) tömb alapján
+    // Fontos: A buildScreenButtons most már beállítja a horizontalScreenButtonsCount értékét
     horizontalScreenButtons = buildScreenButtons(ButtonOrientation::Horizontal, mergedButtons, mergedLength, SCRN_HBTNS_ID_START, horizontalScreenButtonsCount);
+
+    // Felszabadítjuk a dinamikusan allokált memóriát, ha volt allokálva
+    if (mergedButtons != nullptr) {
+        delete[] mergedButtons;
+    }
 }
 
 /**

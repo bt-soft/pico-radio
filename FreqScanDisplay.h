@@ -1,6 +1,8 @@
 #ifndef __FREQSCANDISPLAY_H
 #define __FREQSCANDISPLAY_H
 
+#include <vector>  // std::vector használatához
+
 #include "DisplayBase.h"
 
 class FreqScanDisplay : public DisplayBase {
@@ -12,7 +14,7 @@ class FreqScanDisplay : public DisplayBase {
     bool handleRotary(RotaryEncoder::EncoderState encoderState) override;
 
     /**
-     * Touch (nem képrnyő button) esemény lekezelése
+     * Touch (nem képernyő button) esemény lekezelése
      */
     bool handleTouch(bool touched, uint16_t tx, uint16_t ty) override;
 
@@ -42,22 +44,63 @@ class FreqScanDisplay : public DisplayBase {
     inline DisplayBase::DisplayType getDisplayType() override { return DisplayBase::DisplayType::freqScan; };
 
    private:
-    static constexpr int spectrumWidth = 400;                    // Spektrum szélessége
-    static constexpr int spectrumHeight = 150;                   // Spektrum magassága
-    static constexpr int spectrumX = (480 - spectrumWidth) / 2;  // Spektrum vízszintes középre igazítása
-    static constexpr int spectrumY = 50;                         // Spektrum teteje 50 pixellel a képernyő tetejétől
+    // --- Konstansok ---
+    // A spektrum mérete és pozíciója (igazodik a 480x320 kijelzőhöz)
+    static constexpr int spectrumWidth = 320;   // Vízszintes képernyőn a szélesség
+    static constexpr int spectrumHeight = 120;  // Magasság
+    static constexpr int spectrumX = 0;         // Bal szélre igazítva
+    static constexpr int spectrumY = 80;        // Y pozíció (gombok és státuszsor alatt)
+    static constexpr int spectrumEndY = spectrumY + spectrumHeight;
+    static constexpr int spectrumEndScanX = spectrumX + spectrumWidth;
 
-    bool scanning = false;            // Szkennelés állapota
-    uint16_t currentFrequency = 0;    // Jelenlegi frekvencia
-    uint16_t startFrequency = 0;      // Kezdő frekvencia
-    uint16_t endFrequency = 0;        // Végfrekvencia
-    uint16_t stepFrequency = 0;       // Lépésköz
-    std::vector<uint8_t> rssiValues;  // RSSI értékek tárolása
-    int prevTouchedX = -1;            // Előző érintett oszlop pozíciója
+    // --- Állapotváltozók (sample.cpp alapján) ---
+    bool scanning = false;          // Szkennelés folyamatban van?
+    bool scanPaused = true;         // Szkennelés szüneteltetve?
+    bool scanEmpty = true;          // A spektrum adatok üresek?
+    uint16_t currentFrequency = 0;  // Jelenlegi frekvencia a szkenneléshez/hangoláshoz
+    uint16_t startFrequency = 0;    // Szkennelés kezdő frekvenciája
+    uint16_t endFrequency = 0;      // Szkennelés végfrekvenciája
+    float scanStep = 0.0f;          // Aktuális lépésköz (kHz)
+    float minScanStep = 0.125f;     // Minimális lépésköz
+    float maxScanStep = 8.0f;       // Maximális lépésköz
+    bool autoScanStep = true;       // Automatikus lépésköz?
+    bool scanAccuracy = true;       // Szkennelés pontossága (befolyásolja a countScanSignal-t)
+    int countScanSignal = 3;        // Hány mérés átlaga legyen egy ponton
+    uint8_t scanAGC = 0;            // AGC állapota a szkennelés indításakor
 
-    void updateSpectrumScan();                 // Spektrum frissítése
-    int calculateBarHeight(uint8_t rssi);      // Oszlopmagasság kiszámítása
-    uint16_t calculateBarColor(uint8_t rssi);  // Oszlop színének kiszámítása
+    // Spektrum adatok
+    std::vector<uint8_t> scanValueRSSI;  // RSSI értékek
+    std::vector<uint8_t> scanValueSNR;   // SNR értékek
+    std::vector<bool> scanMark;          // Jelölők (pl. erős jel)
+    std::vector<uint8_t> scanScaleLine;  // Skálavonal típusok
+
+    // Pozícionálás és skálázás
+    float currentScanLine = 0.0f;     // Az aktuális frekvenciának megfelelő X pozíció a spektrumon (kurzor)
+    float deltaScanLine = 0.0f;       // Eltolás a spektrumon (pásztázás)
+    float signalScale = 1.5f;         // Jelerősség skálázási faktor (nagyítás)
+    int posScan = 0;                  // Aktuális szkennelési pozíció (index)
+    int posScanLast = 0;              // Előző szkennelési pozíció
+    uint16_t posScanFreq = 0;         // Az aktuális szkennelési pozíciónak megfelelő frekvencia
+    int scanBeginBand = -1;           // Sáv elejének X koordinátája (-1, ha látható)
+    int scanEndBand = spectrumWidth;  // Sáv végének X koordinátája (kezdetben a spektrum vége)
+    uint8_t scanMarkSNR = 3;          // SNR küszöb a jelöléshez
+    bool prevScaleLine = false;       // Segédváltozó a skálavonal rajzoláshoz
+
+    int prevTouchedX = -1;  // Előző érintett oszlop X koordinátája a spektrumon
+    int prevRssiY = -1;     // Előző RSSI Y koordináta a vonalrajzoláshoz
+
+    // --- Metódusok (sample.cpp alapján) ---
+    void drawScanGraph(bool erase);  // Spektrum alapjának és skálájának rajzolása
+    void drawScanLine(int n);        // Egy spektrumvonal/oszlop rajzolása
+    void drawScanText(bool all);     // Frekvencia címkék rajzolása
+    void displayScanSignal();        // Aktuális RSSI/SNR kiírása
+    int getSignal(bool rssi);        // Jelerősség (RSSI vagy SNR) lekérése (átlagolással)
+    void setFreq(uint16_t f);        // Frekvencia beállítása
+    void freqUp();                   // Frekvencia léptetése felfelé
+    void pauseScan();                // Szkennelés szüneteltetése/folytatása
+    void startScan();                // Szkennelés indítása
+    void stopScan();                 // Szkennelés leállítása
+    void changeScanScale();          // Szkennelési skála (lépésköz) váltása
 };
 
 #endif  //__FREQSCANDISPLAY_H
