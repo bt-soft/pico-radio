@@ -116,10 +116,10 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
     BandTable &currentBand = band.getCurrentBand();
     uint8_t currMod = currentBand.varData.currMod;
+    uint16_t currentFrequency = si4735.getFrequency();
 
-    if (currMod == LSB or currMod == USB or currMod == CW) {
-
-        uint16_t currentFrequency = si4735.getFrequency();
+    // SSB vagy CW módban a BFO-val finomhangolunk, de csak akkor ha a lépés nem 1000Hz, amit az si4735 amúgy is támogat
+    if (rtv::freqstep != 1000 && (currMod == LSB or currMod == USB or currMod == CW)) {
 
         if (encoderState.direction == RotaryEncoder::Direction::Up) {
 
@@ -167,8 +167,28 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
     } else {
 
-        // AM - sima frekvencia léptetés
-        (encoderState.direction == RotaryEncoder::Direction::Up) ? si4735.frequencyUp() : si4735.frequencyDown();
+        // AM - sima frekvencia léptetés sávhatár ellenőrzéssel
+        uint16_t step = currentBand.varData.currStep;
+        uint16_t minFreq = currentBand.pConstData->minimumFreq;
+        uint16_t maxFreq = currentBand.pConstData->maximumFreq;
+
+        if (encoderState.direction == RotaryEncoder::Direction::Up) {
+            // Csak akkor léptetünk felfelé, ha az új frekvencia nem lépi túl a maximumot
+            if (currentFrequency < maxFreq && (currentFrequency + step) <= maxFreq) {
+                si4735.frequencyUp();
+            } else if (currentFrequency != maxFreq) {
+                // Ha túllépné, de még nem a maximumon vagyunk, beállítjuk a maximumra
+                si4735.setFrequency(maxFreq);
+            }
+        } else {  // Lefelé léptetés (encoderState.direction == RotaryEncoder::Direction::Down)
+            // Csak akkor léptetünk lefelé, ha az új frekvencia nem megy a minimum alá
+            if (currentFrequency > minFreq && (currentFrequency - step) >= minFreq) {
+                si4735.frequencyDown();
+            } else if (currentFrequency != minFreq) {
+                // Ha alálépné, de még nem a minimumon vagyunk, beállítjuk a minimumra
+                si4735.setFrequency(minFreq);
+            }
+        }
     }
 
     // Elmentjük a beállított frekvenciát a Band táblába
