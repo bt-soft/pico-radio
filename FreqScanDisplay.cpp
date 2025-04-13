@@ -573,7 +573,7 @@ void FreqScanDisplay::drawScanGraph(bool erase) {
         drawScanLine(spectrumX + n);
     }
 
-    // --- Sávhatár jelző vonalak rajzolása --- <<<--- ÚJ RÉSZ
+    // --- Sávhatár jelző vonalak rajzolása ---
     if (scanBeginBand > 0 && scanBeginBand < spectrumWidth) {                               // Ha a kezdő határ látható
         tft.drawFastVLine(spectrumX + scanBeginBand, spectrumEndY - 10, 10, TFT_DARKGREY);  // Csak alul egy 10px magas vonal
     }
@@ -581,6 +581,12 @@ void FreqScanDisplay::drawScanGraph(bool erase) {
         tft.drawFastVLine(spectrumX + scanEndBand, spectrumEndY - 10, 10, TFT_DARKGREY);  // Csak alul egy 10px magas vonal
     }
     // ------------------------------------------
+
+    // --- SNR Limit Vonal (Vizuális Jelző)
+    // Rajzolunk egy vízszintes sötétszürke vonalat az aljához közel, vizuális küszöbjelzőként.
+    // Ennek a vonalnak a pozíciója nincs közvetlen matematikai kapcsolatban a scanMarkSNR értékkel.
+    uint16_t snrLimitLineY = spectrumEndY - 10;  // Példa: 10 pixelre az aljától
+    tft.drawFastHLine(spectrumX, snrLimitLineY, spectrumWidth, TFT_DARKGREY);
 
     // Keret újrarajzolása
     tft.drawRect(spectrumX - 1, spectrumY - 1, spectrumWidth + 2, spectrumHeight + 2, TFT_WHITE);
