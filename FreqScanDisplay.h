@@ -92,17 +92,17 @@ class FreqScanDisplay : public DisplayBase {
     int prevRssiY = -1;     // Előző RSSI Y koordináta a vonalrajzoláshoz
 
     // --- Metódusok (sample.cpp alapján) ---
-    void drawScanGraph(bool erase);  // Spektrum alapjának és skálájának rajzolása
-    void drawScanLine(int xPos);     // Egy spektrumvonal/oszlop rajzolása (xPos a képernyőn)
-    void drawScanText(bool all);     // Frekvencia címkék rajzolása
-    void displayScanSignal();        // Aktuális RSSI/SNR kiírása
-    int getSignal(bool rssi);        // Jelerősség (RSSI vagy SNR) lekérése (átlagolással)
-    void setFreq(uint16_t f);        // Frekvencia beállítása
-    void freqUp();                   // Frekvencia léptetése felfelé
-    void pauseScan();                // Szkennelés szüneteltetése/folytatása
-    void startScan();                // Szkennelés indítása
-    void stopScan();                 // Szkennelés leállítása
-    void changeScanScale();          // Szkennelési skála (lépésköz) váltása
+    void drawScanGraph(bool erase);                       // Spektrum alapjának és skálájának rajzolása
+    void drawScanLine(int xPos, bool isErasing = false);  // <<<--- MÓDOSÍTOTT SOR
+    void drawScanText(bool all);                          // Frekvencia címkék rajzolása
+    void displayScanSignal();                             // Aktuális RSSI/SNR kiírása
+    int getSignal(bool rssi);                             // Jelerősség (RSSI vagy SNR) lekérése (átlagolással)
+    void setFreq(uint16_t f);                             // Frekvencia beállítása
+    void freqUp();                                        // Frekvencia léptetése felfelé
+    void pauseScan();                                     // Szkennelés szüneteltetése/folytatása
+    void startScan();                                     // Szkennelés indítása
+    void stopScan();                                      // Szkennelés leállítása
+    void changeScanScale();                               // Szkennelési skála (lépésköz) váltása
 };
 
 #endif  //__FREQSCANDISPLAY_H
