@@ -344,7 +344,7 @@ void Band::setBandWidth() {
     BandTable& currentBand = getCurrentBand();
     uint8_t currMod = currentBand.varData.currMod;
 
-    if (currMod == LSB or currMod == USB) {
+    if (currMod == LSB or currMod == USB or currMod == CW) {
         /**
          * @ingroup group17 Patch and SSB support
          *
@@ -475,7 +475,7 @@ void Band::bandSet(bool loadPrefDeMod) {
         ssbLoaded = false;  // FIXME: Ez kell? Band váltás után megint be kell tölteni az SSB-t?
     }
 
-    if (currMod == LSB or currMod == USB) {
+    if (currMod == LSB or currMod == USB or currMod == CW) {
         if (ssbLoaded == false) {
             this->loadSSB();
         }

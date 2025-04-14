@@ -570,7 +570,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
             labels = band.getBandWidthLabels(Band::bandWidthAM, labelsCount);
 
         } else {
-            title = F("SSB Filter in kHz");
+            title = F("SSB/CW Filter in kHz");
             w = 300;
             h = 150;
 
