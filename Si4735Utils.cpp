@@ -44,31 +44,44 @@ void Si4735Utils::checkAGC() {
     //  Ez a hívás frissíti az SI4735 objektum belső állapotát az AGC-vel kapcsolatban (pl. hogy engedélyezve van-e vagy sem).
     si4735.getAutomaticGainControl();
 
+    bool chipAgcEnabled = si4735.isAgcEnabled();
+    AgcGainMode desiredMode = static_cast<AgcGainMode>(config.data.agcGain);
+    bool stateChanged = false;  // Jelző, hogy történt-e változás, küldtünk-e AGC parancsot?
+
     // Ha az AGC engedélyezve van
     if (si4735.isAgcEnabled()) {
 
-        if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Off)) {
+        if (desiredMode == AgcGainMode::Off) {
 
             DEBUG("Si4735Utils::checkAGC() -> AGC Off\n");
             // A felhasználó az AGC kikapcsolását kérte.
-            si4735.setAutomaticGainControl(1, 0);  // disabled
+            if (chipAgcEnabled) {
+                si4735.setAutomaticGainControl(1, 0);  // disabled
+                stateChanged = true;
+            }
 
-        } else if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Manual)) {
+        } else if (desiredMode == AgcGainMode::Manual) {
 
             DEBUG("Si4735Utils::checkAGC() -> AGC Manual\n");
             // A felhasználó manuális AGC beállítást kért
             si4735.setAutomaticGainControl(1, config.data.currentAGCgain);
+            stateChanged = true;  // Feltételezzük, hogy változott az állapot
         }
 
-    } else if (config.data.agcGain == static_cast<uint8_t>(AgcGainMode::Automatic)) {
+    } else if (desiredMode == AgcGainMode::Automatic) {
         // Ha az AGC nincs engedélyezve az AGC, de a felhasználó az AGC engedélyezését kérte
-
-        DEBUG("Si4735Utils::checkAGC() -> AGC Automatic\n");
-
-        // Ez esetben az AGC-t engedélyezzük (0),
-        //  és a csillapítást nullára állítjuk (0).
+        // Ez esetben az AGC-t engedélyezzük (0), és a csillapítást nullára állítjuk (0).
         // Ez a teljesen automatikus AGC működést jelenti.
-        si4735.setAutomaticGainControl(0, 0);  // enabled
+        if (!chipAgcEnabled) {
+            DEBUG("Si4735Utils::checkAGC() -> AGC Automatic\n");
+            si4735.setAutomaticGainControl(0, 0);  // enabled
+            stateChanged = true;
+        }
+    }
+
+    // Ha küldtünk parancsot, olvassuk vissza az állapotot, hogy az SI4735 C++ objektum belső jelzője frissüljön
+    if (stateChanged) {
+        si4735.getAutomaticGainControl();  // Állapot újraolvasása
     }
 }
 

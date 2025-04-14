@@ -437,7 +437,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         processed = true;
     } else if (STREQ("AGC", event.label)) {  // Automatikus AGC
 
-        bool stateOn = event.state == TftButton::ButtonState::On;
+        bool stateOn = (event.state == TftButton::ButtonState::On);
         config.data.agcGain = stateOn ? static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic) : static_cast<uint8_t>(Si4735Utils::AgcGainMode::Off);
 
         Si4735Utils::checkAGC();
