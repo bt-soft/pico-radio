@@ -443,7 +443,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
         Si4735Utils::checkAGC();
 
         // Kijelzés frissítése
-        DisplayBase::drawAgcAttStatus(true);
+        drawAgcAttStatus(true);
 
         processed = true;
 

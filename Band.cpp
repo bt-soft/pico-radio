@@ -180,8 +180,11 @@ const char** Band::getBandNames(uint8_t& count, bool isHamFilter) {
  */
 void Band::loadSSB() {
 
+    DEBUG("Band::loadSSB()\n");
+
     // Ha már be van töltve, akkor nem megyünk tovább
     if (ssbLoaded) {
+        DEBUG("Band::loadSSB() -> SSB már be van töltve\n");
         return;
     }
 
@@ -341,6 +344,8 @@ void Band::useBand() {
  */
 void Band::setBandWidth() {
 
+    DEBUG("Band::setBandWidth()\n");
+
     BandTable& currentBand = getCurrentBand();
     uint8_t currMod = currentBand.varData.currMod;
 
@@ -460,14 +465,19 @@ void Band::bandInit(bool sysStart) {
  */
 void Band::bandSet(bool loadPrefDeMod) {
 
+    DEBUG("Band::bandSet(loadPrefDeMod: %s)\n", loadPrefDeMod ? "true" : "false");
+
+    // Kikeressük az aktuális Band rekordot
     BandTable& currentBand = getCurrentBand();
 
     // Demoduláció beállítása
     uint8_t currMod = currentBand.varData.currMod;
 
+    // A sávhoz preferált demodulációs módot állítunk be?
     if (loadPrefDeMod) {
         // Átmásoljuk a preferált modulációs módot
         currMod = currentBand.varData.currMod = currentBand.pConstData->prefMod;
+        ssbLoaded = false;  // SSB patch betöltése szükséges
     }
 
     if (currMod == AM or currMod == FM) {

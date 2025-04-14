@@ -165,28 +165,41 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
         checkAGC();
 
     } else {
-
         // AM - sima frekvencia léptetés sávhatár ellenőrzéssel
-        uint16_t step = currentBand.varData.currStep;
+        // Használjuk a rotary encoder gyorsítását (encoderState.value)
+        // és a SÁVHOZ BEÁLLÍTOTT LÉPÉSKÖZT (currentBand.varData.currStep)
+
+        // 1. Lépésköz lekérdezése az aktuális sávból (ez már kHz-ben van)
+        uint16_t configuredStep = currentBand.varData.currStep;
+
+        // 2. Teljes frekvenciaváltozás kiszámítása
+        //    encoderState.value: Hány "logikai" lépést tett az enkóder (gyorsítással)
+        //    configuredStep: Az egy logikai lépéshez tartozó frekvenciaváltozás (pl. 9 kHz)
+        //    Fontos: int32_t-t használunk a túlcsordulás elkerülésére a szorzásnál
+        int32_t change = (int32_t)encoderState.value * configuredStep;
+
+        // 3. Új frekvencia kiszámítása
+        //    Szintén int32_t-t használunk, hogy a sávhatárokon kívüli értékeket is kezelni tudjuk
+        int32_t newFrequency = (int32_t)currentFrequency + change;
+
+        // 4. Sávhatárok lekérdezése
         uint16_t minFreq = currentBand.pConstData->minimumFreq;
         uint16_t maxFreq = currentBand.pConstData->maximumFreq;
 
-        if (encoderState.direction == RotaryEncoder::Direction::Up) {
-            // Csak akkor léptetünk felfelé, ha az új frekvencia nem lépi túl a maximumot
-            if (currentFrequency < maxFreq && (currentFrequency + step) <= maxFreq) {
-                si4735.frequencyUp();
-            } else if (currentFrequency != maxFreq) {
-                // Ha túllépné, de még nem a maximumon vagyunk, beállítjuk a maximumra
-                si4735.setFrequency(maxFreq);
-            }
-        } else {  // Lefelé léptetés (encoderState.direction == RotaryEncoder::Direction::Down)
-            // Csak akkor léptetünk lefelé, ha az új frekvencia nem megy a minimum alá
-            if (currentFrequency > minFreq && (currentFrequency - step) >= minFreq) {
-                si4735.frequencyDown();
-            } else if (currentFrequency != minFreq) {
-                // Ha alálépné, de még nem a minimumon vagyunk, beállítjuk a minimumra
-                si4735.setFrequency(minFreq);
-            }
+        // 5. Ellenőrzés és korlátozás a sávhatárokra
+        if (newFrequency < minFreq) {
+            newFrequency = minFreq;
+        } else if (newFrequency > maxFreq) {
+            newFrequency = maxFreq;
+        }
+
+        // 6. Új frekvencia beállítása, csak ha változott
+        //    Az összehasonlításhoz és a setFrequency híváshoz vissza kell kasztolni uint16_t-re
+        if ((uint16_t)newFrequency != currentFrequency) {
+            si4735.setFrequency((uint16_t)newFrequency);
+            // Mivel setFrequency-t használunk, az AGC-t is ellenőrizni kellhet,
+            // bár valószínűleg AM módban az automatikus AGC jól működik.
+            Si4735Utils::checkAGC();  // Szükség esetén
         }
     }
 

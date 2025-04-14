@@ -40,7 +40,7 @@ const Config_t DEFAULT_CONFIG = {
     .currVolume = 50,
 
     // AGC
-    .agcGain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Off),               // -> 0,
+    .agcGain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic),         // -> 1,
     .currentAGCgain = static_cast<uint8_t>(Si4735Utils::AgcGainMode::Automatic),  // -> 1
 
     //--- TFT
