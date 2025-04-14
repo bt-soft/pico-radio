@@ -379,9 +379,8 @@ void Band::setBandWidth() {
             // Low pass filter to cutoff the unwanted side band.
             si4735.setSSBSidebandCutoffFilter(1);
         }
-    }
 
-    if (currMod == AM) {
+    } else if (currMod == AM) {
         /**
          * @ingroup group08 Set bandwidth
          * @brief Selects the bandwidth of the channel filter for AM reception.
@@ -472,10 +471,10 @@ void Band::bandSet(bool loadPrefDeMod) {
     }
 
     if (currMod == AM or currMod == FM) {
-        ssbLoaded = false;  // FIXME: Ez kell? Band váltás után megint be kell tölteni az SSB-t?
-    }
 
-    if (currMod == LSB or currMod == USB or currMod == CW) {
+        ssbLoaded = false;  // FIXME: Ez kell? Band váltás után megint be kell tölteni az SSB-t?
+
+    } else if (currMod == LSB or currMod == USB or currMod == CW) {
         if (ssbLoaded == false) {
             this->loadSSB();
         }
