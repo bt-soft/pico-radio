@@ -232,7 +232,7 @@ bool FreqScanDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
     if (ty < spectrumY || ty > spectrumEndY || tx < spectrumX || tx > spectrumEndScanX) {
         // Ha az érintés megszűnt, és volt előző jelölés, töröljük
         if (!touched && prevTouchedX != -1) {
-            drawScanLine(prevTouchedX, true);  // Eredeti vonal visszaállítása (isErasing = true)
+            drawScanLine(prevTouchedX);  // Eredeti vonal visszaállítása
             prevTouchedX = -1;
         }
         return false;
@@ -287,7 +287,7 @@ bool FreqScanDisplay::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
     if (touched && scanPaused) {
         // 1. Töröljük az előző sárga jelölő vonalat (ha volt)
         if (prevTouchedX != -1) {
-            drawScanLine(prevTouchedX, true);  // Visszarajzolja az eredeti oszlopot/vonalat (isErasing = true)
+            drawScanLine(prevTouchedX);  // Visszarajzolja az eredeti oszlopot/vonalat
         }
 
         // 2. Kiszámítjuk az érintett X koordinátának megfelelő frekvenciát
@@ -502,49 +502,81 @@ void FreqScanDisplay::changeScanScale() {
     DEBUG("Changing scan scale...\n");
     bool was_paused = scanPaused;
     if (scanning && !was_paused) {
-        scanPaused = true;
-        pauseScan();  // Szüneteltetjük a váltáshoz
+        // Ha futott a szkennelés, ideiglenesen szüneteltetjük a rádióhangolás miatt,
+        // de a scanPaused logikai változót még nem állítjuk át.
+        // A pauseScan() itt nem kell, mert a setFreq és a rajzolás előtt felesleges.
+        // Az AGC-t és a némítást a pauseScan() majd kezeli a végén.
     }
 
     float oldScanStep = scanStep;
 
-    // Lépésköz váltása (ciklikusan)
+    // Új scanStep kiszámítása
     scanStep *= 2.0f;
     if (scanStep > maxScanStep) {
         scanStep = minScanStep;
     }
-    // Biztosítjuk, hogy a minimum alatt ne menjen (lebegőpontos pontatlanság miatt)
     if (scanStep < minScanStep) {
         scanStep = minScanStep;
     }
     DEBUG("New scan step: %.3f kHz\n", scanStep);
 
-    // Kurzor frekvenciájának megtartása mellett deltaScanLine újraszámolása
-    // A képernyő közepén lévő frekvencia maradjon ugyanaz
-    float freqAtCenter = startFrequency + static_cast<float>(((spectrumWidth / 2.0f) + deltaScanLine) * oldScanStep);
+    // deltaScanLine újraszámítása, hogy a képernyő közepe ugyanaz a frekvencia maradjon
+    // A currentFrequency-t használjuk középpontnak, ha szünetelt, egyébként a posScanFreq-et
+    float freqAtCenter = was_paused ? static_cast<float>(currentFrequency) : static_cast<float>(posScanFreq);
+    // float freqAtCenter = startFrequency + static_cast<float>(((spectrumWidth / 2.0f) + deltaScanLine) * oldScanStep); // Régi logika
     deltaScanLine = (freqAtCenter - startFrequency) / scanStep - (spectrumWidth / 2.0f);
 
-    // Újrarajzolás új skálával
-    scanEmpty = true;          // Újra kell rajzolni a teljes grafikont
-    prevRssiY = spectrumEndY;  // Vonalrajzoláshoz reset
-    drawScanGraph(true);       // Töröljük és újrarajzoljuk a grafikont
-    drawScanText(true);
-    setFreq(currentFrequency);  // Frekvencia újra beállítása (kurzor pozícióhoz)
+    // Grafikon és szöveg újrarajzolása az új skálával
+    // scanEmpty = true; // <<<--- Ezt kivesszük, mert nem feltétlenül kezdünk üres lappal
+    prevRssiY = spectrumEndY;
+    drawScanGraph(true);  // Törli az adatokat, újrarajzolja a hátteret/skálát az új scanStep/deltaScanLine alapján
+    drawScanText(true);   // Szövegek frissítése az új skálához
 
-    // Szkennelés folytatása, ha futott
+    // --- MÓDOSÍTÁS KEZDETE ---
     if (scanning && !was_paused) {
-        scanPaused = false;
-        pauseScan();
+        // Ha a szkennelés futott, a folytatáshoz a LÁTHATÓ tartomány elejére ugrunk
+        scanPaused = true;  // Ideiglenesen szüneteltetett állapotba tesszük logikailag is
+
+        // Kiszámítjuk a bal szélnek (n=0) megfelelő frekvenciát
+        double startVisibleFreqDouble = static_cast<double>(startFrequency) + (0.0 - (static_cast<double>(spectrumWidth) / 2.0) + deltaScanLine) * static_cast<double>(scanStep);
+        posScanFreq = static_cast<uint16_t>(round(startVisibleFreqDouble));
+        posScanFreq = constrain(posScanFreq, startFrequency, endFrequency);  // Biztosítjuk a sávhatárokat
+
+        posScan = 0;       // A pozíció indexe 0 lesz
+        posScanLast = -1;  // Előző pozíció érvénytelenítése
+        scanEmpty = true;  // Az új nézetben még nincs adatunk
+
+        setFreq(posScanFreq);  // Rádiót a kezdő frekvenciára hangoljuk
+
+        // Folytatás előkészítése
+        scanPaused = false;  // Visszaállítjuk a logikai állapotot
+        pauseScan();         // Meghívjuk a pauseScan-t a folytatáshoz szükséges beállításokhoz (AGC, mute, step=1)
+
     } else {
-        // Ha szünetelt, a kurzort újra ki kell rajzolni pirossal
-        currentScanLine = spectrumX + (currentFrequency - startFrequency) / scanStep - deltaScanLine + (spectrumWidth / 2.0f);
+        // Ha szünetelt, a kurzort újra ki kell rajzolni pirossal az új helyen
+        // Biztosítjuk, hogy a currentFrequency a rádióban is be legyen állítva
+        setFreq(currentFrequency);
+
+        currentScanLine = spectrumX + (static_cast<double>(currentFrequency) - static_cast<double>(startFrequency)) / static_cast<double>(scanStep) - deltaScanLine +
+                          (static_cast<double>(spectrumWidth) / 2.0);
         currentScanLine = constrain(currentScanLine, spectrumX, spectrumEndScanX - 1);
         int currentX = static_cast<int>(currentScanLine);
+
+        // Újrarajzoljuk a vonalat a kurzor alatt, mielőtt a piros kurzort rárajzolnánk
         if (currentX >= spectrumX && currentX < spectrumEndScanX) {
+            // Itt már az új drawScanLine van, ami töröl és rajzol
+            drawScanLine(currentX);
+        }
+        // Piros kurzor rárajzolása (ha nincs sárga)
+        if (prevTouchedX == -1 && currentX >= spectrumX && currentX < spectrumEndScanX) {
             tft.drawFastVLine(currentX, spectrumY, spectrumHeight, TFT_RED);
         }
+        // RSSI/SNR kijelző frissítése
         displayScanSignal();
     }
+    // --- MÓDOSÍTÁS VÉGE ---
+
+    // A drawScanText(true) már fentebb lefutott a drawScanGraph(true) után.
 }
 
 /**
@@ -597,63 +629,55 @@ void FreqScanDisplay::drawScanGraph(bool erase) {
     tft.drawRect(spectrumX - 1, spectrumY - 1, spectrumWidth + 2, spectrumHeight + 2, TFT_WHITE);
 }
 
+// FreqScanDisplay.cpp
+
 /**
  * Egy spektrumvonal/oszlop rajzolása a megadott X pozícióra
+ * (Kurzor rajzolása NÉLKÜL)
  * @param xPos Az X koordináta a képernyőn
- * @param isErasing Ha true, akkor nem rajzolja újra a kurzort (törlési céllal hívták)
  */
-void FreqScanDisplay::drawScanLine(int xPos, bool isErasing) {
-    int n = xPos - spectrumX;                 // Index a vektorokban
-    if (n < 0 || n >= spectrumWidth) return;  // Érvénytelen index
+void FreqScanDisplay::drawScanLine(int xPos) {
+    int n = xPos - spectrumX;
+    if (n < 0 || n >= spectrumWidth) return;
 
-    int d = 0;  // screenV itt nem releváns
-
-    // Aktuális frekvencia kiszámítása ehhez a pozícióhoz (precízebben)
+    // Aktuális frekvencia kiszámítása (precízebben)
     double freq_double = static_cast<double>(startFrequency) +
                          (static_cast<double>(n) - (static_cast<double>(spectrumWidth) / 2.0) + static_cast<double>(deltaScanLine)) * static_cast<double>(scanStep);
-    // Kerekítés uint16_t-re konvertálás előtt
     uint16_t frq = static_cast<uint16_t>(round(freq_double));
 
-    int16_t colf = TFT_NAVY;   // Háttérszín (gyenge jel)
-    int16_t colb = TFT_BLACK;  // Előtérszín (ahol nincs jel)
+    int16_t colf = TFT_NAVY;
+    int16_t colb = TFT_BLACK;
 
     // --- Skálavonal típusának meghatározása ---
     if (!scanScaleLine[n] || scanEmpty) {
         scanScaleLine[n] = 0;
-        double stepThreshold = scanStep > 0 ? static_cast<double>(scanStep) : 1.0;  // Osztás nulla ellen védve
-
-        // Fő skálavonal (pl. 100kHz-enként)
+        double stepThreshold = scanStep > 0 ? static_cast<double>(scanStep) : 1.0;
         if (scanStep <= 100) {
             if (fmod(freq_double, 100.0) < stepThreshold || fmod(freq_double, 100.0) > (100.0 - stepThreshold)) scanScaleLine[n] = 2;
         }
-        // Fél skálavonal (pl. 50kHz-enként)
         if (!scanScaleLine[n] && scanStep <= 50) {
             if (fmod(freq_double, 50.0) < stepThreshold || fmod(freq_double, 50.0) > (50.0 - stepThreshold)) scanScaleLine[n] = 3;
         }
-        // Tized skálavonal (pl. 10kHz-enként)
         if (!scanScaleLine[n] && scanStep <= 10) {
             if (fmod(freq_double, 10.0) < stepThreshold || fmod(freq_double, 10.0) > (10.0 - stepThreshold)) scanScaleLine[n] = 4;
         }
-
         if (!scanScaleLine[n]) scanScaleLine[n] = 1;
     }
 
     // Színek beállítása a skálavonal típusa alapján
-    if (scanScaleLine[n] == 2) {         // Fő vonal
-        colf = TFT_BLACK;                // Háttér
-        colb = TFT_OLIVE;                // Vonal színe
-    } else if (scanScaleLine[n] == 3) {  // Fél vonal
-        colb = TFT_DARKGREY;             // Halványabb vonal
-    } else if (scanScaleLine[n] == 4) {  // Tized vonal
-        colb = TFT_DARKGREY;             // Még halványabb
-    }
+    if (scanScaleLine[n] == 2)
+        colb = TFT_OLIVE;
+    else if (scanScaleLine[n] == 3)
+        colb = TFT_DARKGREY;
+    else if (scanScaleLine[n] == 4)
+        colb = TFT_DARKGREY;
 
-    // --- Szín az SNR alapján (felülírja a skálavonal színét, ha van jel) ---
+    // --- Szín az SNR alapján ---
     if (scanValueSNR[n] > 0 && !scanEmpty) {
         colf = TFT_NAVY + 0x8000;
-        if (scanValueSNR[n] < 16) {
+        if (scanValueSNR[n] < 16)
             colf += (scanValueSNR[n] * 2048);
-        } else {
+        else {
             colf = 0xFBE0;  // Sárga
             if (scanValueSNR[n] < 24)
                 colf += ((scanValueSNR[n] - 16) * 4);
@@ -662,8 +686,8 @@ void FreqScanDisplay::drawScanLine(int xPos, bool isErasing) {
         }
     }
 
-    // --- Sávon kívüli terület indexének jelölése (CSAK AZ INDEXEKET ÁLLÍTJUK) ---
-    const double freqTolerance = scanStep * 0.1;  // Tolerancia a lépésköz tizede
+    // --- Sávon kívüli terület indexének jelölése ---
+    const double freqTolerance = scanStep * 0.1;
     if (freq_double > (static_cast<double>(endFrequency) + freqTolerance)) {
         if (scanEndBand > n) scanEndBand = n;
     } else {
@@ -679,7 +703,10 @@ void FreqScanDisplay::drawScanLine(int xPos, bool isErasing) {
     int currentRssiY = scanValueRSSI[n];
     currentRssiY = constrain(currentRssiY, spectrumY, spectrumEndY);
 
-    // 1. Háttér rajzolása (oszlop vagy skálavonal)
+    // 1. Teljes oszlop törlése feketével (mindig)
+    tft.drawFastVLine(xPos, spectrumY, spectrumHeight, TFT_BLACK);
+
+    // 2. Skálavonal rajzolása (ha van)
     if (colb != TFT_BLACK) {
         if (scanScaleLine[n] == 2)
             tft.drawFastVLine(xPos, spectrumY, spectrumHeight, colb);
@@ -687,41 +714,29 @@ void FreqScanDisplay::drawScanLine(int xPos, bool isErasing) {
             tft.drawFastVLine(xPos, spectrumY + spectrumHeight / 2, spectrumHeight / 2, colb);
         else if (scanScaleLine[n] == 4)
             tft.drawFastVLine(xPos, spectrumY + spectrumHeight * 3 / 4, spectrumHeight / 4, colb);
-        if (currentRssiY < spectrumEndY && !scanEmpty) {
-            tft.drawFastVLine(xPos, currentRssiY, spectrumEndY - currentRssiY, colf);
-        }
-    } else {
-        tft.drawFastVLine(xPos, spectrumY, spectrumHeight, colb);
-        if (currentRssiY < spectrumEndY && !scanEmpty) {
-            tft.drawFastVLine(xPos, currentRssiY, spectrumEndY - currentRssiY, colf);
-        }
     }
 
-    // 2. Fő jelvonal (összekötve az előző ponttal)
+    // 3. Jelszint oszlop rajzolása (ha van jel)
+    if (currentRssiY < spectrumEndY && !scanEmpty) {
+        tft.drawFastVLine(xPos, currentRssiY, spectrumEndY - currentRssiY, colf);
+    }
+
+    // 4. Fő jelvonal (összekötve az előző ponttal)
     if (!scanEmpty) {
         if (n > 0) {
-            tft.drawLine(xPos - 1, prevRssiY, xPos, currentRssiY, TFT_SILVER);
+            int prevY = (n - 1 >= 0) ? constrain(scanValueRSSI[n - 1], spectrumY, spectrumEndY) : spectrumEndY;
+            tft.drawLine(xPos - 1, prevY, xPos, currentRssiY, TFT_SILVER);
         } else {
             tft.drawPixel(xPos, currentRssiY, TFT_SILVER);
         }
     }
-    if (!scanEmpty) {
-        prevRssiY = currentRssiY;
-    }
 
-    // 3. Jelölő (scanMark) kirajzolása
+    // 5. Jelölő (scanMark) kirajzolása
     if (scanMark[n] && !scanEmpty) {
         tft.fillRect(xPos - 1, spectrumY + 5, 3, 5, TFT_YELLOW);
     }
 
-    // 4. Kurzor (piros vagy sárga vonal) rajzolása
-    if (!isErasing && scanPaused) {  // Csak akkor rajzol kurzort, ha nem törlési céllal hívták
-        if (xPos == prevTouchedX) {  // Sárga érintésjelző
-            tft.drawFastVLine(xPos, spectrumY, spectrumHeight, TFT_YELLOW);
-        } else if (xPos == static_cast<int>(currentScanLine) && prevTouchedX == -1) {  // Piros kurzor, ha nincs érintés
-            tft.drawFastVLine(xPos, spectrumY, spectrumHeight, TFT_RED);
-        }
-    }
+    // <<<--- KURZOR RAJZOLÁS ELTÁVOLÍTVA --->>>
 }
 
 /**
@@ -754,56 +769,69 @@ void FreqScanDisplay::drawScanText(bool all) {
 
     // Skála kezdő és vég frekvenciájának kiírása...
     if (all) {
-        uint16_t freqStartVisible = startFrequency + static_cast<uint16_t>((deltaScanLine - (spectrumWidth / 2.0f)) * scanStep);
-        uint16_t freqEndVisible = startFrequency + static_cast<uint16_t>((deltaScanLine + (spectrumWidth / 2.0f)) * scanStep);
+        // Precízebb számítás double-lel
+        double startFreqDouble =
+            static_cast<double>(startFrequency) + (static_cast<double>(deltaScanLine) - (static_cast<double>(spectrumWidth) / 2.0)) * static_cast<double>(scanStep);
+        double endFreqDouble =
+            static_cast<double>(startFrequency) + (static_cast<double>(deltaScanLine) + (static_cast<double>(spectrumWidth) / 2.0)) * static_cast<double>(scanStep);
+
+        uint16_t freqStartVisible = static_cast<uint16_t>(round(startFreqDouble));
+        uint16_t freqEndVisible = static_cast<uint16_t>(round(endFreqDouble));
+
+        // Korlátozás a teljes sávhatárokra
         freqStartVisible = constrain(freqStartVisible, startFrequency, endFrequency);
         freqEndVisible = constrain(freqEndVisible, startFrequency, endFrequency);
 
+        // <<<--- DEBUG KIÍRÁS --->>>
+        DEBUG("drawScanText(all=true): scanStep=%.3f, deltaScanLine=%.2f, freqStartVisible=%d, freqEndVisible=%d\n", scanStep, deltaScanLine, freqStartVisible, freqEndVisible);
+        // <<<--- DEBUG KIÍRÁS VÉGE --->>>
+
+        // Kezdő frekvencia kirajzolása
         tft.setTextColor(TFT_GREEN, TFT_BLACK);
         tft.setTextDatum(BL_DATUM);
-        tft.fillRect(spectrumX, spectrumEndY + 5, 100, 15, TFT_BLACK);
-        tft.drawString(String(freqStartVisible), spectrumX, spectrumEndY + 15);  // " kHz" eltávolítva
+        tft.fillRect(spectrumX, spectrumEndY + 5, 100, 15, TFT_BLACK);           // Törlés
+        tft.drawString(String(freqStartVisible), spectrumX, spectrumEndY + 15);  // Új érték
 
+        // Vég frekvencia kirajzolása
         tft.setTextDatum(BR_DATUM);
-        tft.fillRect(spectrumEndScanX - 100, spectrumEndY + 5, 100, 15, TFT_BLACK);
-        tft.drawString(String(freqEndVisible), spectrumEndScanX, spectrumEndY + 15);  // " kHz" eltávolítva
+        tft.fillRect(spectrumEndScanX - 100, spectrumEndY + 5, 100, 15, TFT_BLACK);   // Törlés
+        tft.drawString(String(freqEndVisible), spectrumEndScanX, spectrumEndY + 15);  // Új érték
 
         // Lépésköz kiírása...
         tft.setTextDatum(BC_DATUM);
-        tft.fillRect(spectrumX + spectrumWidth / 2 - 50, spectrumEndY + 5, 100, 15, TFT_BLACK);
+        tft.fillRect(spectrumX + spectrumWidth / 2 - 50, spectrumEndY + 5, 100, 15, TFT_BLACK);  // Törlés
         tft.setTextColor(TFT_YELLOW, TFT_BLACK);
+        // Új lépésköz kirajzolása az AKTUÁLIS scanStep alapján
         tft.drawString("Step: " + String(scanStep, scanStep < 1.0f ? 3 : 1) + " kHz", spectrumX + spectrumWidth / 2, spectrumEndY + 15);
     }
 
-    // --- Aktuális frekvencia kiírása (MÓDOSÍTOTT RÉSZ) ---
+    // --- Aktuális frekvencia kiírása ---
+    // Ha szkennelünk és nem szünetel, a posScanFreq-et írjuk ki, egyébként a currentFrequency-t
     uint16_t freqToDisplayRaw = (scanning && !scanPaused) ? posScanFreq : currentFrequency;
     String freqStr;
 
     // Mértékegység és formázás meghatározása
     if (band.getCurrentBandType() == FM_BAND_TYPE) {
-        // FM: MHz-ben, 2 tizedesjeggyel
         float freqMHz = freqToDisplayRaw / 100.0f;
-        freqStr = String(freqMHz, 2);
+        freqStr = String(freqMHz, 2);  // FM: MHz, 2 tizedesjegy
     } else {
-        // AM/LW/MW/SW: kHz-ben, tizedesjegy nélkül
-        freqStr = String(freqToDisplayRaw);
+        freqStr = String(freqToDisplayRaw);  // AM/SW/LW: kHz, egész szám
     }
 
     // Nagyobb font visszaállítása a fő frekvenciához
     tft.setTextFont(2);
     tft.setTextDatum(TL_DATUM);  // Bal felső igazítás
 
-    // "Freq: " címke kiírása (ezt nem töröljük)
+    // "Freq: " címke kiírása
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
-    tft.drawString("Freq: ", 5, 25);
+    tft.drawString("Freq: ", 5, 25);  // Pozíció a bal felső sarokban
 
-    // Kiszámoljuk a frekvencia érték helyét és töröljük azt (a mértékegység helyét is)
-    uint16_t valueStartX = 5 + tft.textWidth("Freq: ");  // Ahol az érték kezdődik
-    // Szélesebb törlés, hogy a régi mértékegység is biztosan eltűnjön
-    tft.fillRect(valueStartX, 20, 100, 20, TFT_BLACK);  // Törlés 100 px szélességben
+    // Frekvencia érték helyének törlése (a címke után)
+    uint16_t valueStartX = 5 + tft.textWidth("Freq: ");  // Kezdő X pozíció a címke után
+    tft.fillRect(valueStartX, 20, 100, 20, TFT_BLACK);   // Törlési terület (méretet ellenőrizni!)
 
-    // Új érték kiírása (mértékegység nélkül)
-    tft.drawString(freqStr, valueStartX, 25);
+    // Új frekvencia érték kiírása
+    tft.drawString(freqStr, valueStartX, 25);  // Kiírás a törölt területre
 }
 
 /**
