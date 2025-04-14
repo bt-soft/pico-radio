@@ -60,9 +60,9 @@ class FreqScanDisplay : public DisplayBase {
     bool scanPaused = true;         // Szkennelés szüneteltetve?
     bool scanEmpty = true;          // A spektrum adatok üresek?
     uint16_t currentFrequency = 0;  // Jelenlegi frekvencia a szkenneléshez/hangoláshoz
-    uint16_t startFrequency = 0;    // Szkennelés kezdő frekvenciája
-    uint16_t endFrequency = 0;      // Szkennelés végfrekvenciája
-    float scanStep = 0.0f;          // Aktuális lépésköz (kHz)
+    uint16_t startFrequency = 0;    // Szkennelés kezdő frekvenciája (teljes sáv)
+    uint16_t endFrequency = 0;      // Szkennelés végfrekvenciája (teljes sáv)
+    float scanStep = 0.0f;          // Aktuális lépésköz (kHz) pixelre vetítve
     float minScanStep = 0.125f;     // Minimális lépésköz
     float maxScanStep = 8.0f;       // Maximális lépésköz
     bool autoScanStep = true;       // Automatikus lépésköz?
@@ -77,8 +77,8 @@ class FreqScanDisplay : public DisplayBase {
     std::vector<uint8_t> scanScaleLine;  // Skálavonal típusok
 
     // Pozícionálás és skálázás
-    float currentScanLine = 0.0f;     // Az aktuális frekvenciának megfelelő X pozíció a spektrumon (kurzor)
-    float deltaScanLine = 0.0f;       // Eltolás a spektrumon (pásztázás)
+    float currentScanLine = 0.0f;     // Az aktuális frekvenciának megfelelő X pozíció a spektrumon (piros kurzor)
+    float deltaScanLine = 0.0f;       // Eltolás a spektrumon (pásztázás) - lépésekben a startFrequency-től a középig
     float signalScale = 1.5f;         // Jelerősség skálázási faktor (nagyítás)
     int posScan = 0;                  // Aktuális szkennelési pozíció (index)
     int posScanLast = 0;              // Előző szkennelési pozíció
@@ -88,12 +88,21 @@ class FreqScanDisplay : public DisplayBase {
     uint8_t scanMarkSNR = 3;          // SNR küszöb a jelöléshez
     bool prevScaleLine = false;       // Segédváltozó a skálavonal rajzoláshoz
 
-    int prevTouchedX = -1;  // Előző érintett oszlop X koordinátája a spektrumon
-    int prevRssiY = -1;     // Előző RSSI Y koordináta a vonalrajzoláshoz
+    int prevTouchedX = -1;  // Előző érintett oszlop X koordinátája a spektrumon (sárga kurzor)
+    // int prevRssiY = -1;     // Előző RSSI Y koordináta a vonalrajzoláshoz (már nem használt)
+
+    // --- ÚJ: Változók az érintéses húzáshoz ---
+    int dragStartX = -1;                              // A húzás kezdő X koordinátája
+    int lastDragX = -1;                               // Az előző X koordináta húzás közben
+    bool isDragging = false;                          // Húzás folyamatban van?
+    unsigned long touchStartTime = 0;                 // Érintés kezdetének ideje
+    static const unsigned long tapMaxDuration = 200;  // ms - Max időtartam, ami még tap-nak számít
+    static const int dragMinDistance = 5;             // pixel - Minimális elmozdulás, ami már húzásnak számít
+    // --- ÚJ VÉGE ---
 
     // --- Metódusok (sample.cpp alapján) ---
     void drawScanGraph(bool erase);  // Spektrum alapjának és skálájának rajzolása
-    void drawScanLine(int xPos);     // Spektrum rajzolása (X pozíció alapján)
+    void drawScanLine(int xPos);     // Spektrum rajzolása (X pozíció alapján) - kurzor nélkül
     void drawScanText(bool all);     // Frekvencia címkék rajzolása
     void displayScanSignal();        // Aktuális RSSI/SNR kiírása
     int getSignal(bool rssi);        // Jelerősség (RSSI vagy SNR) lekérése (átlagolással)
@@ -103,6 +112,13 @@ class FreqScanDisplay : public DisplayBase {
     void startScan();                // Szkennelés indítása
     void stopScan();                 // Szkennelés leállítása
     void changeScanScale();          // Szkennelési skála (lépésköz) váltása
+
+    // --- ÚJ KURZOR KEZELŐ FÜGGVÉNYEK ---
+    void eraseCursor(int xPos);       // Visszarajzolja az alapot kurzor nélkül
+    void drawYellowCursor(int xPos);  // Kirajzolja a sárga kurzort
+    void drawRedCursor(int xPos);     // Kirajzolja a piros kurzort
+    void redrawCursors();             // Újraszámolja és újrarajzolja a megfelelő kurzort
+    // --- ÚJ VÉGE ---
 };
 
 #endif  //__FREQSCANDISPLAY_H
