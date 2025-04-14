@@ -136,7 +136,6 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
                 int16_t freqPlus16 = currentFrequency + 16;
                 Si4735Utils::hardwareAudioMuteOn();
                 si4735.setFrequency(freqPlus16);
-                DEBUG("AmDisplay::handleRotary -> si4735.setFrequency(freqPlus16: %d)\n", freqPlus16);
             }
 
         } else {
@@ -153,17 +152,17 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
                 int16_t freqMin16 = currentFrequency - 16;
                 Si4735Utils::hardwareAudioMuteOn();
                 si4735.setFrequency(freqMin16);
-                DEBUG("AmDisplay::handleRotary -> si4735.setFrequency(freqMin16: %d)\n", freqMin16);
             }
         }
 
-        config.data.currentBFO = rtv::freqDec;
-        currentBand.varData.lastBFO = config.data.currentBFO;
-        si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);  // <- Itt állítjuk be a BFO-t Hz-ben!
-        checkAGC();
+        config.data.currentBFO = rtv::freqDec;                 // freqDec a finomhangolás mértéke
+        currentBand.varData.lastBFO = config.data.currentBFO;  // Mentsük el a finomhangolást
 
-        DEBUG("AmDisplay::handleRotary -> currentFrequency: %d, config.data.currentBFO: %d, summ: %d\n", currentFrequency, config.data.currentBFO,
-              currentFrequency + config.data.currentBFO);
+        // BFO beállítása: CW esetén alap offset + finomhangolás, SSB esetén csak finomhangolás
+        const int16_t cwBaseOffset = (currMod == CW) ? DEFAULT_SW_SHIFT_FREQUENCY : 0;         // CW alap offset
+        si4735.setSSBBfo(cwBaseOffset + config.data.currentBFO + config.data.currentBFOmanu);  // <- Itt állítjuk be a BFO-t Hz-ben!
+
+        checkAGC();
 
     } else {
 

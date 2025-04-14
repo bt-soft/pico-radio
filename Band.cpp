@@ -91,6 +91,8 @@ const BandWidth Band::bandWidthSSB[] = {{"0.5", 4}, {"1.0", 5}, {"1.2", 0}, {"2.
 const char* Band::stepSizeAM[] = {"1kHz", "5kHz", "9kHz", "10kHz"};
 const char* Band::stepSizeFM[] = {"50Khz", "100KHz", "1MHz"};
 
+#define DEFAULT_SW_SHIFT_FREQUENCY 700  // CW alap offset
+
 /**
  * Konstruktor
  */
@@ -280,36 +282,55 @@ void Band::useBand() {
 
     } else {
 
-        if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
-            si4735.setTuneFrequencyAntennaCapacitor(0);
-        } else {
-            si4735.setTuneFrequencyAntennaCapacitor(1);
-        }
+        // Antenna capacitor beállítása
+        bool isSImpleAm = (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE);
+        si4735.setTuneFrequencyAntennaCapacitor(isSImpleAm ? 0 : 1);
 
         if (ssbLoaded) {
-            si4735.setSSB(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep,
-                          currentBand.varData.currMod);
-            // si4735.setSSBAutomaticVolumeControl(1);
-            // si4735.setSsbSoftMuteMaxAttenuation(0); // Disable Soft Mute for SSB
-            // si4735.setSSBDspAfc(0);
-            // si4735.setSSBAvcDivider(3);
-            // si4735.setSsbSoftMuteMaxAttenuation(8); // Disable Soft Mute for SSB
-            // si4735.setSBBSidebandCutoffFilter(0);
-            // si4735.setSSBBfo(currentBFO);
+            // SSB vagy CW mód
+
+            bool isCWMode = (currentBand.varData.currMod == CW);
+
+            // Mód beállítása (USB-t használunk alapnak CW-hez)
+            uint8_t modeForChip = isCWMode ? USB : currentBand.varData.currMod;
+            si4735.setSSB(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq,
+                          1,  // SSB/CW esetén a step mindig 1kHz a chipen belül
+                          modeForChip);
+
+            // si4735.setSSB(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep,
+            //               currentBand.varData.currMod);
+            //  si4735.setSSBAutomaticVolumeControl(1);
+            //  si4735.setSsbSoftMuteMaxAttenuation(0); // Disable Soft Mute for SSB
+            //  si4735.setSSBDspAfc(0);
+            //  si4735.setSSBAvcDivider(3);
+            //  si4735.setSsbSoftMuteMaxAttenuation(8); // Disable Soft Mute for SSB
+            //  si4735.setSBBSidebandCutoffFilter(0);
+            //  si4735.setSSBBfo(currentBFO);
 
             // Itt van állítva a BFO!!
-            si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);
+            // si4735.setSSBBfo(config.data.currentBFO + config.data.currentBFOmanu);
 
             // SSB ONLY 1KHz stepsize
+            // currentBand.varData.currStep = 1;
+            // si4735.setFrequencyStep(currentBand.varData.currStep);
+
+            // BFO beállítása
+            // CW mód: Fix BFO offset (pl. 700 Hz) + manuális finomhangolás
+            const int16_t cwBaseOffset = isCWMode ? DEFAULT_SW_SHIFT_FREQUENCY : 0;
+            si4735.setSSBBfo(cwBaseOffset + config.data.currentBFO + config.data.currentBFOmanu);
+            rtv::CWShift = isCWMode;  // Jelezzük a kijelzőnek
+
+            // SSB/CW esetén a lépésköz a chipen mindig 1kHz, de a finomhangolás BFO-val történik
             currentBand.varData.currStep = 1;
             si4735.setFrequencyStep(currentBand.varData.currStep);
 
         } else {
-
+            // Sima AM mód
             si4735.setAM(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep);
             // si4735.setAutomaticGainControl(1, 0);
             // si4735.setAmSoftMuteMaxAttenuation(0); // // Disable Soft Mute for AM
             rtv::bfoOn = false;
+            rtv::CWShift = false;  // AM módban biztosan nincs CW shift
         }
     }
     delay(100);

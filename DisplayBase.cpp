@@ -528,18 +528,20 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
             [this](TftButton::ButtonTouchEvent event) {
                 // Kikeressük az aktuális band-ot
                 BandTable &currentBand = band.getCurrentBand();
+                uint8_t newMod = event.id - DLG_MULTI_BTN_ID_START + 1;  // Az FM-et kihagyjuk!
 
-                // TODO: Ezt még kitalálni!!
-                if (STREQ("CW", event.label)) {
-                    config.data.currentBFO -= 700;
-                    currentBand.varData.lastBFO = config.data.currentBFO;
-                    DEBUG("DisplayBase::processMandatoryButtonTouchEvent() -> A CW módot még kitalálni!!\n");
+                // Ha CW módra váltunk, nullázzuk a finomhangolási BFO-t
+                if (newMod == CW) {
+                    config.data.currentBFO = 0;
                 }
-
                 // Átállítjuk a demodulációs módot
-                currentBand.varData.currMod = event.id - DLG_MULTI_BTN_ID_START + 1;  // Az FM-et kihagyjuk!
+                currentBand.varData.currMod = newMod;
 
-                band.bandSet();
+                // Újra beállítjuk a sávot az új móddal (false -> ne a preferáltat töltse)
+                band.bandSet(false);  // Ez meghívja a módosított useBand-ot
+
+                // Státuszsor frissítése az új mód kijelzéséhez
+                dawStatusLine();  // <<-- FONTOS: Frissíteni kell a státuszsort!
             },
             band.getCurrentBandModeDesc());
         processed = true;
