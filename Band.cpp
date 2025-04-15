@@ -87,9 +87,19 @@ const BandWidth Band::bandWidthFM[] = {{"AUTO", 0}, {"110", 1}, {"84", 2}, {"60"
 const BandWidth Band::bandWidthAM[] = {{"1.0", 4}, {"1.8", 5}, {"2.0", 3}, {"2.5", 6}, {"3.0", 2}, {"4.0", 1}, {"6.0", 0}};
 const BandWidth Band::bandWidthSSB[] = {{"0.5", 4}, {"1.0", 5}, {"1.2", 0}, {"2.2", 1}, {"3.0", 2}, {"4.0", 3}};
 
-// Frequency Step - Ez decimális értékre állítódik az si4735-ben!
-const char* Band::stepSizeAM[] = {"1kHz", "5kHz", "9kHz", "10kHz"};
-const char* Band::stepSizeFM[] = {"50Khz", "100KHz", "1MHz"};
+// AM Lépésköz konfigurációk definíciója (érték beállításához)
+const FrequencyStep Band::stepSizeAM[] = {
+    {"1kHz", 1},   // "1kHz" -> 1
+    {"5kHz", 5},   // "5kHz" -> 5
+    {"9kHz", 9},   // "9kHz" -> 9
+    {"10kHz", 10}  // "10kHz" -> 10
+};
+// FM Lépésköz konfigurációk definíciója (érték beállításához)
+const FrequencyStep Band::stepSizeFM[] = {
+    {"50kHz", 5},    // "50kHz" -> 5
+    {"100kHz", 10},  // "100kHz" -> 10
+    {"1MHz", 100}    // "1MHz" -> 100
+};
 
 #define DEFAULT_CW_SHIFT_FREQUENCY 700  // CW alap offset
 
@@ -224,51 +234,44 @@ void Band::useBand() {
 
     //---- CurrentStep beállítása a band rekordban
 
+    // Index ellenőrzés (biztonsági okokból)
+    uint8_t stepIndex;
+
     // AM esetén 1...1000Khz között bármi lehet - {"1kHz", "5kHz", "9kHz", "10kHz"};
     if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
         // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxMW]));
-        switch (config.data.ssIdxMW) {
-            case 0:
-                currentBand.varData.currStep = 1;
-                break;
-            case 1:
-                currentBand.varData.currStep = 5;
-                break;
-            case 2:
-                currentBand.varData.currStep = 9;
-                break;
-            default:
-                currentBand.varData.currStep = 10;
+        stepIndex = config.data.ssIdxMW;
+        // Határellenőrzés
+        if (stepIndex >= ARRAY_ITEM_COUNT(stepSizeAM)) {
+            DEBUG("Hiba: Érvénytelen ssIdxMW index: %d. Alapértelmezett használata.\n", stepIndex);
+            stepIndex = 0;                    // Visszaállás alapértelmezettre (pl. 1kHz)
+            config.data.ssIdxMW = stepIndex;  // Opcionális: Konfig frissítése
         }
+        currentBand.varData.currStep = stepSizeAM[stepIndex].value;
+
     } else if (currentBandType == SW_BAND_TYPE) {
         // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxAM]));
-        switch (config.data.ssIdxAM) {
-            case 0:
-                currentBand.varData.currStep = 1;
-                break;
-            case 1:
-                currentBand.varData.currStep = 5;
-                break;
-            case 2:
-                currentBand.varData.currStep = 9;
-                break;
-            default:
-                currentBand.varData.currStep = 10;
+        // AM/SSB/CW Shortwave esetén
+        stepIndex = config.data.ssIdxAM;
+        // Határellenőrzés
+        if (stepIndex >= ARRAY_ITEM_COUNT(stepSizeAM)) {
+            DEBUG("Hiba: Érvénytelen ssIdxAM index: %d. Alapértelmezett használata.\n", stepIndex);
+            stepIndex = 0;                    // Visszaállás alapértelmezettre
+            config.data.ssIdxAM = stepIndex;  // Opcionális: Konfig frissítése
         }
+        currentBand.varData.currStep = stepSizeAM[stepIndex].value;
 
     } else {
         // FM esetén csak 3 érték lehet - {"50Khz", "100KHz", "1MHz"};
         // static_cast<uint8_t>(atoi(Band::stepSizeFM[config.data.ssIdxFM]));
-        switch (config.data.ssIdxFM) {
-            case 0:
-                currentBand.varData.currStep = 5;
-                break;
-            case 1:
-                currentBand.varData.currStep = 10;
-                break;
-            default:
-                currentBand.varData.currStep = 100;
+        stepIndex = config.data.ssIdxFM;
+        // Határellenőrzés
+        if (stepIndex >= ARRAY_ITEM_COUNT(stepSizeFM)) {
+            DEBUG("Hiba: Érvénytelen ssIdxFM index: %d. Alapértelmezett használata.\n", stepIndex);
+            stepIndex = 0;                    // Visszaállás alapértelmezettre
+            config.data.ssIdxFM = stepIndex;  // Opcionális: Konfig frissítése
         }
+        currentBand.varData.currStep = stepSizeFM[stepIndex].value;
     }
 
     if (currentBandType == FM_BAND_TYPE) {

@@ -44,6 +44,7 @@ constexpr int VolumeMax = 63;
 
 /**
  *  BFO Status kirajzolása
+ * @param initFont Ha true, akkor a betűtípus inicializálása történik
  */
 void DisplayBase::drawBfoStatus(bool initFont) {
     using namespace DisplayConstants;
@@ -71,6 +72,7 @@ void DisplayBase::drawBfoStatus(bool initFont) {
 
 /**
  * AGC / ATT Status kirajzolása
+ * @param initFont Ha true, akkor a betűtípus inicializálása történik
  */
 void DisplayBase::drawAgcAttStatus(bool initFont) {
 
@@ -93,7 +95,25 @@ void DisplayBase::drawAgcAttStatus(bool initFont) {
 }
 
 /**
+ * Lépésköz kirajzolása
+ * @param initFont Ha true, akkor a betűtípus inicializálása történik
+ */
+void DisplayBase::drawStepStatus(bool initFont) {
+    using namespace DisplayConstants;
+
+    // Fontot kell váltani?
+    if (initFont) {
+        tft.setFreeFont();
+        tft.setTextSize(1);
+    }
+    tft.setTextColor(StatusLineStepColor, TFT_BLACK);
+    tft.drawString(band.currentStepSizeStr(), StatusLineStepX, 15);
+    tft.drawRect(200, 2, ButtonWidth, ButtonHeight, StatusLineStepColor);
+}
+
+/**
  * Antenna Tuning Capacitor Status kirajzolása
+ * @param initFont Ha true, akkor a betűtípus inicializálása történik
  */
 void DisplayBase::drawAntCapStatus(bool initFont) {
 
@@ -135,7 +155,8 @@ void DisplayBase::drawAntCapStatus(bool initFont) {
 }
 
 /**
- * Státusz a képernyő tetején
+ * Státusz sor a képernyő tetején
+ * @param initFont Ha true, akkor a betűtípus inicializálása történik
  */
 void DisplayBase::dawStatusLine() {
     using namespace DisplayConstants;
@@ -177,11 +198,7 @@ void DisplayBase::dawStatusLine() {
     tft.drawRect(160, 2, ButtonWidth, ButtonHeight, StatusLineBandColor);
 
     // STEP
-    BandTable &currentBand = band.getCurrentBand();
-    tft.setTextColor(StatusLineStepColor, TFT_BLACK);
-    uint8_t currentStep = currentBand.varData.currStep;
-    tft.drawString(String(currentStep * (currentBand.varData.currMod == FM ? 10 : 1)) + "kHz", StatusLineStepX, 15);
-    tft.drawRect(200, 2, ButtonWidth, ButtonHeight, StatusLineStepColor);
+    drawStepStatus();
 
     // Antenna Tuning Capacitor
     drawAntCapStatus();
@@ -583,7 +600,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                 currentBand.varData.currMod = newMod;
 
                 // Újra beállítjuk a sávot az új móddal (false -> ne a preferáltat töltse)
-                band.bandSet(false);  // Ez meghívja a módosított useBand-ot
+                band.bandSet(false);
 
                 // Státuszsor frissítése az új mód kijelzéséhez
                 dawStatusLine();  // <<-- FONTOS: Frissíteni kell a státuszsort!
@@ -649,32 +666,26 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
 
         // Megállapítjuk a lehetséges lépések méretét
         const __FlashStringHelper *title;
-        int stepCount;
-        const char **stepValues;
-        const char *currentStepStr;  // Az aktuális lépés felirata
+        size_t labelsCount;
+        const char **labels;
         uint16_t w = 310;
         uint16_t h = 100;
 
         if (currMod == FM) {
             title = F("Step tune FM");
-            stepValues = Band::stepSizeFM;
-            stepCount = ARRAY_ITEM_COUNT(Band::stepSizeFM);
-
-            currentStepStr = Band::stepSizeFM[config.data.ssIdxFM];
-
+            labels = band.getStepSizeLabels(Band::stepSizeFM, labelsCount);
         } else {
-
             title = F("Step tune AM/SSB");
-            stepValues = Band::stepSizeAM;
-            stepCount = ARRAY_ITEM_COUNT(Band::stepSizeAM);
+            labels = band.getStepSizeLabels(Band::stepSizeAM, labelsCount);
             w = 250;
             h = 140;
-
-            currentStepStr = Band::stepSizeAM[currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE ? config.data.ssIdxMW : config.data.ssIdxAM];
         }
 
+        // Az aktuális freki lépés felirata
+        const char *currentStepStr = band.currentStepSizeStr();
+
         DisplayBase::pDialog = new MultiButtonDialog(
-            this, DisplayBase::tft, w, h, title, stepValues, stepCount,  //
+            this, DisplayBase::tft, w, h, title, labels, labelsCount,  //
             [this](TftButton::ButtonTouchEvent event) {
                 // A megnyomott gomb indexe
                 uint8_t btnIdx = event.id - DLG_MULTI_BTN_ID_START;

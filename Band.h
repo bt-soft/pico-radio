@@ -49,10 +49,16 @@ struct BandTable {
     BandTableVar varData;              // RAM-ban tárolt változó adatok
 };
 
-// Sávszélesség struktúra
+// Sávszélesség struktúra (Címke és Érték)
 struct BandWidth {
     const char *label;  // Megjelenítendő felirat
     uint8_t index;      // Az si4735-nek átadandó index
+};
+
+// Lépésköz struktúra (Címke és Érték)
+struct FrequencyStep {
+    const char *label;  // Megjelenítendő felirat (pl. "1kHz")
+    uint8_t value;      // A lépésköz értéke (pl. 1, 5, 9, 10, 100)
 };
 
 /**
@@ -78,12 +84,13 @@ class Band {
     static const BandWidth bandWidthAM[7];
     static const BandWidth bandWidthSSB[6];
 
-    // Frequency Step
-    static const char *stepSizeAM[4];
-    static const char *stepSizeFM[3];
+    // Lépésköz konfigurációk (érték beállításához)
+    static const FrequencyStep stepSizeAM[4];
+    static const FrequencyStep stepSizeFM[3];
 
     Band(SI4735 &si4735);
     virtual ~Band() = default;
+
     /**
      *
      */
@@ -122,7 +129,7 @@ class Band {
     }
 
     /**
-     *
+     * Band beállítása
      */
     void useBand();
 
@@ -220,6 +227,55 @@ class Band {
             }
         }
         return -1;  // Ha nem található
+    }
+
+    /**
+     * Lépésköz tömb labeljeinek visszaadása
+     * @param bandWidth A lépésköz tömbje
+     * @param count A tömb elemeinek száma
+     * @return A label-ek tömbje
+     */
+    template <size_t N>
+    const char **getStepSizeLabels(const FrequencyStep (&stepSizeTable)[N], size_t &count) {
+        count = N;  // A tömb mérete
+        static const char *labels[N];
+        for (size_t i = 0; i < N; i++) {
+            labels[i] = stepSizeTable[i].label;
+        }
+        return labels;
+    }
+
+    /**
+     * A lépésköz labeljének lekérdezése az index alapján
+     * @param bandWidth A lépésköz tömbje
+     * @param index A keresett lépésköz indexe
+     * @return A lépésköz labelje, vagy nullptr, ha nem található
+     */
+    template <size_t N>
+    const char *getStepSizeLabelByIndex(const FrequencyStep (&stepSizeTable)[N], uint8_t index) {
+        // Ellenőrizzük, hogy az index érvényes-e a tömbhöz
+        if (index < N) {
+            return stepSizeTable[index].label;  // Közvetlenül visszaadjuk a labelt az index alapján
+        }
+        return nullptr;  // Ha az index érvénytelen
+    }
+
+    /**
+     * Aktuális frekvencia lépésköz felirat megszerzése
+     */
+    const char *currentStepSizeStr() {
+
+        static const char *currentStepStr = nullptr;
+
+        uint8_t currentBandType = getCurrentBandType();
+        if (currentBandType == FM_BAND_TYPE) {
+            currentStepStr = getStepSizeLabelByIndex(Band::stepSizeFM, config.data.ssIdxFM);
+        } else {
+            uint8_t index = (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) ? config.data.ssIdxMW : config.data.ssIdxAM;
+            currentStepStr = getStepSizeLabelByIndex(Band::stepSizeAM, index);
+        }
+
+        return currentStepStr;
     }
 
     inline const char *getCurrentBandName() { return (const char *)pgm_read_ptr(&getCurrentBand().pConstData->bandName); }

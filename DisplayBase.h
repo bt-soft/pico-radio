@@ -118,23 +118,12 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     void drawScreenButtons();
 
     /**
-     *  BFO Status kirajzolása
-     */
-    void drawBfoStatus(bool initFont = false);
-
-    /**
-     * AGC / ATT Status kirajzolása
-     */
-    void drawAgcAttStatus(bool initFont = false);
-
-    /**
-     * Antenna kapacitás státusz kirajzolása
-     */
-    void drawAntCapStatus(bool initFont = false);
-
-    /**
      * Státusz kirajzolása
      */
+    void drawBfoStatus(bool initFont = false);
+    void drawAgcAttStatus(bool initFont = false);
+    void drawStepStatus(bool initFont = false);
+    void drawAntCapStatus(bool initFont = false);
     void dawStatusLine();
 
     /**
