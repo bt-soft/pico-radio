@@ -19,7 +19,7 @@
 #define AM 3
 #define CW 4
 
-#define DEFAULT_SW_SHIFT_FREQUENCY 700  // CW alap offset
+#define DEFAULT_CW_SHIFT_FREQUENCY 700  // CW alap offset
 
 // BandTable állandó része (PROGMEM-ben tároljuk)
 struct BandTableConst {

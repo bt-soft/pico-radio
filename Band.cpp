@@ -91,7 +91,7 @@ const BandWidth Band::bandWidthSSB[] = {{"0.5", 4}, {"1.0", 5}, {"1.2", 0}, {"2.
 const char* Band::stepSizeAM[] = {"1kHz", "5kHz", "9kHz", "10kHz"};
 const char* Band::stepSizeFM[] = {"50Khz", "100KHz", "1MHz"};
 
-#define DEFAULT_SW_SHIFT_FREQUENCY 700  // CW alap offset
+#define DEFAULT_CW_SHIFT_FREQUENCY 700  // CW alap offset
 
 /**
  * Konstruktor
@@ -323,7 +323,7 @@ void Band::useBand() {
 
             // BFO beállítása
             // CW mód: Fix BFO offset (pl. 700 Hz) + manuális finomhangolás
-            const int16_t cwBaseOffset = isCWMode ? DEFAULT_SW_SHIFT_FREQUENCY : 0;
+            const int16_t cwBaseOffset = isCWMode ? DEFAULT_CW_SHIFT_FREQUENCY : 0;
             si4735.setSSBBfo(cwBaseOffset + config.data.currentBFO + config.data.currentBFOmanu);
             rtv::CWShift = isCWMode;  // Jelezzük a kijelzőnek
 

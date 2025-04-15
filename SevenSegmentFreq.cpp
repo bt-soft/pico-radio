@@ -186,33 +186,35 @@ bool SevenSegmentFreq::handleTouch(bool touched, uint16_t tx, uint16_t ty) {
  */
 void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
 
+    // Lekérjük az aktuális sáv (band) adatait
+    BandTable& currentBand = band.getCurrentBand();
+    uint8_t currDemod = currentBand.varData.currMod;
+    uint8_t currentBandType = band.getCurrentBandType();
+
     int d = 0;  // X eltolás, alapértelmezetten 0
     // Megfelelő színek kiválasztása az aktuális mód alapján (normál, BFO, képernyővédő)
     const SegmentColors& colors = rtv::bfoOn ? bfoColors : (screenSaverActive ? screenSaverColors : normalColors);
 
     // Előző érték törlése a kijelzőről (csak ha nem képernyővédő módban vagyunk)
     if (!screenSaverActive) {
-        // A törlendő terület szélessége függhet a módtól, de itt egy általánosabb törlést végzünk
-        // Figyeljünk, hogy a BFO mód vagy más speciális esetek ne okozzanak vizuális hibát
-        tft.fillRect(freqDispX + d, freqDispY + 20, 240, FREQ_7SEGMENT_HEIGHT + 2 + SevenSegmentConstants::UnderlineHeight, TFT_COLOR_BACKGROUND);
+        // A törlendő terület szélessége/magassága függhet a módtól, figyeljünk, hogy a BFO mód vagy más speciális esetek ne okozzanak vizuális hibát
+        // pl: Lépést jelző aláhúzást is töröljük, de FM esetén ilyen nincs, belelógna a törlés a STEREO feliratba
+        uint32_t clearHeightCorr = currentBandType != FM_BAND_TYPE ? 0 : SevenSegmentConstants::UnderlineHeight;
+        tft.fillRect(freqDispX + d, freqDispY + 20, 240, FREQ_7SEGMENT_HEIGHT + 2 + clearHeightCorr, TFT_COLOR_BACKGROUND);
     }
 
-    // Lekérjük az aktuális sáv (band) adatait
-    BandTable& currentBand = band.getCurrentBand();
-    uint8_t currDemod = currentBand.varData.currMod;
-    uint8_t currentBandType = band.getCurrentBandType();
     uint32_t displayFreqHz = 0;  // A megjelenítendő frekvencia Hz-ben
 
     // Ha nem ScreenSaver módban vagyunk és SSB vagy CW az üzemmód
     if (!screenSaverActive && (currDemod == LSB || currDemod == USB || currDemod == CW)) {
 
         // Kiszámítjuk a pontos frekvenciát Hz-ben a BFO eltolással
-        // A currentFrequency kHz-ben van, a lastBFO Hz-ben
-        displayFreqHz = (uint32_t)currentFrequency * 1000 - currentBand.varData.lastBFO;
+        // A currentFrequency kHz-ben van, a lastBFO Hz-ben, BFO eltolás csak akkor van, ha NEM 1kHz a lépés
+        displayFreqHz = (uint32_t)currentFrequency * 1000 - (rtv::freqstep != 1000 ? currentBand.varData.lastBFO : 0);
 
         // CW módban további 700Hz eltolás (ha aktív a CW shift)
         if (rtv::CWShift) {
-            displayFreqHz = displayFreqHz + 700;
+            displayFreqHz += DEFAULT_CW_SHIFT_FREQUENCY;
         }
 
         // Új formázás: kHz érték és a 100Hz/10Hz rész kiszámítása

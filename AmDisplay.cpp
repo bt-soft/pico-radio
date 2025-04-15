@@ -73,7 +73,6 @@ void AmDisplay::drawScreen() {
  * Képernyő menügomb esemény feldolgozása
  */
 void AmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
-    DEBUG("AmDisplay::processScreenButtonTouchEvent() -> id: %d, label: %s, state: %s\n", event.id, event.label, TftButton::decodeState(event.state));
 
     if (STREQ("AntC", event.label)) {
         // If zero, the tuning capacitor value is selected automatically.
@@ -167,7 +166,7 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
         currentBand.varData.lastBFO = config.data.currentBFO;  // Mentsük el a finomhangolást
 
         // BFO beállítása: CW esetén alap offset + finomhangolás, SSB esetén csak finomhangolás
-        const int16_t cwBaseOffset = (currMod == CW) ? DEFAULT_SW_SHIFT_FREQUENCY : 0;         // CW alap offset
+        const int16_t cwBaseOffset = (currMod == CW) ? DEFAULT_CW_SHIFT_FREQUENCY : 0;         // CW alap offset
         si4735.setSSBBfo(cwBaseOffset + config.data.currentBFO + config.data.currentBFOmanu);  // <- Itt állítjuk be a BFO-t Hz-ben!
 
         checkAGC();
