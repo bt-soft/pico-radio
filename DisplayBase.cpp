@@ -483,13 +483,17 @@ void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsDat
 void DisplayBase::updateButtonStatus() {
     BandTable &currentBand = band.getCurrentBand();
     uint8_t currMod = currentBand.varData.currMod;
-    bool stepDisabled = (currMod == LSB or currMod == USB or currMod == CW);
 
-    findButtonByLabel("Step")->setState(stepDisabled ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off);
+    // A "Step" gomb SSB/CW módban tiltva van
+    TftButton *btnStep = findButtonByLabel("Step");
+    if (btnStep != nullptr) {
+        bool stepDisabled = (currMod == LSB or currMod == USB or currMod == CW);
+        btnStep->setState(stepDisabled ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off);
+    }
 }
 
 /**
- *  Minden képernyőn látható közös ()kötelező) gombok eseményeinek kezelése
+ *  Minden képernyőn látható közös (kötelező) gombok eseményeinek kezelése
  */
 bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &event) {
 
