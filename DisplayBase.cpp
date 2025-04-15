@@ -192,12 +192,12 @@ void DisplayBase::dawStatusLine() {
     }
     tft.drawRect(110, 2, 49, ButtonHeight, StatusLineBandWidthColor);
 
-    // BAND NAME
+    // Band name
     tft.setTextColor(StatusLineBandColor, TFT_BLACK);
     tft.drawString(band.getCurrentBandName(), StatusLineBandNameX, 15);
     tft.drawRect(160, 2, ButtonWidth, ButtonHeight, StatusLineBandColor);
 
-    // STEP
+    // Frequency step
     drawStepStatus();
 
     // Antenna Tuning Capacitor
@@ -307,6 +307,8 @@ void DisplayBase::drawButtons(TftButton **buttons, uint8_t buttonsCount) {
 void DisplayBase::drawScreenButtons() {
     drawButtons(horizontalScreenButtons, horizontalScreenButtonsCount);
     drawButtons(verticalScreenButtons, verticalScreenButtonsCount);
+
+    updateButtonStatus();
 }
 
 /**
@@ -473,6 +475,17 @@ void DisplayBase::buildHorizontalScreenButtons(BuildButtonData screenHButtonsDat
     if (mergedButtons != nullptr) {
         delete[] mergedButtons;
     }
+}
+
+/**
+ * Gombok állapotának frissítése
+ */
+void DisplayBase::updateButtonStatus() {
+    BandTable &currentBand = band.getCurrentBand();
+    uint8_t currMod = currentBand.varData.currMod;
+    bool stepDisabled = (currMod == LSB or currMod == USB or currMod == CW);
+
+    findButtonByLabel("Step")->setState(stepDisabled ? TftButton::ButtonState::Disabled : TftButton::ButtonState::Off);
 }
 
 /**

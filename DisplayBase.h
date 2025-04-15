@@ -113,6 +113,11 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     void drawButtons(TftButton **buttons, uint8_t buttonsCount);
 
     /**
+     * Gombok állapotának frissítése
+     */
+    void updateButtonStatus();
+
+    /**
      * Képernyő menügombok kirajzolása
      */
     void drawScreenButtons();
