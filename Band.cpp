@@ -224,8 +224,7 @@ void Band::useBand() {
 
     //---- CurrentStep beállítása a band rekordban
 
-    // AM esetén 1...1000 között bátmi lehet - {"1kHz", "5kHz", "9kHz", "10kHz"};
-    //  For AM, 1 (1kHz) to 1000 (1MHz) are valid values.
+    // AM esetén 1...1000Khz között bármi lehet - {"1kHz", "5kHz", "9kHz", "10kHz"};
     if (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE) {
         // currentBand.currentStep = static_cast<uint8_t>(atoi(Band::stepSizeAM[config.data.ssIdxMW]));
         switch (config.data.ssIdxMW) {
@@ -258,8 +257,8 @@ void Band::useBand() {
         }
 
     } else {
-        // FM esetén 3 érték lehet - {"50Khz", "100KHz", "1MHz"};
-        //  For FM 5 (50kHz), 10 (100kHz) and 100 (1MHz) are valid values.
+        // FM esetén csak 3 érték lehet - {"50Khz", "100KHz", "1MHz"};
+        // static_cast<uint8_t>(atoi(Band::stepSizeFM[config.data.ssIdxFM]));
         switch (config.data.ssIdxFM) {
             case 0:
                 currentBand.varData.currStep = 5;
@@ -270,13 +269,16 @@ void Band::useBand() {
             default:
                 currentBand.varData.currStep = 100;
         }
-        // static_cast<uint8_t>(atoi(Band::stepSizeFM[config.data.ssIdxFM]));
     }
 
     if (currentBandType == FM_BAND_TYPE) {
         rtv::bfoOn = false;
-        si4735.setTuneFrequencyAntennaCapacitor(0);
+
+        // Antenna tuning capacitor beállítása (FM esetén antenna tuning capacitor nem kell)
+        currentBand.varData.antCap = getDefaultAntCapValue();
+        si4735.setTuneFrequencyAntennaCapacitor(currentBand.varData.antCap);
         delay(100);
+
         si4735.setFM(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq, currentBand.varData.currStep);
         si4735.setFMDeEmphasis(1);
         ssbLoaded = false;
@@ -285,9 +287,11 @@ void Band::useBand() {
 
     } else {
 
-        // Antenna capacitor beállítása
-        bool isSImpleAm = (currentBandType == MW_BAND_TYPE or currentBandType == LW_BAND_TYPE);
-        si4735.setTuneFrequencyAntennaCapacitor(isSImpleAm ? 0 : 1);
+        // AM-ben vagyunk
+        //  Antenna capacitor beállítása
+        currentBand.varData.antCap = getDefaultAntCapValue();  // Sima AM esetén antenna tuning capacitor nem kell
+        si4735.setTuneFrequencyAntennaCapacitor(currentBand.varData.antCap);
+        delay(100);
 
         if (ssbLoaded) {
             // SSB vagy CW mód
@@ -461,11 +465,11 @@ void Band::bandInit(bool sysStart) {
 
 /**
  * Band beállítása
- * @param loadPrefDeMod prefereált demodulációt betöltsük?
+ * @param useDefaults prefereált demodulációt betöltsük?
  */
-void Band::bandSet(bool loadPrefDeMod) {
+void Band::bandSet(bool useDefaults) {
 
-    DEBUG("Band::bandSet(loadPrefDeMod: %s)\n", loadPrefDeMod ? "true" : "false");
+    DEBUG("Band::bandSet(useDefaults: %s)\n", useDefaults ? "true" : "false");
 
     // Kikeressük az aktuális Band rekordot
     BandTable& currentBand = getCurrentBand();
@@ -474,7 +478,7 @@ void Band::bandSet(bool loadPrefDeMod) {
     uint8_t currMod = currentBand.varData.currMod;
 
     // A sávhoz preferált demodulációs módot állítunk be?
-    if (loadPrefDeMod) {
+    if (useDefaults) {
         // Átmásoljuk a preferált modulációs módot
         currMod = currentBand.varData.currMod = currentBand.pConstData->prefMod;
         ssbLoaded = false;  // SSB patch betöltése szükséges

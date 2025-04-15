@@ -128,6 +128,11 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     void drawAgcAttStatus(bool initFont = false);
 
     /**
+     * Antenna kapacitás státusz kirajzolása
+     */
+    void drawAntCapStatus(bool initFont = false);
+
+    /**
      * Státusz kirajzolása
      */
     void dawStatusLine();

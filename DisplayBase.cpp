@@ -12,6 +12,7 @@ constexpr int StatusLineModX = 95;
 constexpr int StatusLineBandWidthX = 135;
 constexpr int StatusLineBandNameX = 180;
 constexpr int StatusLineStepX = 220;
+constexpr int StatusLineAntCapX = 260;
 
 // Gombok méretei és margói
 constexpr int ButtonWidth = 39;
@@ -25,6 +26,8 @@ constexpr uint16_t StatusLineModeColor = TFT_YELLOW;
 constexpr uint16_t StatusLineBandWidthColor = TFT_COLOR(255, 127, 255);  // Magenta
 constexpr uint16_t StatusLineBandColor = TFT_CYAN;
 constexpr uint16_t StatusLineStepColor = TFT_SKYBLUE;
+constexpr uint16_t StatusLineAntCapDefaultColor = TFT_SILVER;  //  Alapértelmezett AntCap szín (szürke)
+constexpr uint16_t StatusLineAntCapChangedColor = TFT_GREEN;   // Megváltozott AntCap szín (világoszöld)
 
 // Egyéb
 constexpr int VolumeMin = 0;
@@ -59,11 +62,8 @@ void DisplayBase::drawBfoStatus(bool initFont) {
     }
     tft.setTextColor(bfoStepColor, TFT_BLACK);
 
-    if (rtv::bfoOn) {
-#ifdef IhaveCrystal
-        tft.drawString(String(config.data.currentBFOStep) + " Hz", StatusLineBfoX, 15);
-#endif
-    } else {
+    // TODO: A BFO-t még ki kell találni
+    if (!rtv::bfoOn) {
         tft.drawString(F(" BFO "), StatusLineBfoX, 15);
     }
     tft.drawRect(0, 2, ButtonWidth, ButtonHeight, bfoStepColor);
@@ -93,12 +93,54 @@ void DisplayBase::drawAgcAttStatus(bool initFont) {
 }
 
 /**
+ * Antenna Tuning Capacitor Status kirajzolása
+ */
+void DisplayBase::drawAntCapStatus(bool initFont) {
+
+    using namespace DisplayConstants;
+
+    // Fontot kell váltani?
+    if (initFont) {
+        tft.setFreeFont();
+        tft.setTextSize(1);
+    }
+
+    // Töröljük a területet, mielőtt rajzolunk, pontosan a kocka méretével
+    tft.fillRect(StatusLineAntCapX - (ButtonWidth / 2), 0, ButtonWidth, StatusLineHeight, TFT_COLOR_BACKGROUND);
+
+    // Kiírjuk az értéket
+    uint16_t currentAntCap = band.getCurrentBand().varData.antCap;
+    bool isDefault = (currentAntCap == band.getDefaultAntCapValue());
+    uint16_t antCapColor = isDefault ? StatusLineAntCapDefaultColor : StatusLineAntCapChangedColor;
+    tft.setTextColor(antCapColor, TFT_BLACK);
+
+    String value;
+    if (isDefault) {
+        value = F("AntC");  // A String konstruktor tudja kezelni a F() makrót
+    } else {
+        // Explicit String konverzió a számhoz, majd hozzáfűzés
+        value = String(currentAntCap);
+        // if (currentAntCap < 1000) {
+        value += F("pF");  // F() makró használata a "pF"-hez is memóriatakarékosabb lehet
+        //}
+    }
+
+    // Kiírjuk az értéket (középre igazítva a téglalaphoz)
+    tft.setTextDatum(MC_DATUM);                                          // Középre igazítás
+    tft.drawString(value, StatusLineAntCapX, StatusLineHeight / 2 + 2);  // Y pozíció középre
+    tft.setTextDatum(BC_DATUM);                                          // Visszaállítás az alapértelmezettre
+
+    // Kirajzoljuk a keretet
+    tft.drawRect(StatusLineAntCapX - (ButtonWidth / 2), 2, ButtonWidth, ButtonHeight, antCapColor);
+}
+
+/**
  * Státusz a képernyő tetején
  */
 void DisplayBase::dawStatusLine() {
     using namespace DisplayConstants;
 
-    tft.fillRect(0, 0, StatusLineWidth, StatusLineHeight, TFT_COLOR_BACKGROUND);
+    // tft.fillRect(0, 0, StatusLineWidth, StatusLineHeight, TFT_COLOR_BACKGROUND);
 
     tft.setFreeFont();
     tft.setTextSize(1);
@@ -140,6 +182,9 @@ void DisplayBase::dawStatusLine() {
     uint8_t currentStep = currentBand.varData.currStep;
     tft.drawString(String(currentStep * (currentBand.varData.currMod == FM ? 10 : 1)) + "kHz", StatusLineStepX, 15);
     tft.drawRect(200, 2, ButtonWidth, ButtonHeight, StatusLineStepColor);
+
+    // Antenna Tuning Capacitor
+    drawAntCapStatus();
 }
 
 /**

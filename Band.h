@@ -91,9 +91,35 @@ class Band {
 
     /**
      * Band beállítása
-     * @param loadPrefDeMod prefereált demodulációt betöltsük?
+     * @param useDefaults default adatok betültése?
      */
-    void bandSet(bool loadPrefDeMod = false);
+    void bandSet(bool useDefaults = false);
+
+    /**
+     * A Default Antenna Tuning Capacitor értékének lekérdezése
+     * @return Az alapértelmezett antenna tuning capacitor értéke
+     */
+    uint16_t getDefaultAntCapValue() {
+
+        // Kikeressük az aktuális Band rekordot
+        BandTable &currentBand = getCurrentBand();
+        uint8_t currentBandType = getCurrentBandType();
+        switch (currentBandType) {
+
+            case FM_BAND_TYPE:
+                return 0;  // FM band esetén nincs antenna tuning capacitor
+
+            case MW_BAND_TYPE:
+            case LW_BAND_TYPE:
+                return 0;  // Sima AM esetén sem kell antenna tuning capacitor
+
+            case SW_BAND_TYPE:
+                return 1;  // SW band esetén antenna tuning capacitor szükséges
+
+            default:
+                return 0;  // Alapértelmezett érték
+        }
+    }
 
     /**
      *

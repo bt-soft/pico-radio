@@ -85,11 +85,19 @@ void AmDisplay::processScreenButtonTouchEvent(TftButton::ButtonTouchEvent &event
 
         int antCapValue = 0;
 
-        DisplayBase::pDialog = new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value:"), &antCapValue, (int)0, (int)maxValue,
-                                                     (int)0,  // A rotary encoder értéke lesz a step
-                                                     [this](int newValue) {
-                                                         Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);  //
-                                                     });
+        DisplayBase::pDialog =
+            new ValueChangeDialog(this, DisplayBase::tft, 270, 150, F("Antenna Tuning capacitor"), F("Capacitor value [pF]:"), &antCapValue, (int)0, (int)maxValue,
+                                  (int)0,  // A rotary encoder értéke lesz a step
+                                  [this](int newValue) {
+                                      // Az új érték beállítása a Band táblába
+                                      band.getCurrentBand().varData.antCap = newValue;
+
+                                      // Az új érték beállítása a Si4735-be
+                                      Si4735Utils::si4735.setTuneFrequencyAntennaCapacitor(newValue);
+
+                                      // Frissítjük a státusvonalban a kiírást
+                                      DisplayBase::drawAntCapStatus(true);
+                                  });
     }
 }
 
