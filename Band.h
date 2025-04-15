@@ -19,7 +19,8 @@
 #define AM 3
 #define CW 4
 
-#define DEFAULT_CW_SHIFT_FREQUENCY 700  // CW alap offset
+#define CW_DEMOD_MODE LSB       // CW demodulációs mód = LSB + 700Hz offset
+#define CW_SHIFT_FREQUENCY 700  // CW alap offset
 
 // BandTable állandó része (PROGMEM-ben tároljuk)
 struct BandTableConst {

@@ -220,6 +220,9 @@ bool FmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
     // RDS törlés
     pRds->clearRds();
 
+    // Beállítjuk, hogy kell majd új frekvenciakijelzés
+    DisplayBase::frequencyChanged = true;
+
     return true;
 }
 
@@ -264,10 +267,8 @@ void FmDisplay::displayLoop() {
     }
 
     // A Frekvenciát azonnal frissítjuk, de csak ha változott
-    static uint16_t lastFreq = 0;
-    uint16_t currFreq = currentBand.varData.currFreq;  // A Rotary változtatásakor már eltettük a Band táblába
-    if (lastFreq != currFreq) {
-        pSevenSegmentFreq->freqDispl(currFreq);
-        lastFreq = currFreq;
+    if (DisplayBase::frequencyChanged) {
+        pSevenSegmentFreq->freqDispl(currentBand.varData.currFreq);
+        DisplayBase::frequencyChanged = false;  // Reset
     }
 }

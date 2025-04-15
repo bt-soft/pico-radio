@@ -79,6 +79,9 @@ class DisplayBase : public Si4735Utils, public IGuiEvents, public IDialogParent 
     // A képernyőn megjelenő dialog pointere
     DialogBase *pDialog = nullptr;
 
+    // Frekvencia változott-e az utolsó kijelzés frissítés óta?
+    bool frequencyChanged = false;
+
     /**
      * Gombok automatikus pozicionálása
      */

@@ -175,10 +175,7 @@ void DisplayBase::dawStatusLine() {
 
     // Demodulációs mód
     tft.setTextColor(StatusLineModeColor, TFT_BLACK);
-    String modtext = band.getCurrentBandModeDesc();
-    if ((modtext == "USB") && (rtv::CWShift == true)) {
-        modtext = "CW";
-    }
+    const char *modtext = (rtv::CWShift ? "CW" : band.getCurrentBandModeDesc());
     tft.drawString(modtext, StatusLineModX, 15);
     tft.drawRect(80, 2, 29, ButtonHeight, StatusLineModeColor);
 
@@ -610,9 +607,16 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                 uint8_t newMod = event.id - DLG_MULTI_BTN_ID_START + 1;  // Az FM-et kihagyjuk!
 
                 // Ha CW módra váltunk, nullázzuk a finomhangolási BFO-t
-                if (newMod == CW) {
-                    config.data.currentBFO = 0;
+                // if (newMod == CW) {
+                //     config.data.currentBFO = 0;
+                // }
+                // CW reset
+                if (newMod != CW and rtv::CWShift == true) {
+                    currentBand.varData.lastBFO = 0;  // CW_SHIFT_FREQUENCY;
+                    config.data.currentBFO = currentBand.varData.lastBFO;
+                    rtv::CWShift = false;
                 }
+
                 // Átállítjuk a demodulációs módot
                 currentBand.varData.currMod = newMod;
 
@@ -620,7 +624,7 @@ bool DisplayBase::processMandatoryButtonTouchEvent(TftButton::ButtonTouchEvent &
                 band.bandSet(false);
 
                 // Státuszsor frissítése az új mód kijelzéséhez
-                dawStatusLine();  // <<-- FONTOS: Frissíteni kell a státuszsort!
+                dawStatusLine();  // Frissíteni kell a státuszsort!
             },
             band.getCurrentBandModeDesc());
         processed = true;

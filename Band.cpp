@@ -101,8 +101,6 @@ const FrequencyStep Band::stepSizeFM[] = {
     {"1MHz", 100}    // "1MHz" -> 100
 };
 
-#define DEFAULT_CW_SHIFT_FREQUENCY 700  // CW alap offset
-
 /**
  * Konstruktor
  */
@@ -301,8 +299,8 @@ void Band::useBand() {
 
             bool isCWMode = (currentBand.varData.currMod == CW);
 
-            // Mód beállítása (USB-t használunk alapnak CW-hez)
-            uint8_t modeForChip = isCWMode ? USB : currentBand.varData.currMod;
+            // Mód beállítása (LSB-t használunk alapnak CW-hez)
+            uint8_t modeForChip = isCWMode ? LSB : currentBand.varData.currMod;
             si4735.setSSB(currentBand.pConstData->minimumFreq, currentBand.pConstData->maximumFreq, currentBand.varData.currFreq,
                           1,  // SSB/CW esetén a step mindig 1kHz a chipen belül
                           modeForChip);
@@ -326,7 +324,7 @@ void Band::useBand() {
 
             // BFO beállítása
             // CW mód: Fix BFO offset (pl. 700 Hz) + manuális finomhangolás
-            const int16_t cwBaseOffset = isCWMode ? DEFAULT_CW_SHIFT_FREQUENCY : 0;
+            const int16_t cwBaseOffset = isCWMode ? CW_SHIFT_FREQUENCY : 0;
             si4735.setSSBBfo(cwBaseOffset + config.data.currentBFO + config.data.currentBFOmanu);
             rtv::CWShift = isCWMode;  // Jelezzük a kijelzőnek
 

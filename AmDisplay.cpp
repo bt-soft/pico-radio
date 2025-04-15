@@ -126,7 +126,7 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
     uint16_t currentFrequency = si4735.getFrequency();
 
     // SSB vagy CW módban a BFO-val finomhangolunk, de csak akkor ha a lépés nem 1000Hz, amit az si4735 amúgy is támogat
-    if (rtv::freqstep != 1000 && (currMod == LSB or currMod == USB or currMod == CW)) {
+    if (currMod == LSB or currMod == USB or currMod == CW) {
 
         if (encoderState.direction == RotaryEncoder::Direction::Up) {
 
@@ -166,7 +166,7 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
         currentBand.varData.lastBFO = config.data.currentBFO;  // Mentsük el a finomhangolást
 
         // BFO beállítása: CW esetén alap offset + finomhangolás, SSB esetén csak finomhangolás
-        const int16_t cwBaseOffset = (currMod == CW) ? DEFAULT_CW_SHIFT_FREQUENCY : 0;         // CW alap offset
+        const int16_t cwBaseOffset = (currMod == CW) ? CW_SHIFT_FREQUENCY : 0;                 // CW alap offset
         si4735.setSSBBfo(cwBaseOffset + config.data.currentBFO + config.data.currentBFOmanu);  // <- Itt állítjuk be a BFO-t Hz-ben!
 
         checkAGC();
@@ -213,6 +213,13 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
     // Elmentjük a beállított frekvenciát a Band táblába
     currentBand.varData.currFreq = si4735.getFrequency();
 
+    // Kiszámítjuk a pontos frekvenciát Hz-ben a BFO eltolással
+    uint32_t displayFreqHz = (uint32_t)currentFrequency * 1000 - currentBand.varData.lastBFO;
+    DEBUG("AmDisplay::handleRotary() -> displayFreqHz: %d\n", displayFreqHz);
+
+    // Beállítjuk, hogy kell majd új frekvenciakijelzés
+    DisplayBase::frequencyChanged = true;
+
     return true;
 }
 
@@ -244,21 +251,8 @@ void AmDisplay::displayLoop() {
     }
 
     // A Frekvenciát azonnal frissítjuk, de csak ha változott
-    static uint16_t lastFreq = 0;
-    static int16_t lastBfo = INT16_MIN;  // <-- ÚJ: Előző BFO érték tárolása (kezdetben érvénytelen érték)
-
-    uint16_t currFreq = currentBand.varData.currFreq;
-    int16_t currentBfo = 0;  // Alapértelmezett érték nem SSB/CW módhoz
-
-    // Ha SSB vagy CW módban vagyunk, olvassuk ki a BFO-t is
-    if (currMod == LSB || currMod == USB || currMod == CW) {
-        currentBfo = currentBand.varData.lastBFO;
-    }
-
-    // Frissítés, ha az alapfrekvencia VAGY (SSB/CW módban) a BFO változott
-    if (lastFreq != currFreq || ((currMod == LSB || currMod == USB || currMod == CW) && lastBfo != currentBfo)) {
-        pSevenSegmentFreq->freqDispl(currFreq);
-        lastFreq = currFreq;
-        lastBfo = currentBfo;  // <-- ÚJ: Mentsük el az aktuális BFO-t is
+    if (DisplayBase::frequencyChanged) {
+        pSevenSegmentFreq->freqDispl(currentBand.varData.currFreq);
+        DisplayBase::frequencyChanged = false;  // Reset
     }
 }

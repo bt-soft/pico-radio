@@ -209,12 +209,11 @@ void SevenSegmentFreq::freqDispl(uint16_t currentFrequency) {
     if (!screenSaverActive && (currDemod == LSB || currDemod == USB || currDemod == CW)) {
 
         // Kiszámítjuk a pontos frekvenciát Hz-ben a BFO eltolással
-        // A currentFrequency kHz-ben van, a lastBFO Hz-ben, BFO eltolás csak akkor van, ha NEM 1kHz a lépés
-        displayFreqHz = (uint32_t)currentFrequency * 1000 - (rtv::freqstep != 1000 ? currentBand.varData.lastBFO : 0);
+        displayFreqHz = (uint32_t)currentFrequency * 1000 - currentBand.varData.lastBFO;
 
         // CW módban további 700Hz eltolás (ha aktív a CW shift)
         if (rtv::CWShift) {
-            displayFreqHz += DEFAULT_CW_SHIFT_FREQUENCY;
+            displayFreqHz -= CW_SHIFT_FREQUENCY;
         }
 
         // Új formázás: kHz érték és a 100Hz/10Hz rész kiszámítása
