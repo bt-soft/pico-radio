@@ -215,7 +215,8 @@ bool AmDisplay::handleRotary(RotaryEncoder::EncoderState encoderState) {
 
     // Kiszámítjuk a pontos frekvenciát Hz-ben a BFO eltolással
     uint32_t displayFreqHz = (uint32_t)currentFrequency * 1000 - currentBand.varData.lastBFO;
-    DEBUG("AmDisplay::handleRotary() -> displayFreqHz: %d\n", displayFreqHz);
+    DEBUG("AmDisplay::handleRotary() -> displayFreqHz: %d, currentBand.varData.lastBFO: %d, config.data.currentBFO: %d \n", displayFreqHz, currentBand.varData.lastBFO,
+          config.data.currentBFO);
 
     // Beállítjuk, hogy kell majd új frekvenciakijelzés
     DisplayBase::frequencyChanged = true;
